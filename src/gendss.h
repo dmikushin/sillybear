@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,15 +22,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_GENDSS_H_
-#define DROPBEAR_GENDSS_H_
+#ifndef SILLYBEAR_GENDSS_H_
+#define SILLYBEAR_GENDSS_H_
 
 #include "dss.h"
 
-#if DROPBEAR_DSS
+#if SILLYBEAR_DSS
 
-dropbear_dss_key * gen_dss_priv_key(unsigned int size);
+sillybear_dss_key * gen_dss_priv_key(unsigned int size);
 
-#endif /* DROPBEAR_DSS */
+#endif /* SILLYBEAR_DSS */
 
-#endif /* DROPBEAR_GENDSS_H_ */
+#endif /* SILLYBEAR_GENDSS_H_ */

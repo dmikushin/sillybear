@@ -5,71 +5,71 @@
 #include "ecdsa.h"
 #include "signkey.h"
 
-#if DROPBEAR_ECDSA
+#if SILLYBEAR_ECDSA
 
 int signkey_is_ecdsa(enum signkey_type type)
 {
-	return type == DROPBEAR_SIGNKEY_ECDSA_NISTP256
-		|| type == DROPBEAR_SIGNKEY_ECDSA_NISTP384
-		|| type == DROPBEAR_SIGNKEY_ECDSA_NISTP521;
+	return type == SILLYBEAR_SIGNKEY_ECDSA_NISTP256
+		|| type == SILLYBEAR_SIGNKEY_ECDSA_NISTP384
+		|| type == SILLYBEAR_SIGNKEY_ECDSA_NISTP521;
 }
 
 enum signkey_type ecdsa_signkey_type(const ecc_key * key) {
-#if DROPBEAR_ECC_256
+#if SILLYBEAR_ECC_256
 	if (key->dp == ecc_curve_nistp256.dp) {
-		return DROPBEAR_SIGNKEY_ECDSA_NISTP256;
+		return SILLYBEAR_SIGNKEY_ECDSA_NISTP256;
 	}
 #endif
-#if DROPBEAR_ECC_384
+#if SILLYBEAR_ECC_384
 	if (key->dp == ecc_curve_nistp384.dp) {
-		return DROPBEAR_SIGNKEY_ECDSA_NISTP384;
+		return SILLYBEAR_SIGNKEY_ECDSA_NISTP384;
 	}
 #endif
-#if DROPBEAR_ECC_521
+#if SILLYBEAR_ECC_521
 	if (key->dp == ecc_curve_nistp521.dp) {
-		return DROPBEAR_SIGNKEY_ECDSA_NISTP521;
+		return SILLYBEAR_SIGNKEY_ECDSA_NISTP521;
 	}
 #endif
-	return DROPBEAR_SIGNKEY_NONE;
+	return SILLYBEAR_SIGNKEY_NONE;
 }
 
 ecc_key *gen_ecdsa_priv_key(unsigned int bit_size) {
 	const ltc_ecc_set_type *dp = NULL; /* curve domain parameters */
 	ecc_key *new_key = NULL;
 	switch (bit_size) {
-#if DROPBEAR_ECC_256
+#if SILLYBEAR_ECC_256
 		case 256:
 			dp = ecc_curve_nistp256.dp;
 			break;
 #endif
-#if DROPBEAR_ECC_384
+#if SILLYBEAR_ECC_384
 		case 384:
 			dp = ecc_curve_nistp384.dp;
 			break;
 #endif
-#if DROPBEAR_ECC_521
+#if SILLYBEAR_ECC_521
 		case 521:
 			dp = ecc_curve_nistp521.dp;
 			break;
 #endif
 	}
 	if (!dp) {
-		dropbear_exit("Key size %d isn't valid. Try "
-#if DROPBEAR_ECC_256
+		sillybear_exit("Key size %d isn't valid. Try "
+#if SILLYBEAR_ECC_256
 			"256 "
 #endif
-#if DROPBEAR_ECC_384
+#if SILLYBEAR_ECC_384
 			"384 "
 #endif
-#if DROPBEAR_ECC_521
+#if SILLYBEAR_ECC_521
 			"521 "
 #endif
 			, bit_size);
 	}
 
 	new_key = m_malloc(sizeof(*new_key));
-	if (ecc_make_key_ex(NULL, dropbear_ltc_prng, new_key, dp) != CRYPT_OK) {
-		dropbear_exit("ECC error");
+	if (ecc_make_key_ex(NULL, sillybear_ltc_prng, new_key, dp) != CRYPT_OK) {
+		sillybear_exit("ECC error");
 	}
 	return new_key;
 }
@@ -78,7 +78,7 @@ ecc_key *buf_get_ecdsa_pub_key(buffer* buf) {
 	unsigned char *key_ident = NULL, *identifier = NULL;
 	unsigned int key_ident_len, identifier_len;
 	buffer *q_buf = NULL;
-	struct dropbear_ecc_curve **curve;
+	struct sillybear_ecc_curve **curve;
 	ecc_key *new_key = NULL;
 
 	/* string   "ecdsa-sha2-[identifier]" or "sk-ecdsa-sha2-nistp256@openssh.com" */
@@ -102,7 +102,7 @@ ecc_key *buf_get_ecdsa_pub_key(buffer* buf) {
 		}
 	}
 
-	for (curve = dropbear_ecc_curves; *curve; curve++) {
+	for (curve = sillybear_ecc_curves; *curve; curve++) {
 		if (memcmp(identifier, (char*)(*curve)->name, strlen((char*)(*curve)->name)) == 0) {
 			break;
 		}
@@ -135,7 +135,7 @@ ecc_key *buf_get_ecdsa_priv_key(buffer *buf) {
 		return NULL;
 	}
 
-	if (buf_getmpint(buf, new_key->k) != DROPBEAR_SUCCESS) {
+	if (buf_getmpint(buf, new_key->k) != SILLYBEAR_SUCCESS) {
 		ecc_free(new_key);
 		m_free(new_key);
 		return NULL;
@@ -145,7 +145,7 @@ ecc_key *buf_get_ecdsa_priv_key(buffer *buf) {
 }
 
 void buf_put_ecdsa_pub_key(buffer *buf, ecc_key *key) {
-	struct dropbear_ecc_curve *curve = NULL;
+	struct sillybear_ecc_curve *curve = NULL;
 	char key_ident[30];
 
 	curve = curve_for_dp(key->dp);
@@ -162,8 +162,8 @@ void buf_put_ecdsa_priv_key(buffer *buf, ecc_key *key) {
 
 void buf_put_ecdsa_sign(buffer *buf, const ecc_key *key, const buffer *data_buf) {
 	/* Based on libtomcrypt's ecc_sign_hash but without the asn1 */
-	int err = DROPBEAR_FAILURE;
-	struct dropbear_ecc_curve *curve = NULL;
+	int err = SILLYBEAR_FAILURE;
+	struct sillybear_ecc_curve *curve = NULL;
 	hash_state hs;
 	unsigned char hash[64];
 	void *e = NULL, *p = NULL, *s = NULL, *r;
@@ -191,7 +191,7 @@ void buf_put_ecdsa_sign(buffer *buf, const ecc_key *key, const buffer *data_buf)
 
 	for (;;) {
 		ecc_key R_key; /* ephemeral key */
-		if (ecc_make_key_ex(NULL, dropbear_ltc_prng, &R_key, key->dp) != CRYPT_OK) {
+		if (ecc_make_key_ex(NULL, sillybear_ltc_prng, &R_key, key->dp) != CRYPT_OK) {
 			goto out;
 		}
 		if (ltc_mp.mpdiv(R_key.pubkey.x, p, NULL, r) != CRYPT_OK) {
@@ -236,7 +236,7 @@ void buf_put_ecdsa_sign(buffer *buf, const ecc_key *key, const buffer *data_buf)
 	buf_putmpint(sigbuf, (mp_int*)s);
 	buf_putbufstring(buf, sigbuf);
 
-	err = DROPBEAR_SUCCESS;
+	err = SILLYBEAR_SUCCESS;
 
 out:
 	if (r && s && p && e) {
@@ -247,31 +247,31 @@ out:
 		buf_free(sigbuf);
 	}
 
-	if (err == DROPBEAR_FAILURE) {
-		dropbear_exit("ECC error");
+	if (err == SILLYBEAR_FAILURE) {
+		sillybear_exit("ECC error");
 	}
 }
 
 /* returns values in s and r
-   returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+   returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 static int buf_get_ecdsa_verify_params(buffer *buf,
 			void *r, void* s) {
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 	unsigned int sig_len;
 	unsigned int sig_pos;
 
 	sig_len = buf_getint(buf);
 	sig_pos = buf->pos;
-	if (buf_getmpint(buf, r) != DROPBEAR_SUCCESS) {
+	if (buf_getmpint(buf, r) != SILLYBEAR_SUCCESS) {
 		goto out;
 	}
-	if (buf_getmpint(buf, s) != DROPBEAR_SUCCESS) {
+	if (buf_getmpint(buf, s) != SILLYBEAR_SUCCESS) {
 		goto out;
 	}
 	if (buf->pos - sig_pos != sig_len) {
 		goto out;
 	}
-	ret = DROPBEAR_SUCCESS;
+	ret = SILLYBEAR_SUCCESS;
 
 out:
 	return ret;
@@ -280,9 +280,9 @@ out:
 
 int buf_ecdsa_verify(buffer *buf, const ecc_key *key, const buffer *data_buf) {
 	/* Based on libtomcrypt's ecc_verify_hash but without the asn1 */
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 	hash_state hs;
-	struct dropbear_ecc_curve *curve = NULL;
+	struct sillybear_ecc_curve *curve = NULL;
 	unsigned char hash[64];
 	ecc_point *mG = NULL, *mQ = NULL;
 	void *r = NULL, *s = NULL, *v = NULL, *w = NULL, *u1 = NULL, *u2 = NULL, 
@@ -307,10 +307,10 @@ int buf_ecdsa_verify(buffer *buf, const ecc_key *key, const buffer *data_buf) {
 	if (ltc_init_multi(&r, &s, &v, &w, &u1, &u2, &p, &e, &m, NULL) != CRYPT_OK
 		|| !mG
 		|| !mQ) {
-		dropbear_exit("ECC error");
+		sillybear_exit("ECC error");
 	}
 
-	if (buf_get_ecdsa_verify_params(buf, r, s) != DROPBEAR_SUCCESS) {
+	if (buf_get_ecdsa_verify_params(buf, r, s) != SILLYBEAR_SUCCESS) {
 		goto out;
 	}
 
@@ -409,7 +409,7 @@ int buf_ecdsa_verify(buffer *buf, const ecc_key *key, const buffer *data_buf) {
 
    /* does v == r */
 	if (ltc_mp.compare(v, r) == LTC_MP_EQ) {
-		ret = DROPBEAR_SUCCESS;
+		ret = SILLYBEAR_SUCCESS;
 	}
 
 out:
@@ -424,4 +424,4 @@ out:
 
 
 
-#endif /* DROPBEAR_ECDSA */
+#endif /* SILLYBEAR_ECDSA */

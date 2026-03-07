@@ -80,7 +80,7 @@ static void fuzz_get_packets(buffer *inp, buffer **out_packets, unsigned int *nu
 }
 
 /* Mutate a packet buffer in-place.
-Returns DROPBEAR_FAILURE if it's too short */
+Returns SILLYBEAR_FAILURE if it's too short */
 static int buf_llvm_mutate(buffer *buf) {
     int ret;
     /* Position it after packet_length and padding_length */
@@ -92,7 +92,7 @@ static int buf_llvm_mutate(buffer *buf) {
         buf->len - buf->pos, max_size);
     size_t new_total = new_size + 1 + 4;
     // Round down to a block size
-    new_total = new_total - (new_total % dropbear_nocipher.blocksize);
+    new_total = new_total - (new_total % sillybear_nocipher.blocksize);
 
     if (new_total >= 16) {
         buf_setlen(buf, new_total);
@@ -102,12 +102,12 @@ static int buf_llvm_mutate(buffer *buf) {
         buf_putint(buf, new_size+1);
         // always just put minimum padding length = 4
         buf_putbyte(buf, 4);
-        ret = DROPBEAR_SUCCESS;
+        ret = SILLYBEAR_SUCCESS;
     } else {
         // instead put a fake packet
         buf_setlen(buf, 0);
         buf_putbytes(buf, FIXED_IGNORE_MSG, FIXED_IGNORE_MSG_LEN);
-        ret = DROPBEAR_FAILURE;
+        ret = SILLYBEAR_FAILURE;
     }
     return ret;
 }
@@ -202,7 +202,7 @@ size_t LLVMFuzzerCustomMutator(uint8_t *Data, size_t Size,
             out_packetA = alloc_packetA;
             buffer *from = packets[other];
             buf_putbytes(out_packetA, from->data, from->len);
-            if (buf_llvm_mutate(out_packetA) == DROPBEAR_FAILURE) {
+            if (buf_llvm_mutate(out_packetA) == SILLYBEAR_FAILURE) {
                 out_packetA = NULL;
             }
             // printf("mutate another %d / %d len %u -> %u\n", other, num_packets, from->len, out_packetA->len);
@@ -224,7 +224,7 @@ size_t LLVMFuzzerCustomMutator(uint8_t *Data, size_t Size,
                     out_packetB = alloc_packetB;
                     buffer *from = packets[i];
                     buf_putbytes(out_packetB, from->data, from->len);
-                    if (buf_llvm_mutate(out_packetB) == DROPBEAR_FAILURE) {
+                    if (buf_llvm_mutate(out_packetB) == SILLYBEAR_FAILURE) {
                         out_packetB = from;
                     }
                     // printf("mutate self %d / %d len %u -> %u\n", i, num_packets, from->len, out_packetB->len);

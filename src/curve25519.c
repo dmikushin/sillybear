@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -26,7 +26,7 @@
 #include "dbrandom.h"
 #include "curve25519.h"
 
-#if DROPBEAR_CURVE25519_DEP || DROPBEAR_ED25519
+#if SILLYBEAR_CURVE25519_DEP || SILLYBEAR_ED25519
 
 /* Modified TweetNaCl version 20140427, a self-contained public-domain C library.
  * https://tweetnacl.cr.yp.to/ */
@@ -40,26 +40,26 @@ typedef unsigned long long u64;
 typedef long long i64;
 typedef i64 gf[16];
 
-#if DROPBEAR_CURVE25519_DEP
+#if SILLYBEAR_CURVE25519_DEP
 static const gf
   _121665 = {0xDB41,1};
-#endif /* DROPBEAR_CURVE25519_DEP */
-#if DROPBEAR_ED25519
+#endif /* SILLYBEAR_CURVE25519_DEP */
+#if SILLYBEAR_ED25519
 static const gf
   gf0,
   gf1 = {1},
   D2 = {0xf159, 0x26b2, 0x9b94, 0xebd6, 0xb156, 0x8283, 0x149a, 0x00e0, 0xd130, 0xeef3, 0x80f2, 0x198e, 0xfce7, 0x56df, 0xd9dc, 0x2406},
   X = {0xd51a, 0x8f25, 0x2d60, 0xc956, 0xa7b2, 0x9525, 0xc760, 0x692c, 0xdc5c, 0xfdd6, 0xe231, 0xc0a4, 0x53fe, 0xcd6e, 0x36d3, 0x2169},
   Y = {0x6658, 0x6666, 0x6666, 0x6666, 0x6666, 0x6666, 0x6666, 0x6666, 0x6666, 0x6666, 0x6666, 0x6666, 0x6666, 0x6666, 0x6666, 0x6666};
-#if DROPBEAR_SIGNKEY_VERIFY
+#if SILLYBEAR_SIGNKEY_VERIFY
 static const gf
   D = {0x78a3, 0x1359, 0x4dca, 0x75eb, 0xd8ab, 0x4141, 0x0a4d, 0x0070, 0xe898, 0x7779, 0x4079, 0x8cc7, 0xfe73, 0x2b6f, 0x6cee, 0x5203},
   I = {0xa0b0, 0x4a0e, 0x1b27, 0xc4ee, 0xe478, 0xad2f, 0x1806, 0x2f43, 0xd7a7, 0x3dfb, 0x0099, 0x2b4d, 0xdf0b, 0x4fc1, 0x2480, 0x2b83};
-#endif /* DROPBEAR_SIGNKEY_VERIFY */
-#endif /* DROPBEAR_ED25519 */
+#endif /* SILLYBEAR_SIGNKEY_VERIFY */
+#endif /* SILLYBEAR_ED25519 */
 
-#if DROPBEAR_ED25519
-#if DROPBEAR_SIGNKEY_VERIFY
+#if SILLYBEAR_ED25519
+#if SILLYBEAR_SIGNKEY_VERIFY
 static int vn(const u8 *x,const u8 *y,u32 n)
 {
   u32 i,d = 0;
@@ -71,14 +71,14 @@ static int crypto_verify_32(const u8 *x,const u8 *y)
 {
   return vn(x,y,32);
 }
-#endif /* DROPBEAR_SIGNKEY_VERIFY */
+#endif /* SILLYBEAR_SIGNKEY_VERIFY */
 
 sv set25519(gf r, const gf a)
 {
   int i;
   FOR(i,16) r[i]=a[i];
 }
-#endif /* DROPBEAR_ED25519 */
+#endif /* SILLYBEAR_ED25519 */
 
 sv car25519(gf o)
 {
@@ -127,8 +127,8 @@ sv pack25519(u8 *o,const gf n)
   }
 }
 
-#if DROPBEAR_ED25519
-#if DROPBEAR_SIGNKEY_VERIFY
+#if SILLYBEAR_ED25519
+#if SILLYBEAR_SIGNKEY_VERIFY
 static int neq25519(const gf a, const gf b)
 {
   u8 c[32],d[32];
@@ -136,7 +136,7 @@ static int neq25519(const gf a, const gf b)
   pack25519(d,b);
   return crypto_verify_32(c,d);
 }
-#endif /* DROPBEAR_SIGNKEY_VERIFY */
+#endif /* SILLYBEAR_SIGNKEY_VERIFY */
 
 static u8 par25519(const gf a)
 {
@@ -144,7 +144,7 @@ static u8 par25519(const gf a)
   pack25519(d,a);
   return d[0]&1;
 }
-#endif /* DROPBEAR_ED25519 */
+#endif /* SILLYBEAR_ED25519 */
 
 sv unpack25519(gf o, const u8 *n)
 {
@@ -193,7 +193,7 @@ sv inv25519(gf o,const gf i)
   FOR(a,16) o[a]=c[a];
 }
 
-#if DROPBEAR_ED25519 && DROPBEAR_SIGNKEY_VERIFY
+#if SILLYBEAR_ED25519 && SILLYBEAR_SIGNKEY_VERIFY
 sv pow2523(gf o,const gf i)
 {
   gf c;
@@ -205,10 +205,10 @@ sv pow2523(gf o,const gf i)
   }
   FOR(a,16) o[a]=c[a];
 }
-#endif /* DROPBEAR_ED25519 && DROPBEAR_SIGNKEY_VERIFY */
+#endif /* SILLYBEAR_ED25519 && SILLYBEAR_SIGNKEY_VERIFY */
 
-#if DROPBEAR_CURVE25519_DEP
-void dropbear_curve25519_scalarmult(u8 *q,const u8 *n,const u8 *p)
+#if SILLYBEAR_CURVE25519_DEP
+void sillybear_curve25519_scalarmult(u8 *q,const u8 *n,const u8 *p)
 {
   u8 z[32];
   i64 x[80],r,i;
@@ -257,9 +257,9 @@ void dropbear_curve25519_scalarmult(u8 *q,const u8 *n,const u8 *p)
   M(x+16,x+16,x+32);
   pack25519(q,x+16);
 }
-#endif /* DROPBEAR_CURVE25519_DEP */
+#endif /* SILLYBEAR_CURVE25519_DEP */
 
-#if DROPBEAR_ED25519
+#if SILLYBEAR_ED25519
 static int crypto_hash(u8 *out,const u8 *m,u64 n)
 {
   hash_state hs;
@@ -337,7 +337,7 @@ sv scalarbase(gf p[4],const u8 *s)
   scalarmult(p,q,s);
 }
 
-void dropbear_ed25519_make_key(u8 *pk,u8 *sk)
+void sillybear_ed25519_make_key(u8 *pk,u8 *sk)
 {
   u8 d[64];
   gf p[4];
@@ -389,7 +389,7 @@ sv reduce(u8 *r)
   modL(r,x);
 }
 
-void dropbear_ed25519_sign(const u8 *m,u32 mlen,u8 *s,u32 *slen,const u8 *sk, const u8 *pk)
+void sillybear_ed25519_sign(const u8 *m,u32 mlen,u8 *s,u32 *slen,const u8 *sk, const u8 *pk)
 {
   hash_state hs;
   u8 d[64],h[64],r[64];
@@ -425,7 +425,7 @@ void dropbear_ed25519_sign(const u8 *m,u32 mlen,u8 *s,u32 *slen,const u8 *sk, co
   modL(s + 32,x);
 }
 
-#if DROPBEAR_SIGNKEY_VERIFY
+#if SILLYBEAR_SIGNKEY_VERIFY
 static int unpackneg(gf r[4],const u8 p[32])
 {
   gf t, chk, num, den, den2, den4, den6;
@@ -462,7 +462,7 @@ static int unpackneg(gf r[4],const u8 p[32])
   return 0;
 }
 
-int dropbear_ed25519_verify(const u8 *m,u32 mlen,const u8 *s,u32 slen,const u8 *pk)
+int sillybear_ed25519_verify(const u8 *m,u32 mlen,const u8 *s,u32 slen,const u8 *pk)
 {
   hash_state hs;
   u8 t[32],h[64];
@@ -490,8 +490,8 @@ int dropbear_ed25519_verify(const u8 *m,u32 mlen,const u8 *s,u32 slen,const u8 *
 
   return 0;
 }
-#endif /* DROPBEAR_SIGNKEY_VERIFY */
+#endif /* SILLYBEAR_SIGNKEY_VERIFY */
 
-#endif /* DROPBEAR_ED25519 */
+#endif /* SILLYBEAR_ED25519 */
 
-#endif /* DROPBEAR_CURVE25519_DEP || DROPBEAR_ED25519 */
+#endif /* SILLYBEAR_CURVE25519_DEP || SILLYBEAR_ED25519 */

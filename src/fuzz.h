@@ -1,9 +1,9 @@
-#ifndef DROPBEAR_FUZZ_H
-#define DROPBEAR_FUZZ_H
+#ifndef SILLYBEAR_FUZZ_H
+#define SILLYBEAR_FUZZ_H
 
 #include "config.h"
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 
 #include "includes.h"
 #include "buffer.h"
@@ -21,7 +21,7 @@ void fuzz_cli_setup(void);
 void fuzz_early_setup(void) __attribute__((constructor));
 
 // must be called once per fuzz iteration. 
-// returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE
+// returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE
 int fuzz_set_input(const uint8_t *Data, size_t Size);
 
 int fuzz_run_server(const uint8_t *Data, size_t Size, int skip_kexmaths, int postauth);
@@ -37,7 +37,7 @@ extern const char * const * fuzz_signkey_names;
 void fuzz_seed(const unsigned char* dat, unsigned int len);
 void fuzz_svr_hook_preloop(void);
 
-int fuzz_dropbear_listen(const char* address, const char* port,
+int fuzz_sillybear_listen(const char* address, const char* port,
         int *socks, unsigned int sockcount, char **errstring, int *maxfd);
 
 // helpers
@@ -57,13 +57,13 @@ void fuzz_dump(const unsigned char* data, size_t len);
 #define kill(pid, sig) fuzz_kill(pid, sig)
 #endif // FUZZ_SKIP_WRAP
 
-struct dropbear_fuzz_options {
+struct sillybear_fuzz_options {
     int fuzzing;
 
     // fuzzing input
     buffer *input;
-    struct dropbear_cipher recv_cipher;
-    struct dropbear_hash recv_mac;
+    struct sillybear_cipher recv_cipher;
+    struct sillybear_hash recv_mac;
     int wrapfds;
 
     // whether to skip slow bignum maths
@@ -71,7 +71,7 @@ struct dropbear_fuzz_options {
     // whether is svr_postauth mode
     int svr_postauth;
 
-    // dropbear_exit() jumps back
+    // sillybear_exit() jumps back
     int do_jmp;
     sigjmp_buf jmp;
 
@@ -85,7 +85,7 @@ struct dropbear_fuzz_options {
     FILE *fake_stderr;
 };
 
-extern struct dropbear_fuzz_options fuzz;
+extern struct sillybear_fuzz_options fuzz;
 
 /* guard for when fuzz.h is included by fuzz-common.c */
 #ifndef FUZZ_NO_REPLACE_STDERR
@@ -109,6 +109,6 @@ struct passwd* fuzz_getpwnam(const char *login);
 #define getpwuid(x) fuzz_getpwuid(x)
 #endif // FUZZ_NO_REPLACE_GETPW
 
-#endif /* DROPBEAR_FUZZ */
+#endif /* SILLYBEAR_FUZZ */
 
-#endif /* DROPBEAR_FUZZ_H */
+#endif /* SILLYBEAR_FUZZ_H */

@@ -1,4 +1,4 @@
-/* Taken for Dropbear from OpenSSH 5.5p1 */
+/* Taken for Sillybear from OpenSSH 5.5p1 */
 
 /* $Id: fake-rfc2553.h,v 1.16 2008/07/14 11:37:37 djm Exp $ */
 
@@ -39,8 +39,8 @@
  * that ai_family is AF_INET. Don't use it for another purpose.
  */
 
-#ifndef DROPBEAR_FAKE_RFC2553_H
-#define DROPBEAR_FAKE_RFC2553_H
+#ifndef SILLYBEAR_FAKE_RFC2553_H
+#define SILLYBEAR_FAKE_RFC2553_H
 
 #include "includes.h"
 #include <sys/types.h>

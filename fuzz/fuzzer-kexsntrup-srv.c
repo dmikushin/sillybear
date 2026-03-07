@@ -14,11 +14,11 @@ static void setup() {
 
 	keep_newkeys = (struct key_context*)m_malloc(sizeof(struct key_context));
 	keep_newkeys->algo_kex = fuzz_get_algo(sshkex, "sntrup761x25519-sha512");
-	keep_newkeys->algo_hostkey = DROPBEAR_SIGNKEY_ED25519;
+	keep_newkeys->algo_hostkey = SILLYBEAR_SIGNKEY_ED25519;
 }
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
-	if (fuzz_set_input(Data, Size) == DROPBEAR_FAILURE) {
+	if (fuzz_set_input(Data, Size) == SILLYBEAR_FAILURE) {
 		return 0;
 	}
 
@@ -46,8 +46,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 		m_malloc_free_epoch(1, 0);
 	} else {
 		m_malloc_free_epoch(1, 1);
-		TRACE(("dropbear_exit longjmped"))
-		/* dropbear_exit jumped here */
+		TRACE(("sillybear_exit longjmped"))
+		/* sillybear_exit jumped here */
 	}
 
 	return 0;

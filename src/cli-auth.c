@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * Copyright (c) 2004 by Mihnea Stoenescu
@@ -45,21 +45,21 @@ void cli_auth_getmethods() {
 
 	encrypt_packet();
 
-#if DROPBEAR_CLI_IMMEDIATE_AUTH
+#if SILLYBEAR_CLI_IMMEDIATE_AUTH
 	/* We can't haven't two auth requests in-flight with delayed zlib mode
 	since if the first one succeeds then the remote side will 
 	expect the second one to be compressed. 
 	Race described at
 	http://www.chiark.greenend.org.uk/~sgtatham/putty/wishlist/zlib-openssh.html
 	*/
-	if (ses.keys->trans.algo_comp != DROPBEAR_COMP_ZLIB_DELAY) {
+	if (ses.keys->trans.algo_comp != SILLYBEAR_COMP_ZLIB_DELAY) {
 		ses.authstate.authtypes = AUTH_TYPE_PUBKEY;
-#if DROPBEAR_USE_PASSWORD_ENV
-		if (getenv(DROPBEAR_PASSWORD_ENV)) {
+#if SILLYBEAR_USE_PASSWORD_ENV
+		if (getenv(SILLYBEAR_PASSWORD_ENV)) {
 			ses.authstate.authtypes |= AUTH_TYPE_PASSWORD | AUTH_TYPE_INTERACT;
 		}
 #endif
-		if (cli_auth_try() == DROPBEAR_SUCCESS) {
+		if (cli_auth_try() == SILLYBEAR_SUCCESS) {
 			TRACE(("skipped initial none auth query"))
 			/* Note that there will be two auth responses in-flight */
 			cli_ses.ignore_next_auth_response = 1;
@@ -126,32 +126,32 @@ void recv_msg_userauth_banner() {
  * SSH_MSG_USERAUTH_INFO_REQUEST. */
 void recv_msg_userauth_specific_60() {
 
-#if DROPBEAR_CLI_PUBKEY_AUTH
+#if SILLYBEAR_CLI_PUBKEY_AUTH
 	if (cli_ses.lastauthtype == AUTH_TYPE_PUBKEY) {
 		recv_msg_userauth_pk_ok();
 		return;
 	}
 #endif
 
-#if DROPBEAR_CLI_INTERACT_AUTH
+#if SILLYBEAR_CLI_INTERACT_AUTH
 	if (cli_ses.lastauthtype == AUTH_TYPE_INTERACT) {
 		recv_msg_userauth_info_request();
 		return;
 	}
 #endif
 
-#if DROPBEAR_CLI_PASSWORD_AUTH
+#if SILLYBEAR_CLI_PASSWORD_AUTH
 	if (cli_ses.lastauthtype == AUTH_TYPE_PASSWORD) {
 		/* Eventually there could be proper password-changing
 		 * support. However currently few servers seem to
 		 * implement it, and password auth is last-resort
 		 * regardless - keyboard-interactive is more likely
 		 * to be used anyway. */
-		dropbear_close("Your password has expired.");
+		sillybear_close("Your password has expired.");
 	}
 #endif
 
-	dropbear_exit("Unexpected userauth packet");
+	sillybear_exit("Unexpected userauth packet");
 }
 
 void recv_msg_userauth_failure() {
@@ -173,17 +173,17 @@ void recv_msg_userauth_failure() {
 
 	if (cli_ses.state != USERAUTH_REQ_SENT) {
 		/* Perhaps we should be more fatal? */
-		dropbear_exit("Unexpected userauth failure");
+		sillybear_exit("Unexpected userauth failure");
 	}
 
 	/* Password authentication is only allowed in batch mode
 	 * when a password can be provided non-interactively */
-	if (cli_opts.batch_mode && !getenv(DROPBEAR_PASSWORD_ENV)) {
+	if (cli_opts.batch_mode && !getenv(SILLYBEAR_PASSWORD_ENV)) {
 		allow_pw_auth = 0;
 	}
 	allow_pw_auth &= cli_opts.password_authentication;
 
-	/* When DROPBEAR_CLI_IMMEDIATE_AUTH is set there will be an initial response for 
+	/* When SILLYBEAR_CLI_IMMEDIATE_AUTH is set there will be an initial response for 
 	the "none" auth request, and then a response to the immediate auth request. 
 	We need to be careful handling them. */
 	if (cli_ses.ignore_next_auth_response) {
@@ -192,7 +192,7 @@ void recv_msg_userauth_failure() {
 		TRACE(("leave recv_msg_userauth_failure, ignored response, state set to USERAUTH_REQ_SENT"));
 		return;
 	} else  {
-#if DROPBEAR_CLI_PUBKEY_AUTH
+#if SILLYBEAR_CLI_PUBKEY_AUTH
 		/* If it was a pubkey auth request, we should cross that key 
 		 * off the list. */
 		if (cli_ses.lastauthtype == AUTH_TYPE_PUBKEY) {
@@ -200,7 +200,7 @@ void recv_msg_userauth_failure() {
 		}
 #endif
 
-#if DROPBEAR_CLI_INTERACT_AUTH
+#if SILLYBEAR_CLI_INTERACT_AUTH
 		/* If we get a failure message for keyboard interactive without
 		 * receiving any request info packet, then we don't bother trying
 		 * keyboard interactive again */
@@ -219,7 +219,7 @@ void recv_msg_userauth_failure() {
 	partial = buf_getbool(ses.payload);
 
 	if (partial) {
-		dropbear_log(LOG_INFO, "Authentication partially succeeded, more attempts required");
+		sillybear_log(LOG_INFO, "Authentication partially succeeded, more attempts required");
 	} else {
 		ses.authstate.failcount++;
 	}
@@ -240,19 +240,19 @@ void recv_msg_userauth_failure() {
 	for (i = 0; i <= methlen; i++) {
 		if (methods[i] == '\0') {
 			TRACE(("auth method '%s'", tok))
-#if DROPBEAR_CLI_PUBKEY_AUTH
+#if SILLYBEAR_CLI_PUBKEY_AUTH
 			if (strncmp(AUTH_METHOD_PUBKEY, tok,
 				AUTH_METHOD_PUBKEY_LEN) == 0) {
 				ses.authstate.authtypes |= AUTH_TYPE_PUBKEY;
 			}
 #endif
-#if DROPBEAR_CLI_INTERACT_AUTH
+#if SILLYBEAR_CLI_INTERACT_AUTH
 			if (allow_pw_auth
 				&& strncmp(AUTH_METHOD_INTERACT, tok, AUTH_METHOD_INTERACT_LEN) == 0) {
 				ses.authstate.authtypes |= AUTH_TYPE_INTERACT;
 			}
 #endif
-#if DROPBEAR_CLI_PASSWORD_AUTH
+#if SILLYBEAR_CLI_PASSWORD_AUTH
 			if (allow_pw_auth
 				&& strncmp(AUTH_METHOD_PASSWORD, tok, AUTH_METHOD_PASSWORD_LEN) == 0) {
 				ses.authstate.authtypes |= AUTH_TYPE_PASSWORD;
@@ -271,11 +271,11 @@ void recv_msg_userauth_failure() {
 
 void recv_msg_userauth_success() {
 	/* This function can validly get called multiple times
-	if DROPBEAR_CLI_IMMEDIATE_AUTH is set */
+	if SILLYBEAR_CLI_IMMEDIATE_AUTH is set */
 
 	DEBUG1(("received msg_userauth_success"))
 	if (cli_opts.disable_trivial_auth && cli_ses.is_trivial_auth) {
-		dropbear_exit("trivial authentication not allowed");
+		sillybear_exit("trivial authentication not allowed");
 	}
 	/* Note: in delayed-zlib mode, setting authdone here 
 	 * will enable compression in the transport layer */
@@ -283,7 +283,7 @@ void recv_msg_userauth_success() {
 	cli_ses.state = USERAUTH_SUCCESS_RCVD;
 	cli_ses.lastauthtype = AUTH_TYPE_NONE;
 
-#if DROPBEAR_CLI_PUBKEY_AUTH
+#if SILLYBEAR_CLI_PUBKEY_AUTH
 	cli_auth_pubkey_cleanup();
 #endif
 }
@@ -297,14 +297,14 @@ int cli_auth_try() {
 	
 	/* Order to try is pubkey, interactive, password.
 	 * As soon as "finished" is set for one, we don't do any more. */
-#if DROPBEAR_CLI_PUBKEY_AUTH
+#if SILLYBEAR_CLI_PUBKEY_AUTH
 	if (ses.authstate.authtypes & AUTH_TYPE_PUBKEY) {
 		finished = cli_auth_pubkey();
 		cli_ses.lastauthtype = AUTH_TYPE_PUBKEY;
 	}
 #endif
 
-#if DROPBEAR_CLI_INTERACT_AUTH
+#if SILLYBEAR_CLI_INTERACT_AUTH
 	if (!finished && cli_opts.password_authentication && (ses.authstate.authtypes & AUTH_TYPE_INTERACT)) {
 		if (ses.keys->trans.algo_crypt->cipherdesc == NULL) {
 			fprintf(stderr, "Sorry, I won't let you use interactive auth unencrypted.\n");
@@ -318,7 +318,7 @@ int cli_auth_try() {
 	}
 #endif
 
-#if DROPBEAR_CLI_PASSWORD_AUTH
+#if SILLYBEAR_CLI_PASSWORD_AUTH
 	if (!finished && cli_opts.password_authentication && (ses.authstate.authtypes & AUTH_TYPE_PASSWORD)) {
 		if (ses.keys->trans.algo_crypt->cipherdesc == NULL) {
 			fprintf(stderr, "Sorry, I won't let you use password auth unencrypted.\n");
@@ -334,29 +334,29 @@ int cli_auth_try() {
 
 	if (finished) {
 		TRACE(("leave cli_auth_try success"))
-		return DROPBEAR_SUCCESS;
+		return SILLYBEAR_SUCCESS;
 	}
 	TRACE(("leave cli_auth_try failure"))
-	return DROPBEAR_FAILURE;
+	return SILLYBEAR_FAILURE;
 }
 
-#if DROPBEAR_CLI_PASSWORD_AUTH || DROPBEAR_CLI_INTERACT_AUTH
+#if SILLYBEAR_CLI_PASSWORD_AUTH || SILLYBEAR_CLI_INTERACT_AUTH
 /* A helper for getpass() that exits if the user cancels. The returned
  * password is statically allocated by getpass() */
 char* getpass_or_cancel(const char* prompt)
 {
 	char* password = NULL;
 	
-#if DROPBEAR_USE_PASSWORD_ENV
+#if SILLYBEAR_USE_PASSWORD_ENV
 	/* Password provided in an environment var */
-	password = getenv(DROPBEAR_PASSWORD_ENV);
+	password = getenv(SILLYBEAR_PASSWORD_ENV);
 	if (password)
 	{
 		return password;
 	}
 #endif
 	if (cli_opts.batch_mode) {
-		dropbear_close("BatchMode active, no interactive session possible.");
+		sillybear_close("BatchMode active, no interactive session possible.");
 	}
 
 	if (!cli_opts.batch_mode) {
@@ -365,7 +365,7 @@ char* getpass_or_cancel(const char* prompt)
 
 	/* 0x03 is a ctrl-c character in the buffer. */
 	if (password == NULL || strchr(password, '\3') != NULL) {
-		dropbear_close("Interrupted.");
+		sillybear_close("Interrupted.");
 	}
 	return password;
 }

@@ -1,5 +1,5 @@
-#ifndef DROPBEAR_GENSIGNKEY_H
-#define DROPBEAR_GENSIGNKEY_H
+#ifndef SILLYBEAR_GENSIGNKEY_H
+#define SILLYBEAR_GENSIGNKEY_H
 
 #include "signkey.h"
 

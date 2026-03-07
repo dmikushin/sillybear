@@ -1,8 +1,8 @@
-.TH dropbearkey 1
+.TH sillybearkey 1
 .SH NAME
-dropbearkey \- create private keys for the use with dropbear(8) or dbclient(1)
+sillybearkey \- create private keys for the use with sillybear(8) or dbclient(1)
 .SH SYNOPSIS
-.B dropbearkey
+.B sillybearkey
 \-t
 .I type
 \-f
@@ -11,11 +11,11 @@ dropbearkey \- create private keys for the use with dropbear(8) or dbclient(1)
 .IR bits ]
 [\-y]
 .SH DESCRIPTION
-.B dropbearkey
+.B sillybearkey
 generates a
 \fIRSA\fR, \fIDSS\fR, \fIECDSA\fR, or \fIEd25519\fR
 format SSH private key, and saves it to a file for the use with the
-Dropbear client or server.
+Sillybear client or server.
 Note that 
 some SSH implementations
 use the term "DSA" rather than "DSS", they mean the same thing.
@@ -32,7 +32,7 @@ or
 .TP
 .B \-f \fIfile
 Write the secret key to the file
-\fIfile\fR. For client authentication ~/.ssh/id_dropbear is loaded by default
+\fIfile\fR. For client authentication ~/.ssh/id_sillybear is loaded by default
 .TP
 .B \-s \fIbits
 Set the key size to
@@ -42,20 +42,20 @@ bits, should be multiple of 8 (optional).
 .B \-y
 Just print the publickey and fingerprint for the private key in \fIfile\fR.
 .SH NOTES
-The program dropbearconvert(1) can be used to convert between Dropbear and OpenSSH key formats.
+The program sillybearconvert(1) can be used to convert between Sillybear and OpenSSH key formats.
 .P
-Dropbear does not support encrypted keys. 
+Sillybear does not support encrypted keys. 
 .SH EXAMPLE
 generate a host-key:
- # dropbearkey -t rsa -f /etc/dropbear/dropbear_rsa_host_key
+ # sillybearkey -t rsa -f /etc/sillybear/sillybear_rsa_host_key
 
 extract a public key suitable for authorized_keys from private key:
- # dropbearkey -y -f id_rsa | grep "^ssh-rsa " >> authorized_keys
+ # sillybearkey -y -f id_rsa | grep "^ssh-rsa " >> authorized_keys
 .SH AUTHOR
 Matt Johnston (matt@ucc.asn.au).
 .br
 Gerrit Pape (pape@smarden.org) wrote this manual page.
 .SH SEE ALSO
-dropbear(8), dbclient(1), dropbearconvert(1)
+sillybear(8), dbclient(1), sillybearconvert(1)
 .P
-https://matt.ucc.asn.au/dropbear/dropbear.html
+https://matt.ucc.asn.au/sillybear/sillybear.html

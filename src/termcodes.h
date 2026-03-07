@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,8 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_TERMCODES_H_
-#define DROPBEAR_TERMCODES_H_
+#ifndef SILLYBEAR_TERMCODES_H_
+#define SILLYBEAR_TERMCODES_H_
 
 #define TERMCODE_NONE 0
 #define TERMCODE_CONTROL 1
@@ -43,4 +43,4 @@ struct TermCode {
 
 extern const struct TermCode termcodes[];
 
-#endif /* DROPBEAR_TERMCODES_H_ */
+#endif /* SILLYBEAR_TERMCODES_H_ */

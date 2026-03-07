@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,8 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_QUEUE_H_
-#define DROPBEAR_QUEUE_H_
+#ifndef SILLYBEAR_QUEUE_H_
+#define SILLYBEAR_QUEUE_H_
 
 struct Link {
 

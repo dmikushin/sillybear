@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,8 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_DEBUG_H_
-#define DROPBEAR_DEBUG_H_
+#ifndef SILLYBEAR_DEBUG_H_
+#define SILLYBEAR_DEBUG_H_
 
 #include "includes.h"
 
@@ -49,14 +49,14 @@
 /*#define DEBUG_RSA*/
 
 /* The level of TRACE() statements */
-#define DROPBEAR_VERBOSE_LEVEL 4
+#define SILLYBEAR_VERBOSE_LEVEL 4
 
 #if DEBUG_TRACE
 extern int debug_trace;
 #endif
 
 /* Enable debug trace levels.
-   We can't use __VA_ARGS_ here because Dropbear supports 
+   We can't use __VA_ARGS_ here because Sillybear supports 
    old ~C89 compilers */
 /* Default is to discard output ... */
 #define DEBUG1(X)
@@ -67,23 +67,23 @@ extern int debug_trace;
 /* ... unless DEBUG_TRACE is high enough */
 #if (DEBUG_TRACE>=1)
 #undef DEBUG1
-#define DEBUG1(X) dropbear_trace1 X;
+#define DEBUG1(X) sillybear_trace1 X;
 #endif
 #if (DEBUG_TRACE>=2)
 #undef DEBUG2
-#define DEBUG2(X) dropbear_trace2 X;
+#define DEBUG2(X) sillybear_trace2 X;
 #endif
 #if (DEBUG_TRACE>=3)
 #undef DEBUG3
-#define DEBUG3(X) dropbear_trace3 X;
+#define DEBUG3(X) sillybear_trace3 X;
 #endif
 #if (DEBUG_TRACE>=4)
 #undef TRACE
-#define TRACE(X) dropbear_trace4 X;
+#define TRACE(X) sillybear_trace4 X;
 #endif
 #if (DEBUG_TRACE>=5)
 #undef TRACE2
-#define TRACE2(X) dropbear_trace5 X;
+#define TRACE2(X) sillybear_trace5 X;
 #endif
 
 /* To debug with GDB it is easier to run with no forking of child processes.

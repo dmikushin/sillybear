@@ -1,5 +1,5 @@
-#ifndef DROPBEAR_DEFAULT_OPTIONS_H_
-#define DROPBEAR_DEFAULT_OPTIONS_H_
+#ifndef SILLYBEAR_DEFAULT_OPTIONS_H_
+#define SILLYBEAR_DEFAULT_OPTIONS_H_
 /*
                      > > > Read This < < <
 
@@ -11,29 +11,29 @@ any options in this file.
 
 Customisations will also be taken from src/distrooptions.h if it exists.
 
-Options can also be defined with -DDROPBEAR_XXX=[0,1] in Makefile CFLAGS
+Options can also be defined with -DSILLYBEAR_XXX=[0,1] in Makefile CFLAGS
 
 IMPORTANT: Some options will require "make clean" after changes */
 
-#define DROPBEAR_DEFPORT "22"
+#define SILLYBEAR_DEFPORT "22"
 
 /* Listen on all interfaces */
-#define DROPBEAR_DEFADDRESS ""
+#define SILLYBEAR_DEFADDRESS ""
 
 /* Default hostkey paths - these can be specified on the command line.
  * Homedir is prepended if path begins with ~/
  */
-#define DSS_PRIV_FILENAME "/etc/dropbear/dropbear_dss_host_key"
-#define RSA_PRIV_FILENAME "/etc/dropbear/dropbear_rsa_host_key"
-#define ECDSA_PRIV_FILENAME "/etc/dropbear/dropbear_ecdsa_host_key"
-#define ED25519_PRIV_FILENAME "/etc/dropbear/dropbear_ed25519_host_key"
+#define DSS_PRIV_FILENAME "/etc/sillybear/sillybear_dss_host_key"
+#define RSA_PRIV_FILENAME "/etc/sillybear/sillybear_rsa_host_key"
+#define ECDSA_PRIV_FILENAME "/etc/sillybear/sillybear_ecdsa_host_key"
+#define ED25519_PRIV_FILENAME "/etc/sillybear/sillybear_ed25519_host_key"
 
-/* Set NON_INETD_MODE if you require daemon functionality (ie Dropbear listens
+/* Set NON_INETD_MODE if you require daemon functionality (ie Sillybear listens
  * on chosen ports and keeps accepting connections. This is the default.
  *
- * Set INETD_MODE if you want to be able to run Dropbear with inetd (or
+ * Set INETD_MODE if you want to be able to run Sillybear with inetd (or
  * similar), where it will use stdin/stdout for connections, and each process
- * lasts for a single connection. Dropbear should be invoked with the -i flag
+ * lasts for a single connection. Sillybear should be invoked with the -i flag
  * for inetd, and can only accept IPv4 connections.
  *
  * Both of these flags can be defined at once, don't compile without at least
@@ -41,12 +41,12 @@ IMPORTANT: Some options will require "make clean" after changes */
 #define NON_INETD_MODE 1
 #define INETD_MODE 1
 
-/* By default Dropbear will re-execute itself for each incoming connection so
+/* By default Sillybear will re-execute itself for each incoming connection so
    that memory layout may be re-randomised (ASLR) - exploiting
    vulnerabilities becomes harder. Re-exec causes slightly more memory use
    per connection.
    This option is ignored on non-Linux platforms at present */
-#define DROPBEAR_REEXEC 1
+#define SILLYBEAR_REEXEC 1
 
 /* Include verbose debug output, enabled with -v at runtime (repeat to increase).
  * define which level of debug output you compile in
@@ -56,124 +56,124 @@ IMPORTANT: Some options will require "make clean" after changes */
  * Level 5 = approx 8 Kb (detailed after connection) */
 #define DEBUG_TRACE 0
 
-/* Set this if you want to use the DROPBEAR_SMALL_CODE option. This can save
+/* Set this if you want to use the SILLYBEAR_SMALL_CODE option. This can save
  * several kB in binary size however will make the symmetrical ciphers and hashes
  * slower, perhaps by 50%. Recommended for small systems that aren't doing
  * much traffic. */
-#define DROPBEAR_SMALL_CODE 1
+#define SILLYBEAR_SMALL_CODE 1
 
 /* Enable X11 Forwarding - server only */
-#define DROPBEAR_X11FWD 0
+#define SILLYBEAR_X11FWD 0
 
 /* Enable TCP Fowarding */
 /* 'Local' is "-L" style (client listening port forwarded via server)
  * 'Remote' is "-R" style (server listening port forwarded via client) */
-#define DROPBEAR_CLI_LOCALTCPFWD 1
-#define DROPBEAR_CLI_REMOTETCPFWD 1
+#define SILLYBEAR_CLI_LOCALTCPFWD 1
+#define SILLYBEAR_CLI_REMOTETCPFWD 1
 
-#define DROPBEAR_SVR_LOCALTCPFWD 1
-#define DROPBEAR_SVR_REMOTETCPFWD 1
-#define DROPBEAR_SVR_LOCALSTREAMFWD 1
+#define SILLYBEAR_SVR_LOCALTCPFWD 1
+#define SILLYBEAR_SVR_REMOTETCPFWD 1
+#define SILLYBEAR_SVR_LOCALSTREAMFWD 1
 
 /* Enable Authentication Agent Forwarding */
-#define DROPBEAR_SVR_AGENTFWD 1
-#define DROPBEAR_CLI_AGENTFWD 1
+#define SILLYBEAR_SVR_AGENTFWD 1
+#define SILLYBEAR_CLI_AGENTFWD 1
 
-/* Note: Both DROPBEAR_CLI_PROXYCMD and DROPBEAR_CLI_NETCAT must be set to
+/* Note: Both SILLYBEAR_CLI_PROXYCMD and SILLYBEAR_CLI_NETCAT must be set to
  * allow multihop dbclient connections */
 
 /* Allow using -J <proxycommand> to run the connection through a
    pipe to a program, rather the normal TCP connection */
-#define DROPBEAR_CLI_PROXYCMD 1
+#define SILLYBEAR_CLI_PROXYCMD 1
 
 /* Enable "Netcat mode" option. This will forward standard input/output
  * to a remote TCP-forwarded connection */
-#define DROPBEAR_CLI_NETCAT 1
+#define SILLYBEAR_CLI_NETCAT 1
 
 /* Whether to support "-c" and "-m" flags to choose ciphers/MACs at runtime */
-#define DROPBEAR_USER_ALGO_LIST 1
+#define SILLYBEAR_USER_ALGO_LIST 1
 
 /* Encryption - at least one required.
  * AES should be enabled, some very old implementations might only
  * support 3DES.
  * Including both AES keysize variants (128 and 256) will result in
  * a minimal size increase */
-#define DROPBEAR_AES128 1
-#define DROPBEAR_AES256 1
-#define DROPBEAR_3DES 0
+#define SILLYBEAR_AES128 1
+#define SILLYBEAR_AES256 1
+#define SILLYBEAR_3DES 0
 
 /* Enable Chacha20-Poly1305 authenticated encryption mode. This is
  * generally faster than AES256 on CPU w/o dedicated AES instructions,
  * having the same key size. Recommended.
  * Compiling in will add ~5,5kB to binary size on x86-64 */
-#define DROPBEAR_CHACHA20POLY1305 1
+#define SILLYBEAR_CHACHA20POLY1305 1
 
 /* Enable "Counter Mode" for ciphers. Recommended. */
-#define DROPBEAR_ENABLE_CTR_MODE 1
+#define SILLYBEAR_ENABLE_CTR_MODE 1
 
 /* Enable CBC mode for ciphers. This has security issues though
    may be required for compatibility with old implementations */
-#define DROPBEAR_ENABLE_CBC_MODE 0
+#define SILLYBEAR_ENABLE_CBC_MODE 0
 
 /* Enable "Galois/Counter Mode" for ciphers. This authenticated
  * encryption mode is combination of CTR mode and GHASH. Recommended
  * for security and forwards compatibility, but slower than CTR on
  * CPU w/o dedicated AES/GHASH instructions.
  * Compiling in will add ~6kB to binary size on x86-64 */
-#define DROPBEAR_ENABLE_GCM_MODE 0
+#define SILLYBEAR_ENABLE_GCM_MODE 0
 
 /* Message integrity. sha2-256 is recommended as a default,
    sha1 for compatibility */
-#define DROPBEAR_SHA1_HMAC 0
-#define DROPBEAR_SHA2_256_HMAC 1
-#define DROPBEAR_SHA2_512_HMAC 0
-#define DROPBEAR_SHA1_96_HMAC 0
+#define SILLYBEAR_SHA1_HMAC 0
+#define SILLYBEAR_SHA2_256_HMAC 1
+#define SILLYBEAR_SHA2_512_HMAC 0
+#define SILLYBEAR_SHA1_96_HMAC 0
 
 /* Hostkey/public key algorithms - at least one required, these are used
  * for hostkey as well as for verifying signatures with pubkey auth.
  * RSA is recommended.
  *
  * See: RSA_PRIV_FILENAME and DSS_PRIV_FILENAME */
-#define DROPBEAR_RSA 1
+#define SILLYBEAR_RSA 1
 /* Newer SSH implementations use SHA256 for RSA signatures. SHA1
  * support is required to communicate with some older implementations.
  * It is disabled by default. */
-#define DROPBEAR_RSA_SHA1 0
+#define SILLYBEAR_RSA_SHA1 0
 
 /* DSS may be necessary to connect to some systems but is not
  * recommended for new keys (1024 bits is small, and it uses SHA1).
  * RSA key generation will be faster with bundled libtommath
- * if DROPBEAR_DSS is disabled.
- * https://github.com/mkj/dropbear/issues/174#issuecomment-1267374858 */
-#define DROPBEAR_DSS 0
+ * if SILLYBEAR_DSS is disabled.
+ * https://github.com/mkj/sillybear/issues/174#issuecomment-1267374858 */
+#define SILLYBEAR_DSS 0
 /* ECDSA is significantly faster than RSA or DSS. Compiling in ECC
  * code (either ECDSA or ECDH) increases binary size - around 30kB
  * on x86-64.
  * See: ECDSA_PRIV_FILENAME  */
-#define DROPBEAR_ECDSA 1
+#define SILLYBEAR_ECDSA 1
 
 /* Ed25519 is faster than ECDSA. Compiling in Ed25519 code increases
  * binary size - around 7,5kB on x86-64.
  * See: ED25519_PRIV_FILENAME  */
-#define DROPBEAR_ED25519 1
+#define SILLYBEAR_ED25519 1
 
 /* Allow U2F security keys for public key auth, with
  * sk-ecdsa-sha2-nistp256@openssh.com or sk-ssh-ed25519@openssh.com keys.
- * The corresponding DROPBEAR_ECDSA or DROPBEAR_ED25519 also needs to be set.
+ * The corresponding SILLYBEAR_ECDSA or SILLYBEAR_ED25519 also needs to be set.
  * This is currently server-only. */
-#define DROPBEAR_SK_KEYS 1
+#define SILLYBEAR_SK_KEYS 1
 
 /* RSA must be >=1024 */
-#define DROPBEAR_DEFAULT_RSA_SIZE 2048
+#define SILLYBEAR_DEFAULT_RSA_SIZE 2048
 /* DSS is always 1024 */
 /* ECDSA defaults to largest size configured, usually 521 */
 /* Ed25519 is always 256 */
 
 /* Add runtime flag "-R" to generate hostkeys as-needed when the first
    connection using that key type occurs.
-   This avoids the need to otherwise run "dropbearkey" and avoids some problems
+   This avoids the need to otherwise run "sillybearkey" and avoids some problems
    with badly seeded /dev/urandom when systems first boot. */
-#define DROPBEAR_DELAY_HOSTKEY 1
+#define SILLYBEAR_DELAY_HOSTKEY 1
 
 
 /* Key exchange algorithm.
@@ -188,7 +188,7 @@ IMPORTANT: Some options will require "make clean" after changes */
  * mlkem768 - post-quantum hybrid with x25519.
  *
  * group1 is too small for security though is necessary if you need
- *   compatibility with some implementations such as Dropbear versions < 0.53
+ *   compatibility with some implementations such as Sillybear versions < 0.53
  * group14 is supported by most implementations.
  * group16 provides a greater strength level but is slower and increases binary size
  * curve25519 and ecdh algorithms are faster than non-elliptic curve methods
@@ -201,19 +201,19 @@ IMPORTANT: Some options will require "make clean" after changes */
  * recommended when space is limited. Both are fast.
  * sntrup uses ~9kB code size, mlkem uses ~34kB code size (32-bit armv7).
  */
-#define DROPBEAR_DH_GROUP14_SHA1 0
-#define DROPBEAR_DH_GROUP14_SHA256 1
-#define DROPBEAR_DH_GROUP16 0
-#define DROPBEAR_CURVE25519 1
-#define DROPBEAR_SNTRUP761 1
-#define DROPBEAR_MLKEM768 1
-#define DROPBEAR_ECDH 1
-#define DROPBEAR_DH_GROUP1 0
+#define SILLYBEAR_DH_GROUP14_SHA1 0
+#define SILLYBEAR_DH_GROUP14_SHA256 1
+#define SILLYBEAR_DH_GROUP16 0
+#define SILLYBEAR_CURVE25519 1
+#define SILLYBEAR_SNTRUP761 1
+#define SILLYBEAR_MLKEM768 1
+#define SILLYBEAR_ECDH 1
+#define SILLYBEAR_DH_GROUP1 0
 
-/* When group1 is enabled it will only be allowed by Dropbear client
+/* When group1 is enabled it will only be allowed by Sillybear client
 not as a server, due to concerns over its strength. Set to 0 to allow
-group1 in Dropbear server too */
-#define DROPBEAR_DH_GROUP1_CLIENTONLY 1
+group1 in Sillybear server too */
+#define SILLYBEAR_DH_GROUP1_CLIENTONLY 1
 
 /* Control the memory/performance/compression tradeoff for zlib.
  * Set windowBits=8 for least memory usage, see your system's
@@ -222,7 +222,7 @@ group1 in Dropbear server too */
  * windowBits=8 will use 129kB for compression.
  * Both modes will use ~35kB for decompression (using windowBits=15 for
  * interoperability) */
-#define DROPBEAR_ZLIB_WINDOW_BITS 15
+#define SILLYBEAR_ZLIB_WINDOW_BITS 15
 
 /* Whether to do reverse DNS lookups. */
 #define DO_HOST_LOOKUP 0
@@ -234,7 +234,7 @@ group1 in Dropbear server too */
 
 /* Authentication Types - at least one required.
    RFC Draft requires pubkey auth, and recommends password */
-#define DROPBEAR_SVR_PASSWORD_AUTH 1
+#define SILLYBEAR_SVR_PASSWORD_AUTH 1
 
 /* Note: PAM auth is quite simple and only works for PAM modules which just do
  * a simple "Login: " "Password: " (you can edit the strings in svr-authpam.c).
@@ -242,53 +242,53 @@ group1 in Dropbear server too */
  * but there's an interface via a PAM module. It won't work for more complex
  * PAM challenge/response.
  * You can't enable both PASSWORD and PAM. */
-#define DROPBEAR_SVR_PAM_AUTH 0
+#define SILLYBEAR_SVR_PAM_AUTH 0
 
 /* ~/.ssh/authorized_keys authentication.
- * You must define DROPBEAR_SVR_PUBKEY_AUTH in order to use plugins. */
-#define DROPBEAR_SVR_PUBKEY_AUTH 1
+ * You must define SILLYBEAR_SVR_PUBKEY_AUTH in order to use plugins. */
+#define SILLYBEAR_SVR_PUBKEY_AUTH 1
 
 /* Whether to take public key options in
  * authorized_keys file into account */
-#define DROPBEAR_SVR_PUBKEY_OPTIONS 1
+#define SILLYBEAR_SVR_PUBKEY_OPTIONS 1
 
 /* Set this to 0 if your system does not have multiple user support.
    (Linux kernel CONFIG_MULTIUSER option)
    The resulting binary will not run on a normal system. */
-#define DROPBEAR_SVR_MULTIUSER 1
+#define SILLYBEAR_SVR_MULTIUSER 1
 
 /* Client authentication options */
-#define DROPBEAR_CLI_PASSWORD_AUTH 1
-#define DROPBEAR_CLI_PUBKEY_AUTH 1
+#define SILLYBEAR_CLI_PASSWORD_AUTH 1
+#define SILLYBEAR_CLI_PUBKEY_AUTH 1
 
 /* A default argument for dbclient -i <privatekey>.
  * Homedir is prepended if path begins with ~/
  */
-#define DROPBEAR_DEFAULT_CLI_AUTHKEY "~/.ssh/id_dropbear"
+#define SILLYBEAR_DEFAULT_CLI_AUTHKEY "~/.ssh/id_sillybear"
 
 /* Per client configuration file
 */
-#define DROPBEAR_USE_SSH_CONFIG 0
+#define SILLYBEAR_USE_SSH_CONFIG 0
 
-/* Allow specifying the password for dbclient via the DROPBEAR_PASSWORD
+/* Allow specifying the password for dbclient via the SILLYBEAR_PASSWORD
  * environment variable. */
-#define DROPBEAR_USE_PASSWORD_ENV 1
+#define SILLYBEAR_USE_PASSWORD_ENV 1
 
-/* Define this (as well as DROPBEAR_CLI_PASSWORD_AUTH) to allow the use of
+/* Define this (as well as SILLYBEAR_CLI_PASSWORD_AUTH) to allow the use of
  * a helper program for the ssh client. The helper program should be
  * specified in the SSH_ASKPASS environment variable, and dbclient
  * should be run with DISPLAY set and no tty. The program should
  * return the password on standard output */
-#define DROPBEAR_CLI_ASKPASS_HELPER 0
+#define SILLYBEAR_CLI_ASKPASS_HELPER 0
 
 /* Save a network roundtrip by sendng a real auth request immediately after
  * sending a query for the available methods. This is not yet enabled by default
  since it could cause problems with non-compliant servers */
-#define DROPBEAR_CLI_IMMEDIATE_AUTH 0
+#define SILLYBEAR_CLI_IMMEDIATE_AUTH 0
 
 /* Set this to use PRNGD or EGD instead of /dev/urandom */
-#define DROPBEAR_USE_PRNGD 0
-#define DROPBEAR_PRNGD_SOCKET "/var/run/dropbear-rng"
+#define SILLYBEAR_USE_PRNGD 0
+#define SILLYBEAR_PRNGD_SOCKET "/var/run/sillybear-rng"
 
 /* Specify the number of clients we will allow to be connected but
  * not yet authenticated. After this limit, connections are rejected */
@@ -322,9 +322,9 @@ group1 in Dropbear server too */
 #define MAX_PUBKEY_QUERIES 15
 
 /* Change server process to user privileges after authentication. */
-#ifndef DROPBEAR_SVR_DROP_PRIVS
+#ifndef SILLYBEAR_SVR_DROP_PRIVS
 /* Default is enabled. Should only be disabled if platforms are incompatible */
-#define DROPBEAR_SVR_DROP_PRIVS DROPBEAR_SVR_MULTIUSER
+#define SILLYBEAR_SVR_DROP_PRIVS SILLYBEAR_SVR_MULTIUSER
 #endif
 
 /* Delay introduced before closing an unauthenticated session (seconds).
@@ -337,7 +337,7 @@ group1 in Dropbear server too */
  * scripts etc. This can be overridden with the -P flag.
  * Homedir is prepended if path begins with ~/
  */
-#define DROPBEAR_PIDFILE "/var/run/dropbear.pid"
+#define SILLYBEAR_PIDFILE "/var/run/sillybear.pid"
 
 /* The command to invoke for xauth when using X11 forwarding.
  * "-q" for quiet */
@@ -345,16 +345,16 @@ group1 in Dropbear server too */
 
 
 /* If you want to enable running an sftp server (such as the one included with
- * OpenSSH), set the path below and set DROPBEAR_SFTPSERVER.
- * The sftp-server program is not provided by Dropbear itself.
+ * OpenSSH), set the path below and set SILLYBEAR_SFTPSERVER.
+ * The sftp-server program is not provided by Sillybear itself.
  * Homedir is prepended if path begins with ~/
  */
-#define DROPBEAR_SFTPSERVER 1
+#define SILLYBEAR_SFTPSERVER 1
 #define SFTPSERVER_PATH "/usr/libexec/sftp-server"
 
 /* This is used by the scp binary when used as a client binary. If you're
- * not using the Dropbear client, you'll need to change it */
-#define DROPBEAR_PATH_SSH_PROGRAM "/usr/bin/dbclient"
+ * not using the Sillybear client, you'll need to change it */
+#define SILLYBEAR_PATH_SSH_PROGRAM "/usr/bin/dbclient"
 
 /* Whether to log commands executed by a client. This only logs the
  * (single) command sent to the server, not what a user did in a
@@ -382,7 +382,7 @@ be overridden at runtime with -K. 0 disables keepalives */
 
 /* If this many KEEPALIVES are sent with no packets received from the
 other side, exit. Not run-time configurable - if you have a need
-for runtime configuration please mail the Dropbear list */
+for runtime configuration please mail the Sillybear list */
 #define DEFAULT_KEEPALIVE_LIMIT 3
 
 /* Ensure that data is received within IDLE_TIMEOUT seconds. This can
@@ -393,4 +393,4 @@ be overridden at runtime with -I. 0 disables idle timeouts */
 #define DEFAULT_PATH "/usr/bin:/bin"
 #define DEFAULT_ROOT_PATH "/usr/sbin:/usr/bin:/sbin:/bin"
 
-#endif /* DROPBEAR_DEFAULT_OPTIONS_H_ */
+#endif /* SILLYBEAR_DEFAULT_OPTIONS_H_ */

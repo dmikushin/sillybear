@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -77,7 +77,7 @@
 * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 * SUCH DAMAGE.
 *
-* Modifications for Dropbear to getusershell() are by Paul Marinceu
+* Modifications for Sillybear to getusershell() are by Paul Marinceu
 */
 
 #include "includes.h"
@@ -174,7 +174,7 @@ int daemon(int nochdir, int noclose) {
 	if (!nochdir)
 		(void)chdir("/");
 
-	if (!noclose && (fd = open(DROPBEAR_PATH_DEVNULL, O_RDWR, 0)) != -1) {
+	if (!noclose && (fd = open(SILLYBEAR_PATH_DEVNULL, O_RDWR, 0)) != -1) {
 		(void)dup2(fd, STDIN_FILENO);
 		(void)dup2(fd, STDOUT_FILENO);
 		(void)dup2(fd, STDERR_FILENO);

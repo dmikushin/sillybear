@@ -46,7 +46,7 @@ echo '#endif'
 echo '#define KRML_MUSTINLINE inline'
 echo '#define KRML_NOINLINE __attribute__((noinline, unused))'
 echo '#define KRML_HOST_EPRINTF(...)'
-echo '#define KRML_HOST_EXIT(x) dropbear_exit("mlkem")'
+echo '#define KRML_HOST_EXIT(x) sillybear_exit("mlkem")'
 echo
 
 for i in $FILES; do
@@ -94,7 +94,7 @@ cat > libcrux_mlkem768_sha3_check.c << _EOF
 #include <signal.h>
 #include <err.h>
 #include "mlkem768.h"
-#define dropbear_exit(x) exit(1)
+#define sillybear_exit(x) exit(1)
 #include "libcrux_mlkem768_sha3.h_new"
 int main(void) {
 	struct libcrux_mlkem768_keypair keypair = {0};

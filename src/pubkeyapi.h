@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -21,14 +21,14 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
-#ifndef DROPBEAR_PUBKEY_H
-#define DROPBEAR_PUBKEY_H
+#ifndef SILLYBEAR_PUBKEY_H
+#define SILLYBEAR_PUBKEY_H
 
 
 /* External Public Key API (EPKA) Plug-in Interface
  *
  * See:
- *      https://github.com/fabriziobertocci/dropbear-epka
+ *      https://github.com/fabriziobertocci/sillybear-epka
  * for additional information and examples about this API
  *
  */
@@ -37,31 +37,31 @@ struct PluginInstance;
 struct PluginSession;
 
 /* API VERSION INFORMATION - 
- * Dropbear will:
+ * Sillybear will:
  * - Reject any plugin with a major version mismatch
  * - Load and print a warning if the plugin's minor version is HIGHER than
- *   dropbear's minor version (assumes properties are added at the end of
- *   PluginInstance or PluginSession). This is a case of plugin newer than dropbear. 
- * - Reject if the plugin minor version is SMALLER than dropbear one (case
- *   of plugin older than dropbear).
+ *   sillybear's minor version (assumes properties are added at the end of
+ *   PluginInstance or PluginSession). This is a case of plugin newer than sillybear. 
+ * - Reject if the plugin minor version is SMALLER than sillybear one (case
+ *   of plugin older than sillybear).
  * - Load (with no warnings) if version match.
  */
-#define DROPBEAR_PLUGIN_VERSION_MAJOR     1
-#define DROPBEAR_PLUGIN_VERSION_MINOR     0
+#define SILLYBEAR_PLUGIN_VERSION_MAJOR     1
+#define SILLYBEAR_PLUGIN_VERSION_MINOR     0
 
 
 /* Creates an instance of the plugin.
  *
  * This is the main entry point of the plug-in and should be IMMUTABLE across
- * different API versions. Dropbear will check the version number
+ * different API versions. Sillybear will check the version number
  * returned in the api_version to match the version it understands and reject
  * any plugin for which API major version does not match.
  *
- * If the version MINOR is different, dropbear will allow the plugin to run 
- * only if: plugin_MINOR > dropbear_MINOR
+ * If the version MINOR is different, sillybear will allow the plugin to run 
+ * only if: plugin_MINOR > sillybear_MINOR
  *
- * If plugin_MINOR < dropbear_MINOR or if the MAJOR version is different
- * dropbear will reject the plugin and terminate the execution.
+ * If plugin_MINOR < sillybear_MINOR or if the MAJOR version is different
+ * sillybear will reject the plugin and terminate the execution.
  *
  * addrstring is the IP address of the client.
  *
@@ -71,7 +71,7 @@ struct PluginSession;
 typedef struct PluginInstance *(* PubkeyExtPlugin_newFn)(int verbose, 
         const char *options,
         const char *addrstring);
-#define DROPBEAR_PUBKEY_PLUGIN_FNNAME_NEW               "plugin_new"
+#define SILLYBEAR_PUBKEY_PLUGIN_FNNAME_NEW               "plugin_new"
 
 
 /* Validate a client through public key authentication
@@ -80,7 +80,7 @@ typedef struct PluginInstance *(* PubkeyExtPlugin_newFn)(int verbose,
  * in *sessionInOut.
  * If session is a non-NULL, it will reuse it.
  *
- * Returns DROPBEAR_SUCCESS (0) if success or DROPBEAR_FAILURE (-1) if
+ * Returns SILLYBEAR_SUCCESS (0) if success or SILLYBEAR_FAILURE (-1) if
  * authentication fails
  */
 typedef int (* PubkeyExtPlugin_checkPubKeyFn)(struct PluginInstance *PluginInstance,
@@ -96,7 +96,7 @@ typedef int (* PubkeyExtPlugin_checkPubKeyFn)(struct PluginInstance *PluginInsta
 typedef void (* PubkeyExtPlugin_authSuccessFn)(struct PluginSession *session);
 
 /* Deletes a session
- * TODO: Add a reason why the session is terminated. See svr_dropbear_exit (in svr-session.c)
+ * TODO: Add a reason why the session is terminated. See svr_sillybear_exit (in svr-session.c)
  */
 typedef void (* PubkeyExtPlugin_sessionDeleteFn)(struct PluginSession *session);
 
@@ -105,7 +105,7 @@ typedef void (* PubkeyExtPlugin_deleteFn)(struct PluginInstance *PluginInstance)
 
 
 /* The PluginInstance object - A simple container of the pointer to the functions used
- * by Dropbear.
+ * by Sillybear.
  *
  * A plug-in can extend it to add its own properties
  *

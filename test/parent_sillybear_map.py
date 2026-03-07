@@ -8,7 +8,7 @@ import psutil
 from pathlib import Path
 
 
-want_name = "dropbear"
+want_name = "sillybear"
 # Walks up the parent process tree, prints a r-xp line of /proc/pid/maps when
 # it finds the wanted name
 

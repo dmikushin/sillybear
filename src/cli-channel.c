@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002-2004 Matt Johnston
  * All rights reserved.

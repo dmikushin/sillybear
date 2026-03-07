@@ -13,14 +13,14 @@ import pytest
 LOCALADDR="127.0.5.5"
 
 @pytest.fixture(scope="module")
-def dropbear(request):
+def sillybear(request):
 	opt = request.config.option
 	if opt.remote:
 		yield None
 		return
 
-	# split so that "dropbearmulti dropbear" works
-	args = opt.dropbear.split() + [
+	# split so that "sillybearmulti sillybear" works
+	args = opt.sillybear.split() + [
 		"-p", LOCALADDR + ":" + opt.port, # bind locally only
 		"-r", opt.hostkey,
 		"-F", "-E",
@@ -37,7 +37,7 @@ def dropbear(request):
 	# Ready
 	yield p
 	p.terminate()
-	print("Terminated dropbear. Flushing output:")
+	print("Terminated sillybear. Flushing output:")
 	for l in p.stderr:
 		print(l.rstrip())
 	print("Done")
@@ -45,7 +45,7 @@ def dropbear(request):
 def dbclient(request, *args, **kwargs):
 	opt = request.config.option
 	host = opt.remote or LOCALADDR
-	# split so that "dropbearmulti dbclient" works
+	# split so that "sillybearmulti dbclient" works
 	base_args = opt.dbclient.split() + ["-y", host, "-p", opt.port]
 	if opt.user:
 		base_args.extend(['-l', opt.user])

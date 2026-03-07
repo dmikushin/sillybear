@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,9 +22,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_PACKET_H_
+#ifndef SILLYBEAR_PACKET_H_
 
-#define DROPBEAR_PACKET_H_
+#define SILLYBEAR_PACKET_H_
 
 #include "includes.h"
 #include "queue.h"
@@ -50,4 +50,4 @@ typedef struct PacketType {
 
 #define INIT_READBUF 128
 
-#endif /* DROPBEAR_PACKET_H_ */
+#endif /* SILLYBEAR_PACKET_H_ */

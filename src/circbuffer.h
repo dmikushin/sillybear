@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002-2004 Matt Johnston
  * All rights reserved.
@@ -22,8 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_CIRCBUFFER_H_
-#define DROPBEAR_CIRCBUFFER_H_
+#ifndef SILLYBEAR_CIRCBUFFER_H_
+#define SILLYBEAR_CIRCBUFFER_H_
 struct circbuf {
 
 	unsigned int size;

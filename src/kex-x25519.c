@@ -9,7 +9,7 @@
 #include "kex.h"
 
 /* PQ hybrids also use curve25519 internally */
-#if DROPBEAR_CURVE25519_DEP
+#if SILLYBEAR_CURVE25519_DEP
 
 struct kex_curve25519_param *gen_kexcurve25519_param() {
     /* Per http://cr.yp.to/ecdh.html */
@@ -17,7 +17,7 @@ struct kex_curve25519_param *gen_kexcurve25519_param() {
     const unsigned char basepoint[32] = {9};
 
     genrandom(param->priv, CURVE25519_LEN);
-    dropbear_curve25519_scalarmult(param->pub, param->priv, basepoint);
+    sillybear_curve25519_scalarmult(param->pub, param->priv, basepoint);
 
     return param;
 }
@@ -33,19 +33,19 @@ void kexcurve25519_derive(const struct kex_curve25519_param *param, const buffer
     char zeroes[CURVE25519_LEN] = {0};
     if (buf_pub_them->len != CURVE25519_LEN)
     {
-        dropbear_exit("Bad curve25519");
+        sillybear_exit("Bad curve25519");
     }
 
-    dropbear_curve25519_scalarmult(out, param->priv, buf_pub_them->data);
+    sillybear_curve25519_scalarmult(out, param->priv, buf_pub_them->data);
 
     if (constant_time_memcmp(zeroes, out, CURVE25519_LEN) == 0) {
-        dropbear_exit("Bad curve25519");
+        sillybear_exit("Bad curve25519");
     }
 }
 
-#endif /* DROPBEAR_CURVE25519_DEP */
+#endif /* SILLYBEAR_CURVE25519_DEP */
 
-#if DROPBEAR_CURVE25519
+#if SILLYBEAR_CURVE25519
 
 /* Only required for x25519 directly */
 void kexcurve25519_comb_key(const struct kex_curve25519_param *param, const buffer *buf_pub_them,
@@ -62,7 +62,7 @@ void kexcurve25519_comb_key(const struct kex_curve25519_param *param, const buff
 
     /* Create the remainder of the hash buffer, to generate the exchange hash.
        See RFC5656 section 4 page 7 */
-    if (IS_DROPBEAR_CLIENT) {
+    if (IS_SILLYBEAR_CLIENT) {
         Q_C = param->pub;
         Q_S = buf_pub_them->data;
     } else {
@@ -83,4 +83,4 @@ void kexcurve25519_comb_key(const struct kex_curve25519_param *param, const buff
     finish_kexhashbuf();
 }
 
-#endif /* DROPBEAR_CURVE25519 */
+#endif /* SILLYBEAR_CURVE25519 */

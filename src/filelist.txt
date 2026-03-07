@@ -68,14 +68,14 @@ dbmulti.c		Combination binary chooser main() function
 
 dbutil.c		Various utility functions, incl logging, memory etc
 
-dropbearconvert.c	Conversion from dropbear<->openssh keys, uses
+sillybearconvert.c	Conversion from sillybear<->openssh keys, uses
 			keyimport.c to do most of the work
 
-dropbearkey.c		Generates keys, calling gen{dss,rsa}
+sillybearkey.c		Generates keys, calling gen{dss,rsa}
 
 keyimport.c		Modified from PuTTY, converts between key types
 
-main.c			dropbear's main(), handles listening, forking for
+main.c			sillybear's main(), handles listening, forking for
 			new connections, child-process limits
 
 runopts.c		Parses commandline options

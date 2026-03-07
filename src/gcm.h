@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * Copyright (c) 2020 by Vladislav Grishenko
@@ -23,13 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_DROPBEAR_GCM_H_
-#define DROPBEAR_DROPBEAR_GCM_H_
+#ifndef SILLYBEAR_SILLYBEAR_GCM_H_
+#define SILLYBEAR_SILLYBEAR_GCM_H_
 
 #include "includes.h"
 #include "algo.h"
 
-#if DROPBEAR_ENABLE_GCM_MODE
+#if SILLYBEAR_ENABLE_GCM_MODE
 
 #define GCM_IVFIX_LEN 4
 #define GCM_IVCTR_LEN 8
@@ -38,10 +38,10 @@
 typedef struct {
 	gcm_state gcm;
 	unsigned char iv[GCM_NONCE_LEN];
-} dropbear_gcm_state;
+} sillybear_gcm_state;
 
-extern const struct dropbear_cipher_mode dropbear_mode_gcm;
+extern const struct sillybear_cipher_mode sillybear_mode_gcm;
 
-#endif /* DROPBEAR_ENABLE_GCM_MODE */
+#endif /* SILLYBEAR_ENABLE_GCM_MODE */
 
-#endif /* DROPBEAR_DROPBEAR_GCM_H_ */
+#endif /* SILLYBEAR_SILLYBEAR_GCM_H_ */

@@ -218,7 +218,7 @@ int wrapfd_select(int nfds, fd_set *readfds, fd_set *writefds,
 				nset++;
 			}
 		}
-		DROPBEAR_FD_ZERO(readfds);
+		SILLYBEAR_FD_ZERO(readfds);
 
 		if (nset > 0) {
 			/* set one */
@@ -245,7 +245,7 @@ int wrapfd_select(int nfds, fd_set *readfds, fd_set *writefds,
 				nset++;
 			}
 		}
-		DROPBEAR_FD_ZERO(writefds);
+		SILLYBEAR_FD_ZERO(writefds);
 
 		/* set one */
 		if (nset > 0) {

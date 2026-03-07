@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -41,10 +41,10 @@ static int checkusername(const char *username, unsigned int userlen);
 /* initialise the first time for a session, resetting all parameters */
 void svr_authinitialise() {
 	memset(&ses.authstate, 0, sizeof(ses.authstate));
-#if DROPBEAR_SVR_PUBKEY_AUTH
+#if SILLYBEAR_SVR_PUBKEY_AUTH
 	ses.authstate.authtypes |= AUTH_TYPE_PUBKEY;
 #endif
-#if DROPBEAR_SVR_PASSWORD_AUTH || DROPBEAR_SVR_PAM_AUTH
+#if SILLYBEAR_SVR_PASSWORD_AUTH || SILLYBEAR_SVR_PAM_AUTH
 	if (!svr_opts.noauthpass) {
 		ses.authstate.authtypes |= AUTH_TYPE_PASSWORD;
 	}
@@ -107,14 +107,14 @@ void recv_msg_userauth_request() {
 		m_free(username);
 		m_free(servicename);
 		m_free(methodname);
-		dropbear_exit("unknown service in auth");
+		sillybear_exit("unknown service in auth");
 	}
 
 	/* check username is good before continuing. 
 	 * the 'incrfail' varies depending on the auth method to
 	 * avoid giving away which users exist on the system through
 	 * the time delay. */
-	if (checkusername(username, userlen) == DROPBEAR_SUCCESS) {
+	if (checkusername(username, userlen) == SILLYBEAR_SUCCESS) {
 		valid_user = 1;
 	}
 
@@ -129,7 +129,7 @@ void recv_msg_userauth_request() {
 				&& !(svr_opts.norootpass && ses.authstate.pw_uid == 0) 
 				&& ses.authstate.pw_passwd[0] == '\0') 
 		{
-			dropbear_log(LOG_NOTICE, 
+			sillybear_log(LOG_NOTICE, 
 					"Auth succeeded with blank password for '%s' from %s",
 					ses.authstate.pw_name,
 					svr_ses.addrstring);
@@ -144,7 +144,7 @@ void recv_msg_userauth_request() {
 		}
 	}
 	
-#if DROPBEAR_SVR_PASSWORD_AUTH
+#if SILLYBEAR_SVR_PASSWORD_AUTH
 	if (!svr_opts.noauthpass &&
 			!(svr_opts.norootpass && ses.authstate.pw_uid == 0) ) {
 		/* user wants to try password auth */
@@ -157,7 +157,7 @@ void recv_msg_userauth_request() {
 	}
 #endif
 
-#if DROPBEAR_SVR_PAM_AUTH
+#if SILLYBEAR_SVR_PAM_AUTH
 	if (!svr_opts.noauthpass &&
 			!(svr_opts.norootpass && ses.authstate.pw_uid == 0) ) {
 		/* user wants to try password auth */
@@ -170,7 +170,7 @@ void recv_msg_userauth_request() {
 	}
 #endif
 
-#if DROPBEAR_SVR_PUBKEY_AUTH
+#if SILLYBEAR_SVR_PUBKEY_AUTH
 	/* user wants to try pubkey auth */
 	if (methodlen == AUTH_METHOD_PUBKEY_LEN &&
 			strncmp(methodname, AUTH_METHOD_PUBKEY,
@@ -191,13 +191,13 @@ out:
 }
 
 #ifdef HAVE_GETGROUPLIST
-/* returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+/* returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 static int check_group_membership(gid_t check_gid, const char* username, gid_t user_gid) {
 	int ngroups, i, ret;
 	gid_t *grouplist = NULL;
-	int match = DROPBEAR_FAILURE;
+	int match = SILLYBEAR_FAILURE;
 
-	for (ngroups = 32; ngroups <= DROPBEAR_NGROUP_MAX; ngroups *= 2) {
+	for (ngroups = 32; ngroups <= SILLYBEAR_NGROUP_MAX; ngroups *= 2) {
 		grouplist = m_malloc(sizeof(gid_t) * ngroups);
 
 		/* BSD returns ret==0 on success. Linux returns ret==ngroups on success */
@@ -210,13 +210,13 @@ static int check_group_membership(gid_t check_gid, const char* username, gid_t u
 	}
 
 	if (!grouplist) {
-		dropbear_log(LOG_ERR, "Too many groups for user '%s'", username);
-		return DROPBEAR_FAILURE;
+		sillybear_log(LOG_ERR, "Too many groups for user '%s'", username);
+		return SILLYBEAR_FAILURE;
 	}
 
 	for (i = 0; i < ngroups; i++) {
 		if (grouplist[i] == check_gid) {
-			match = DROPBEAR_SUCCESS;
+			match = SILLYBEAR_SUCCESS;
 			break;
 		}
 	}
@@ -229,50 +229,50 @@ static int check_group_membership(gid_t check_gid, const char* username, gid_t u
 /* Always use the running user's account for the session.
  * Any client username is accepted for the SSH protocol handshake,
  * but the session (shell, homedir, authorized_keys) always belongs
- * to the user that started the dropbear process.
- * returns DROPBEAR_SUCCESS on valid username, DROPBEAR_FAILURE on failure */
+ * to the user that started the sillybear process.
+ * returns SILLYBEAR_SUCCESS on valid username, SILLYBEAR_FAILURE on failure */
 static int checkusername(const char *username, unsigned int userlen) {
 
 	struct passwd *pw = NULL;
 
 	TRACE(("enter checkusername"))
 	if (userlen > MAX_USERNAME_LEN) {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	if (strlen(username) != userlen) {
-		dropbear_exit("Attempted username with a null byte");
+		sillybear_exit("Attempted username with a null byte");
 	}
 
 	if (ses.authstate.username == NULL) {
 		/* Always fill passwd from the running user, not the connecting user */
 		pw = getpwuid(getuid());
 		if (!pw) {
-			dropbear_exit("Failed to get running user info");
+			sillybear_exit("Failed to get running user info");
 		}
 		fill_passwd(pw->pw_name);
 		ses.authstate.username = m_strdup(username);
 	} else {
 		/* check username hasn't changed */
 		if (strcmp(username, ses.authstate.username) != 0) {
-			dropbear_exit("Client trying multiple usernames");
+			sillybear_exit("Client trying multiple usernames");
 		}
 	}
 
 	if (ses.authstate.checkusername_failed) {
 		TRACE(("checkusername: returning cached failure"))
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	if (!ses.authstate.pw_name) {
 		TRACE(("leave checkusername: running user lookup failed"))
 		ses.authstate.checkusername_failed = 1;
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	TRACE(("uid = %d", ses.authstate.pw_uid))
 	TRACE(("leave checkusername"))
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 }
 
 /* Send a failure message to the client, in responds to a userauth_request.
@@ -350,7 +350,7 @@ void send_msg_userauth_failure(int partial, int incrfail) {
 		}
 
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 		if (!fuzz.fuzzing)
 #endif
 		{
@@ -370,7 +370,7 @@ void send_msg_userauth_failure(int partial, int incrfail) {
 		} else {
 			userstr = ses.authstate.pw_name;
 		}
-		dropbear_exit("Max auth tries reached - user '%s'",
+		sillybear_exit("Max auth tries reached - user '%s'",
 				userstr);
 	}
 	
@@ -391,14 +391,14 @@ void send_msg_userauth_success() {
 	 * delayed-zlib mode */
 	ses.authstate.authdone = 1;
 
-#if DROPBEAR_SVR_DROP_PRIVS
+#if SILLYBEAR_SVR_DROP_PRIVS
 	/* Drop privileges as soon as authentication has happened. */
 	svr_switch_user();
 #endif
 	ses.connect_time = 0;
 
 
-#if DROPBEAR_SVR_DROP_PRIVS
+#if SILLYBEAR_SVR_DROP_PRIVS
 	/* If running as the user, we can rely on the OS
 	 * to limit allowed ports */
 	ses.allowprivport = 1;
@@ -417,17 +417,17 @@ void send_msg_userauth_success() {
 
 }
 
-#if DROPBEAR_SVR_DROP_PRIVS
-/* Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+#if SILLYBEAR_SVR_DROP_PRIVS
+/* Returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 static int utmp_gid(gid_t *ret_gid) {
 	struct group *utmp_gr = getgrnam("utmp");
 	if (!utmp_gr) {
 		TRACE(("No utmp group"));
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	*ret_gid = utmp_gr->gr_gid;
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 }
 #endif
 
@@ -435,7 +435,7 @@ static int utmp_gid(gid_t *ret_gid) {
  * Fails if not running as root and the user differs.
  *
  * This may be called either after authentication, or 
- * after shell/command fork if DROPBEAR_SVR_DROP_PRIVS is unset.
+ * after shell/command fork if SILLYBEAR_SVR_DROP_PRIVS is unset.
  */
 void svr_switch_user(void) {
 	assert(ses.authstate.authdone);
@@ -446,13 +446,13 @@ void svr_switch_user(void) {
 		if ((setgid(ses.authstate.pw_gid) < 0) ||
 			(initgroups(ses.authstate.pw_name, 
 						ses.authstate.pw_gid) < 0)) {
-			dropbear_exit("Error changing user group");
+			sillybear_exit("Error changing user group");
 		}
 
-#if DROPBEAR_SVR_DROP_PRIVS
+#if SILLYBEAR_SVR_DROP_PRIVS
 		/* Retain utmp saved group so that wtmp/utmp can be written */
 		int ret = utmp_gid(&svr_ses.utmp_gid);
-		if (ret == DROPBEAR_SUCCESS) {
+		if (ret == SILLYBEAR_SUCCESS) {
 			/* Set saved gid to utmp so that it can be
 			 * restored for login_logout() etc. This saved
 			 * group is cleared by the OS on execve() */
@@ -468,7 +468,7 @@ void svr_switch_user(void) {
 #endif
 
 		if (setuid(ses.authstate.pw_uid) < 0) {
-			dropbear_exit("Error changing user");
+			sillybear_exit("Error changing user");
 		}
 	} else {
 		/* ... but if the daemon is the same uid as the requested uid, we don't
@@ -479,31 +479,31 @@ void svr_switch_user(void) {
 		 * differing groups won't be set (as with initgroups()). The solution
 		 * is for the sysadmin not to give out the UID twice */
 		if (getuid() != ses.authstate.pw_uid) {
-			dropbear_exit("Couldn't	change user as non-root");
+			sillybear_exit("Couldn't	change user as non-root");
 		}
 	}
 }
 
 void svr_raise_gid_utmp(void) {
-#if DROPBEAR_SVR_DROP_PRIVS
+#if SILLYBEAR_SVR_DROP_PRIVS
 	if (!svr_ses.have_utmp_gid) {
 		return;
 	}
 
 	if (setegid(svr_ses.utmp_gid) != 0) {
-		dropbear_log(LOG_WARNING, "failed setegid");
+		sillybear_log(LOG_WARNING, "failed setegid");
 	}
 #endif
 }
 
 void svr_restore_gid(void) {
-#if DROPBEAR_SVR_DROP_PRIVS
+#if SILLYBEAR_SVR_DROP_PRIVS
 	if (!svr_ses.have_utmp_gid) {
 		return;
 	}
 
 	if (setegid(getgid()) != 0) {
-		dropbear_log(LOG_WARNING, "failed setegid");
+		sillybear_log(LOG_WARNING, "failed setegid");
 	}
 #endif
 }

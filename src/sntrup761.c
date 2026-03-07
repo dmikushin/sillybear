@@ -9,7 +9,7 @@
 #include <string.h>
 #include "sntrup761_compat.h"
 
-#if DROPBEAR_SNTRUP761
+#if SILLYBEAR_SNTRUP761
 
 #define crypto_declassify(x, y) do {} while (0)
 
@@ -2215,4 +2215,4 @@ int crypto_kem_sntrup761_dec(unsigned char *k, const unsigned char *c, const uns
   return 0;
 }
 
-#endif /* DROPBEAR_SNTRUP761 */
+#endif /* SILLYBEAR_SNTRUP761 */

@@ -1,15 +1,15 @@
-# This Makefile is for Dropbear SSH Server and Client
+# This Makefile is for Sillybear SSH Server and Client
 # @configure_input@
 
 # invocation:
-# make PROGRAMS="dropbear dbclient scp" MULTI=1 SCPPROGRESS=1
+# make PROGRAMS="sillybear dbclient scp" MULTI=1 SCPPROGRESS=1
 #
-# to make a multiple-program binary "dropbearmulti".
-# This example will include dropbear, scp, dropbearkey, dropbearconvert, and
+# to make a multiple-program binary "sillybearmulti".
+# This example will include sillybear, scp, sillybearkey, sillybearconvert, and
 # dbclient functionality, and includes the progress-bar functionality in scp.
 
 ifndef PROGRAMS
-	PROGRAMS=dropbear dbclient dropbearkey dropbearconvert
+	PROGRAMS=sillybear dbclient sillybearkey sillybearconvert
 endif
 
 srcdir=@srcdir@/src
@@ -68,37 +68,37 @@ _CLISVROBJS=common-session.o packet.o common-algo.o common-kex.o \
 		sntrup761.o mlkem768.o
 CLISVROBJS = $(patsubst %,$(OBJ_DIR)/%,$(_CLISVROBJS))
 
-_KEYOBJS=dropbearkey.o
+_KEYOBJS=sillybearkey.o
 KEYOBJS = $(patsubst %,$(OBJ_DIR)/%,$(_KEYOBJS))
 
-_CONVERTOBJS=dropbearconvert.o keyimport.o signkey_ossh.o
+_CONVERTOBJS=sillybearconvert.o keyimport.o signkey_ossh.o
 CONVERTOBJS = $(patsubst %,$(OBJ_DIR)/%,$(_CONVERTOBJS))
 
 _SCPOBJS=scp.o progressmeter.o atomicio.o scpmisc.o compat.o
 SCPOBJS = $(patsubst %,$(OBJ_DIR)/%,$(_SCPOBJS))
 
-ifeq (@DROPBEAR_FUZZ@, 1)
+ifeq (@SILLYBEAR_FUZZ@, 1)
 	allobjs = $(COMMONOBJS) fuzz/fuzz-common.o  fuzz/fuzz-wrapfd.o $(CLISVROBJS) $(CLIOBJS) $(SVROBJS) @CRYPTLIB@
 	allobjs:=$(subst $(OBJ_DIR)/svr-main.o, ,$(allobjs))
 	allobjs:=$(subst $(OBJ_DIR)/cli-main.o, ,$(allobjs))
 
-	dropbearobjs=$(allobjs) $(OBJ_DIR)/svr-main.o
+	sillybearobjs=$(allobjs) $(OBJ_DIR)/svr-main.o
 	dbclientobjs=$(allobjs) $(OBJ_DIR)/cli-main.o
-	dropbearkeyobjs=$(allobjs) $(KEYOBJS)
-	dropbearconvertobjs=$(allobjs) $(CONVERTOBJS)
+	sillybearkeyobjs=$(allobjs) $(KEYOBJS)
+	sillybearconvertobjs=$(allobjs) $(CONVERTOBJS)
 	# CXX only set when fuzzing
 	CXX=@CXX@
 	FUZZ_CLEAN=fuzz-clean
 else
-	dropbearobjs=$(COMMONOBJS) $(CLISVROBJS) $(SVROBJS)
+	sillybearobjs=$(COMMONOBJS) $(CLISVROBJS) $(SVROBJS)
 	dbclientobjs=$(COMMONOBJS) $(CLISVROBJS) $(CLIOBJS)
-	dropbearkeyobjs=$(COMMONOBJS) $(KEYOBJS)
-	dropbearconvertobjs=$(COMMONOBJS) $(CONVERTOBJS)
+	sillybearkeyobjs=$(COMMONOBJS) $(KEYOBJS)
+	sillybearconvertobjs=$(COMMONOBJS) $(CONVERTOBJS)
 	scpobjs=$(SCPOBJS)
 endif
 
-ifeq (@DROPBEAR_PLUGIN@, 1)
-	# rdynamic makes all the global symbols of dropbear available to all the loaded shared libraries
+ifeq (@SILLYBEAR_PLUGIN@, 1)
+	# rdynamic makes all the global symbols of sillybear available to all the loaded shared libraries
 	# this allow a plugin to reuse existing crypto/utilities like base64_decode/base64_encode without
 	# the need to rewrite them.
 	PLUGIN_LIBS=-ldl -rdynamic
@@ -130,12 +130,12 @@ EXEEXT=@EXEEXT@
 STATIC=@STATIC@
 
 # whether we're building client, server, or both for the common objects.
-# evilness so we detect 'dropbear' by itself as a word
-ifneq (,$(strip $(foreach prog, $(PROGRAMS), $(findstring ZdropbearZ, Z$(prog)Z))))
-	CPPFLAGS+= -DDROPBEAR_SERVER
+# evilness so we detect 'sillybear' by itself as a word
+ifneq (,$(strip $(foreach prog, $(PROGRAMS), $(findstring ZsillybearZ, Z$(prog)Z))))
+	CPPFLAGS+= -DSILLYBEAR_SERVER
 endif
 ifneq (,$(strip $(foreach prog, $(PROGRAMS), $(findstring ZdbclientZ, Z$(prog)Z))))
-	CPPFLAGS+= -DDROPBEAR_CLIENT
+	CPPFLAGS+= -DSILLYBEAR_CLIENT
 endif
 
 # these are exported so that libtomcrypt's makefile will use them
@@ -149,7 +149,7 @@ ifeq ($(STATIC), 1)
 endif
 
 ifeq ($(MULTI), 1)
-	TARGETS=dropbearmulti$(EXEEXT)
+	TARGETS=sillybearmulti$(EXEEXT)
 else
 	TARGETS=$(PROGRAMS)
 endif
@@ -186,26 +186,26 @@ strip: $(TARGETS)
 
 install: $(addprefix inst_, $(TARGETS))
 
-insmultidropbear: dropbearmulti$(EXEEXT)
+insmultisillybear: sillybearmulti$(EXEEXT)
 	$(INSTALL) -d $(DESTDIR)$(sbindir)
-	-rm -f $(DESTDIR)$(sbindir)/dropbear$(EXEEXT)
-	-ln -s $(bindir)/dropbearmulti$(EXEEXT) $(DESTDIR)$(sbindir)/dropbear$(EXEEXT)
+	-rm -f $(DESTDIR)$(sbindir)/sillybear$(EXEEXT)
+	-ln -s $(bindir)/sillybearmulti$(EXEEXT) $(DESTDIR)$(sbindir)/sillybear$(EXEEXT)
 	$(INSTALL) -d $(DESTDIR)$(mandir)/man8
-	$(INSTALL) -m 644 $(MAN_DIR)/dropbear.8  $(DESTDIR)$(mandir)/man8/dropbear.8
+	$(INSTALL) -m 644 $(MAN_DIR)/sillybear.8  $(DESTDIR)$(mandir)/man8/sillybear.8
 
-insmulti%: dropbearmulti$(EXEEXT)
+insmulti%: sillybearmulti$(EXEEXT)
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	-rm -f $(DESTDIR)$(bindir)/$*$(EXEEXT)
-	-ln -s $(bindir)/dropbearmulti$(EXEEXT) $(DESTDIR)$(bindir)/$*$(EXEEXT)
+	-ln -s $(bindir)/sillybearmulti$(EXEEXT) $(DESTDIR)$(bindir)/$*$(EXEEXT)
 	$(INSTALL) -d $(DESTDIR)$(mandir)/man1
 	if test -e $(MAN_DIR)/$*.1; then $(INSTALL) -m 644 $(MAN_DIR)/$*.1 $(DESTDIR)$(mandir)/man1/$*.1; fi
 
-# dropbear should go in sbin, so it needs a separate rule
-inst_dropbear: dropbear
+# sillybear should go in sbin, so it needs a separate rule
+inst_sillybear: sillybear
 	$(INSTALL) -d $(DESTDIR)$(sbindir)
-	$(INSTALL) dropbear$(EXEEXT) $(DESTDIR)$(sbindir)
+	$(INSTALL) sillybear$(EXEEXT) $(DESTDIR)$(sbindir)
 	$(INSTALL) -d $(DESTDIR)$(mandir)/man8
-	$(INSTALL) -m 644 $(MAN_DIR)/dropbear.8 $(DESTDIR)$(mandir)/man8/dropbear.8
+	$(INSTALL) -m 644 $(MAN_DIR)/sillybear.8 $(DESTDIR)$(mandir)/man8/sillybear.8
 
 inst_%: %
 	$(INSTALL) -d $(DESTDIR)$(bindir)
@@ -213,21 +213,21 @@ inst_%: %
 	$(INSTALL) -d $(DESTDIR)$(mandir)/man1
 	if test -e $(MAN_DIR)/$*.1; then $(INSTALL) -m 644 $(MAN_DIR)/$*.1 $(DESTDIR)$(mandir)/man1/$*.1; fi
 
-inst_dropbearmulti: $(addprefix insmulti, $(PROGRAMS))
+inst_sillybearmulti: $(addprefix insmulti, $(PROGRAMS))
 
 # for some reason the rule further down doesn't like $($@objs) as a prereq.
-dropbear: $(dropbearobjs)
+sillybear: $(sillybearobjs)
 dbclient: $(dbclientobjs)
-dropbearkey: $(dropbearkeyobjs)
-dropbearconvert: $(dropbearconvertobjs)
+sillybearkey: $(sillybearkeyobjs)
+sillybearconvert: $(sillybearconvertobjs)
 
-dropbear: $(HEADERS) $(LIBTOM_DEPS) Makefile
+sillybear: $(HEADERS) $(LIBTOM_DEPS) Makefile
 	$(CC) $(LDFLAGS) -o $@$(EXEEXT) $($@objs) $(LIBTOM_LIBS) $(LIBS) @CRYPTLIB@ $(PLUGIN_LIBS)
 
 dbclient: $(HEADERS) $(LIBTOM_DEPS) Makefile
 	$(CC) $(LDFLAGS) -o $@$(EXEEXT) $($@objs) $(LIBTOM_LIBS) $(LIBS)
 
-dropbearkey dropbearconvert: $(HEADERS) $(LIBTOM_DEPS) Makefile
+sillybearkey sillybearconvert: $(HEADERS) $(LIBTOM_DEPS) Makefile
 	$(CC) $(LDFLAGS) -o $@$(EXEEXT) $($@objs) $(LIBTOM_LIBS) $(LIBS)
 
 # scp doesn't use the libs so is special.
@@ -239,19 +239,19 @@ scp: $(SCPOBJS)  $(HEADERS) Makefile
 MULTIOBJS=
 ifeq ($(MULTI),1)
 	MULTIOBJS=$(OBJ_DIR)/dbmulti.o $(sort $(foreach prog, $(PROGRAMS), $($(prog)objs)))
-	CPPFLAGS+=$(addprefix -DDBMULTI_, $(PROGRAMS)) -DDROPBEAR_MULTI
+	CPPFLAGS+=$(addprefix -DDBMULTI_, $(PROGRAMS)) -DSILLYBEAR_MULTI
 endif
 
-dropbearmulti$(EXEEXT): $(HEADERS) $(MULTIOBJS) $(LIBTOM_DEPS) Makefile
+sillybearmulti$(EXEEXT): $(HEADERS) $(MULTIOBJS) $(LIBTOM_DEPS) Makefile
 	$(CC) $(LDFLAGS) -o $@ $(MULTIOBJS) $(LIBTOM_LIBS) $(LIBS) @CRYPTLIB@
 
-multibinary: dropbearmulti$(EXEEXT)
+multibinary: sillybearmulti$(EXEEXT)
 
 multilink: multibinary $(addprefix link, $(PROGRAMS))
 
 link%:
 	-rm -f $*$(EXEEXT)
-	-ln -s dropbearmulti$(EXEEXT) $*$(EXEEXT)
+	-ln -s sillybearmulti$(EXEEXT) $*$(EXEEXT)
 
 $(STATIC_LTC): $(HEADERS)
 	$(MAKE) -C libtomcrypt
@@ -267,15 +267,15 @@ ltc-clean:
 ltm-clean:
 	$(MAKE) -C libtommath clean
 
-sizes: dropbear
-	objdump -t dropbear|grep ".text"|cut -d "." -f 2|sort -rn
+sizes: sillybear
+	objdump -t sillybear|grep ".text"|cut -d "." -f 2|sort -rn
 
 clean: $(LIBTOM_CLEAN) $(FUZZ_CLEAN) thisclean
 
 thisclean:
-	-rm -f dropbear$(EXEEXT) dbclient$(EXEEXT) dropbearkey$(EXEEXT) \
-			dropbearconvert$(EXEEXT) scp$(EXEEXT) scp-progress$(EXEEXT) \
-			dropbearmulti$(EXEEXT) *.o *.da *.bb *.bbg *.prof \
+	-rm -f sillybear$(EXEEXT) dbclient$(EXEEXT) sillybearkey$(EXEEXT) \
+			sillybearconvert$(EXEEXT) scp$(EXEEXT) scp-progress$(EXEEXT) \
+			sillybearmulti$(EXEEXT) *.o *.da *.bb *.bbg *.prof \
 			$(OBJ_DIR)/*
 
 distclean: clean tidy
@@ -288,7 +288,7 @@ tidy:
 	-rm -f *~ *.gcov */*~
 
 lint:
-	cd $(srcdir); ./dropbear_lint.sh
+	cd $(srcdir); ./sillybear_lint.sh
 
 check: lint
 	$(MAKE) -C test
@@ -340,10 +340,10 @@ fuzzer-%.options: Makefile
 # run this to update hardcoded hostkeys for for fuzzing.
 # hostkeys.c is checked in to hg.
 fuzz-hostkeys:
-	dropbearkey -t rsa -f keyr
-	dropbearkey -t dss -f keyd
-	dropbearkey -t ecdsa -size 256 -f keye
-	dropbearkey -t ed25519 -f keyed25519
+	sillybearkey -t rsa -f keyr
+	sillybearkey -t dss -f keyd
+	sillybearkey -t ecdsa -size 256 -f keye
+	sillybearkey -t ed25519 -f keyed25519
 	echo > hostkeys.c
 	/usr/bin/xxd -i -a keyr >> hostkeys.c
 	/usr/bin/xxd -i -a keye >> hostkeys.c

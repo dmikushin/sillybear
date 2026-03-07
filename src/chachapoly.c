@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * Copyright (c) 2020 by Vladislav Grishenko
@@ -28,7 +28,7 @@
 #include "dbutil.h"
 #include "chachapoly.h"
 
-#if DROPBEAR_CHACHA20POLY1305
+#if SILLYBEAR_CHACHA20POLY1305
 
 #define CHACHA20_KEY_LEN 32
 #define CHACHA20_BLOCKSIZE 8
@@ -37,18 +37,18 @@
 
 static const struct ltc_cipher_descriptor dummy = {.name = NULL};
 
-static const struct dropbear_hash dropbear_chachapoly_mac =
+static const struct sillybear_hash sillybear_chachapoly_mac =
 	{NULL, POLY1305_KEY_LEN, POLY1305_TAG_LEN};
 
-const struct dropbear_cipher dropbear_chachapoly =
+const struct sillybear_cipher sillybear_chachapoly =
 	{&dummy, CHACHA20_KEY_LEN*2, CHACHA20_BLOCKSIZE};
 
-static int dropbear_chachapoly_start(int UNUSED(cipher), const unsigned char* UNUSED(IV),
+static int sillybear_chachapoly_start(int UNUSED(cipher), const unsigned char* UNUSED(IV),
 			const unsigned char *key, int keylen,
-			int UNUSED(num_rounds), dropbear_chachapoly_state *state) {
+			int UNUSED(num_rounds), sillybear_chachapoly_state *state) {
 	int err;
 
-	TRACE2(("enter dropbear_chachapoly_start"))
+	TRACE2(("enter sillybear_chachapoly_start"))
 
 	if (keylen != CHACHA20_KEY_LEN*2) {
 		return CRYPT_ERROR;
@@ -64,19 +64,19 @@ static int dropbear_chachapoly_start(int UNUSED(cipher), const unsigned char* UN
 		return err;
 	}
 
-	TRACE2(("leave dropbear_chachapoly_start"))
+	TRACE2(("leave sillybear_chachapoly_start"))
 	return CRYPT_OK;
 }
 
-static int dropbear_chachapoly_crypt(unsigned int seq,
+static int sillybear_chachapoly_crypt(unsigned int seq,
 			const unsigned char *in, unsigned char *out,
 			unsigned long len, unsigned long taglen,
-			dropbear_chachapoly_state *state, int direction) {
+			sillybear_chachapoly_state *state, int direction) {
 	poly1305_state poly;
 	unsigned char seqbuf[8], key[POLY1305_KEY_LEN], tag[POLY1305_TAG_LEN];
 	int err;
 
-	TRACE2(("enter dropbear_chachapoly_crypt"))
+	TRACE2(("enter sillybear_chachapoly_crypt"))
 
 	if (len < 4 || taglen != POLY1305_TAG_LEN) {
 		return CRYPT_ERROR;
@@ -112,17 +112,17 @@ static int dropbear_chachapoly_crypt(unsigned int seq,
 		poly1305_done(&poly, out + len, &taglen);
 	}
 
-	TRACE2(("leave dropbear_chachapoly_crypt"))
+	TRACE2(("leave sillybear_chachapoly_crypt"))
 	return CRYPT_OK;
 }
 
-static int dropbear_chachapoly_getlength(unsigned int seq,
+static int sillybear_chachapoly_getlength(unsigned int seq,
 			const unsigned char *in, unsigned int *outlen,
-			unsigned long len, dropbear_chachapoly_state *state) {
+			unsigned long len, sillybear_chachapoly_state *state) {
 	unsigned char seqbuf[8], buf[4];
 	int err;
 
-	TRACE2(("enter dropbear_chachapoly_getlength"))
+	TRACE2(("enter sillybear_chachapoly_getlength"))
 
 	if (len < sizeof(buf)) {
 		return CRYPT_ERROR;
@@ -136,13 +136,13 @@ static int dropbear_chachapoly_getlength(unsigned int seq,
 
 	LOAD32H(*outlen, buf);
 
-	TRACE2(("leave dropbear_chachapoly_getlength"))
+	TRACE2(("leave sillybear_chachapoly_getlength"))
 	return CRYPT_OK;
 }
 
-const struct dropbear_cipher_mode dropbear_mode_chachapoly =
-	{(void *)dropbear_chachapoly_start, NULL, NULL,
-	 (void *)dropbear_chachapoly_crypt,
-	 (void *)dropbear_chachapoly_getlength, &dropbear_chachapoly_mac};
+const struct sillybear_cipher_mode sillybear_mode_chachapoly =
+	{(void *)sillybear_chachapoly_start, NULL, NULL,
+	 (void *)sillybear_chachapoly_crypt,
+	 (void *)sillybear_chachapoly_getlength, &sillybear_chachapoly_mac};
 
-#endif /* DROPBEAR_CHACHA20POLY1305 */
+#endif /* SILLYBEAR_CHACHA20POLY1305 */

@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -31,7 +31,7 @@
 #include "ssh.h"
 #include "netio.h"
 
-#if DROPBEAR_CLI_REMOTETCPFWD
+#if SILLYBEAR_CLI_REMOTETCPFWD
 static int newtcpforwarded(struct Channel * channel);
 
 const struct ChanType cli_chan_tcpremote = {
@@ -44,7 +44,7 @@ const struct ChanType cli_chan_tcpremote = {
 };
 #endif
 
-#if DROPBEAR_CLI_LOCALTCPFWD
+#if SILLYBEAR_CLI_LOCALTCPFWD
 static int cli_localtcp(const char* listenaddr, 
 		unsigned int listenport, 
 		const char* remoteaddr,
@@ -59,7 +59,7 @@ static const struct ChanType cli_chan_tcplocal = {
 };
 #endif
 
-#if DROPBEAR_CLI_ANYTCPFWD
+#if SILLYBEAR_CLI_ANYTCPFWD
 static void fwd_failed(const char* format, ...) ATTRIB_PRINTF(1,2);
 static void fwd_failed(const char* format, ...)
 {
@@ -67,16 +67,16 @@ static void fwd_failed(const char* format, ...)
 	va_start(param, format);
 
 	if (cli_opts.exit_on_fwd_failure) {
-		_dropbear_exit(EXIT_FAILURE, format, param);
+		_sillybear_exit(EXIT_FAILURE, format, param);
 	} else {
-		_dropbear_log(LOG_WARNING, format, param);
+		_sillybear_log(LOG_WARNING, format, param);
 	}
 
 	va_end(param);
 }
 #endif
 
-#if DROPBEAR_CLI_LOCALTCPFWD
+#if SILLYBEAR_CLI_LOCALTCPFWD
 void setup_localtcp() {
 	m_list_elem *iter;
 	int ret;
@@ -90,7 +90,7 @@ void setup_localtcp() {
 				fwd->listenport,
 				fwd->connectaddr,
 				fwd->connectport);
-		if (ret == DROPBEAR_FAILURE) {
+		if (ret == SILLYBEAR_FAILURE) {
 			fwd_failed("Failed local port forward %s:%d:%s:%d",
 					fwd->listenaddr,
 					fwd->listenport,
@@ -137,15 +137,15 @@ static int cli_localtcp(const char* listenaddr,
 
 	ret = listen_tcpfwd(tcpinfo, NULL);
 
-	if (ret == DROPBEAR_FAILURE) {
+	if (ret == SILLYBEAR_FAILURE) {
 		m_free(tcpinfo);
 	}
 	TRACE(("leave cli_localtcp: %d", ret))
 	return ret;
 }
-#endif /* DROPBEAR_CLI_LOCALTCPFWD */
+#endif /* SILLYBEAR_CLI_LOCALTCPFWD */
 
-#if DROPBEAR_CLI_REMOTETCPFWD
+#if SILLYBEAR_CLI_REMOTETCPFWD
 static void send_msg_global_request_remotetcp(const char *addr, int port) {
 
 	TRACE(("enter send_msg_global_request_remotetcp"))
@@ -182,7 +182,7 @@ void cli_recv_msg_request_success() {
 				int allocport = buf_getint(ses.payload);
 				if (allocport > 0) {
 					fwd->listenport = allocport;
-					dropbear_log(LOG_INFO, "Allocated port %d for remote forward to %s:%d", 
+					sillybear_log(LOG_INFO, "Allocated port %d for remote forward to %s:%d", 
 							allocport, fwd->connectaddr, fwd->connectport);
 				}
 			}
@@ -267,14 +267,14 @@ static int newtcpforwarded(struct Channel * channel) {
 	if (iter == NULL || fwd == NULL) {
 		/* We didn't request forwarding on that port */
 		cleantext(origaddr);
-		dropbear_log(LOG_INFO, "Server sent unrequested forward from \"%s:%d\"", 
+		sillybear_log(LOG_INFO, "Server sent unrequested forward from \"%s:%d\"", 
                 origaddr, origport);
 		goto out;
 	}
 
 	snprintf(portstring, sizeof(portstring), "%u", fwd->connectport);
 	channel->conn_pending = connect_remote(fwd->connectaddr, portstring, channel_connect_done,
-		channel, NULL, NULL, DROPBEAR_PRIO_NORMAL);
+		channel, NULL, NULL, SILLYBEAR_PRIO_NORMAL);
 
 	err = SSH_OPEN_IN_PROGRESS;
 
@@ -283,4 +283,4 @@ out:
 	TRACE(("leave newtcpdirect: err %d", err))
 	return err;
 }
-#endif /* DROPBEAR_CLI_REMOTETCPFWD */
+#endif /* SILLYBEAR_CLI_REMOTETCPFWD */

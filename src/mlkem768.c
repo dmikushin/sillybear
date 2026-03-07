@@ -41,7 +41,7 @@
 
 #include "kex.h"
 
-#if DROPBEAR_MLKEM768
+#if SILLYBEAR_MLKEM768
 
 #include "dbutil.h"
 #include "compat.h"

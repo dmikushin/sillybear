@@ -21,7 +21,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 		once = 1;
 	}
 
-	if (fuzz_set_input(Data, Size) == DROPBEAR_FAILURE) {
+	if (fuzz_set_input(Data, Size) == SILLYBEAR_FAILURE) {
 		return 0;
 	}
 
@@ -29,27 +29,27 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 
 	if (setjmp(fuzz.jmp) == 0) {
 		sign_key *key = new_sign_key();
-		enum signkey_type keytype = DROPBEAR_SIGNKEY_ANY;
-		if (buf_get_pub_key(fuzz.input, key, &keytype) == DROPBEAR_SUCCESS) {
+		enum signkey_type keytype = SILLYBEAR_SIGNKEY_ANY;
+		if (buf_get_pub_key(fuzz.input, key, &keytype) == SILLYBEAR_SUCCESS) {
 			enum signature_type sigtype;
-			if (keytype == DROPBEAR_SIGNKEY_RSA) {
+			if (keytype == SILLYBEAR_SIGNKEY_RSA) {
 				/* Flip a coin to decide rsa signature type */
 				int flag = buf_getbyte(fuzz.input);
 				if (flag & 0x01) {
-					sigtype = DROPBEAR_SIGNATURE_RSA_SHA256;
+					sigtype = SILLYBEAR_SIGNATURE_RSA_SHA256;
 				} else {
-					sigtype = DROPBEAR_SIGNATURE_RSA_SHA1;
+					sigtype = SILLYBEAR_SIGNATURE_RSA_SHA1;
 				}
 			} else {
 				sigtype = signature_type_from_signkey(keytype);
 			}
-			if (buf_verify(fuzz.input, key, sigtype, verifydata) == DROPBEAR_SUCCESS) {
+			if (buf_verify(fuzz.input, key, sigtype, verifydata) == SILLYBEAR_SUCCESS) {
 				/* The fuzzer is capable of generating keys with a signature to match.
 				We don't want false positives if the key is bogus, since a client/server 
 				wouldn't be trusting a bogus key anyway */
 				int boguskey = 0;
 
-				if (keytype == DROPBEAR_SIGNKEY_DSS) {
+				if (keytype == SILLYBEAR_SIGNKEY_DSS) {
 					/* So far have seen dss keys with bad p/q/g domain parameters */
 					int pprime, qprime, trials;
 					trials = mp_prime_rabin_miller_trials(mp_count_bits(key->dsskey->p));
@@ -60,8 +60,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 					/* Could also check g**q mod p == 1 */
 				}
 
-				if (keytype == DROPBEAR_SIGNKEY_SK_ED25519 || keytype == DROPBEAR_SIGNKEY_ED25519) {
-					dropbear_ed25519_key **eck = (dropbear_ed25519_key**)signkey_key_ptr(key, keytype);
+				if (keytype == SILLYBEAR_SIGNKEY_SK_ED25519 || keytype == SILLYBEAR_SIGNKEY_ED25519) {
+					sillybear_ed25519_key **eck = (sillybear_ed25519_key**)signkey_key_ptr(key, keytype);
 					if (eck && *eck) {
 						int i;
 						/* we've seen all-zero keys validate */
@@ -87,8 +87,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 		m_malloc_free_epoch(1, 0);
 	} else {
 		m_malloc_free_epoch(1, 1);
-		TRACE(("dropbear_exit longjmped"))
-		/* dropbear_exit jumped here */
+		TRACE(("sillybear_exit longjmped"))
+		/* sillybear_exit jumped here */
 	}
 
 	return 0;

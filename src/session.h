@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,8 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_SESSION_H_
-#define DROPBEAR_SESSION_H_
+#ifndef SILLYBEAR_SESSION_H_
+#define SILLYBEAR_SESSION_H_
 
 #include "includes.h"
 #include "buffer.h"
@@ -38,7 +38,7 @@
 #include "chansession.h"
 #include "dbutil.h"
 #include "netio.h"
-#if DROPBEAR_PLUGIN
+#if SILLYBEAR_PLUGIN
 #include "pubkeyapi.h"
 #endif
 #include "gcm.h"
@@ -58,22 +58,22 @@ void fill_passwd(const char* username);
 
 /* Server */
 void svr_session(int sock, int childpipe) ATTRIB_NORETURN;
-void svr_dropbear_exit(int exitcode, const char* format, va_list param) ATTRIB_NORETURN;
-void svr_dropbear_log(int priority, const char* format, va_list param);
+void svr_sillybear_exit(int exitcode, const char* format, va_list param) ATTRIB_NORETURN;
+void svr_sillybear_log(int priority, const char* format, va_list param);
 
 /* Client */
-void cli_session(int sock_in, int sock_out, struct dropbear_progress_connection *progress, pid_t proxy_cmd_pid) ATTRIB_NORETURN;
+void cli_session(int sock_in, int sock_out, struct sillybear_progress_connection *progress, pid_t proxy_cmd_pid) ATTRIB_NORETURN;
 void cli_connected(int result, int sock, void* userdata, const char *errstring);
-void cli_dropbear_exit(int exitcode, const char* format, va_list param) ATTRIB_NORETURN;
-void cli_dropbear_log(int priority, const char* format, va_list param);
+void cli_sillybear_exit(int exitcode, const char* format, va_list param) ATTRIB_NORETURN;
+void cli_sillybear_log(int priority, const char* format, va_list param);
 void cleantext(char* dirtytext);
 void kill_proxy_command(void);
 
 /* crypto parameters that are stored individually for transmit and receive */
 struct key_context_directional {
-	const struct dropbear_cipher *algo_crypt;
-	const struct dropbear_cipher_mode *crypt_mode;
-	const struct dropbear_hash *algo_mac;
+	const struct sillybear_cipher *algo_crypt;
+	const struct sillybear_cipher_mode *crypt_mode;
+	const struct sillybear_hash *algo_mac;
 	int hash_index; /* lookup for libtomcrypt */
 	int algo_comp; /* compression */
 #ifndef DISABLE_ZLIB
@@ -81,17 +81,17 @@ struct key_context_directional {
 #endif
 	/* actual keys */
 	union {
-#if DROPBEAR_ENABLE_CBC_MODE
+#if SILLYBEAR_ENABLE_CBC_MODE
 		symmetric_CBC cbc;
 #endif
-#if DROPBEAR_ENABLE_CTR_MODE
+#if SILLYBEAR_ENABLE_CTR_MODE
 		symmetric_CTR ctr;
 #endif
-#if DROPBEAR_ENABLE_GCM_MODE
-		dropbear_gcm_state gcm;
+#if SILLYBEAR_ENABLE_GCM_MODE
+		sillybear_gcm_state gcm;
 #endif
-#if DROPBEAR_CHACHA20POLY1305
-		dropbear_chachapoly_state chachapoly;
+#if SILLYBEAR_CHACHA20POLY1305
+		sillybear_chachapoly_state chachapoly;
 #endif
 	} cipher_state;
 	unsigned char mackey[MAX_MAC_LEN];
@@ -103,7 +103,7 @@ struct key_context {
 	struct key_context_directional recv;
 	struct key_context_directional trans;
 
-	const struct dropbear_kex *algo_kex;
+	const struct sillybear_kex *algo_kex;
 	enum signkey_type algo_hostkey; /* server key type */
 	enum signature_type algo_signature; /* server signature type */
 
@@ -226,7 +226,7 @@ struct sshsession {
 	const struct ChanType **chantypes; /* The valid channel types */
 
 	/* TCP priority level for the main "port 22" tcp socket */
-	enum dropbear_prio socket_prio;
+	enum sillybear_prio socket_prio;
 
 	/* TCP forwarding - where manage listeners */
 	struct Listener ** listeners;
@@ -241,7 +241,7 @@ struct sshsession {
 	/* set once the ses structure (and cli_ses/svr_ses) have been populated to their initial state */
 	int init_done;
 
-#if DROPBEAR_PLUGIN
+#if SILLYBEAR_PLUGIN
         struct PluginSession * plugin_session;
 #endif
 };
@@ -265,11 +265,11 @@ struct serversession {
 	/* The resolved remote address, used for lastlog etc */
 	char *remotehost;
 
-#if DROPBEAR_VFORK
+#if SILLYBEAR_VFORK
 	pid_t server_pid;
 #endif
 
-#if DROPBEAR_PLUGIN
+#if SILLYBEAR_PLUGIN
 	/* The shared library handle */
 	void *plugin_handle;
 
@@ -277,7 +277,7 @@ struct serversession {
 	struct PluginInstance *plugin_instance;
 #endif
 
-#if DROPBEAR_SVR_DROP_PRIVS
+#if SILLYBEAR_SVR_DROP_PRIVS
 	/* Set to 1 when utmp_gid is valid */
 	int have_utmp_gid;
 	gid_t utmp_gid;
@@ -328,7 +328,7 @@ struct clientsession {
 						 for the last type of auth we tried */
 	int is_trivial_auth;
 	int ignore_next_auth_response;
-#if DROPBEAR_CLI_INTERACT_AUTH
+#if SILLYBEAR_CLI_INTERACT_AUTH
 	int auth_interact_failed; /* flag whether interactive auth can still
 								 be used */
 	int interact_request_received; /* flag whether we've received an 
@@ -351,12 +351,12 @@ struct clientsession {
 /* Global structs storing the state */
 extern struct sshsession ses;
 
-#if DROPBEAR_SERVER
+#if SILLYBEAR_SERVER
 extern struct serversession svr_ses;
-#endif /* DROPBEAR_SERVER */
+#endif /* SILLYBEAR_SERVER */
 
-#if DROPBEAR_CLIENT
+#if SILLYBEAR_CLIENT
 extern struct clientsession cli_ses;
-#endif /* DROPBEAR_CLIENT */
+#endif /* SILLYBEAR_CLIENT */
 
-#endif /* DROPBEAR_SESSION_H_ */
+#endif /* SILLYBEAR_SESSION_H_ */

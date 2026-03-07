@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,8 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_BIGNUM_H_
-#define DROPBEAR_BIGNUM_H_
+#ifndef SILLYBEAR_BIGNUM_H_
+#define SILLYBEAR_BIGNUM_H_
 
 #include "dbhelpers.h"
 
@@ -35,4 +35,4 @@ void bytes_to_mp(mp_int *mp, const unsigned char* bytes, unsigned int len);
 void hash_process_mp(const struct ltc_hash_descriptor *hash_desc, 
 				hash_state *hs, const mp_int *mp);
 
-#endif /* DROPBEAR_BIGNUM_H_ */
+#endif /* SILLYBEAR_BIGNUM_H_ */

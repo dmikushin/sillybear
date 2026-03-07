@@ -6,7 +6,7 @@
 #include "algo.h"
 #include "bignum.h"
 
-static const struct dropbear_kex *ecdh[3]; /* 256, 384, 521 */
+static const struct sillybear_kex *ecdh[3]; /* 256, 384, 521 */
 static struct key_context* keep_newkeys = NULL;
 /* number of generated parameters. An arbitrary limit, but will delay startup */
 #define NUM_PARAMS 80
@@ -26,7 +26,7 @@ static void setup() {
 	assert(ecdh[0]);
 	assert(ecdh[1]);
 	assert(ecdh[2]);
-	keep_newkeys->algo_hostkey = DROPBEAR_SIGNKEY_ECDSA_NISTP256;
+	keep_newkeys->algo_hostkey = SILLYBEAR_SIGNKEY_ECDSA_NISTP256;
 	ses.newkeys = keep_newkeys;
 
 	/* Pre-generate parameters */
@@ -39,7 +39,7 @@ static void setup() {
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 
-	if (fuzz_set_input(Data, Size) == DROPBEAR_FAILURE) {
+	if (fuzz_set_input(Data, Size) == SILLYBEAR_FAILURE) {
 		return 0;
 	}
 
@@ -47,7 +47,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 
 	if (setjmp(fuzz.jmp) == 0) {
 		/* Based on recv_msg_kexdh_init()/send_msg_kexdh_reply() 
-		with DROPBEAR_KEX_ECDH */
+		with SILLYBEAR_KEX_ECDH */
 		ses.newkeys = keep_newkeys;
 
 		/* random choice of ecdh 256, 384, 521 */
@@ -74,8 +74,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 		m_malloc_free_epoch(1, 0);
 	} else {
 		m_malloc_free_epoch(1, 1);
-		TRACE(("dropbear_exit longjmped"))
-		/* dropbear_exit jumped here */
+		TRACE(("sillybear_exit longjmped"))
+		/* sillybear_exit jumped here */
 	}
 
 	return 0;

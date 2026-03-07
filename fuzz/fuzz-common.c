@@ -13,9 +13,9 @@
 #include "fuzz-wrapfd.h"
 #include "fuzz.h"
 
-struct dropbear_fuzz_options fuzz;
+struct sillybear_fuzz_options fuzz;
 
-static void fuzz_dropbear_log(int UNUSED(priority), const char* format, va_list param);
+static void fuzz_sillybear_log(int UNUSED(priority), const char* format, va_list param);
 static void load_fixed_hostkeys(void);
 static void load_fixed_client_key(void);
 
@@ -31,7 +31,7 @@ void fuzz_common_setup(void) {
     fuzz.wrapfds = 1;
     fuzz.do_jmp = 1;
     fuzz.input = m_malloc(sizeof(buffer));
-    _dropbear_log = fuzz_dropbear_log;
+    _sillybear_log = fuzz_sillybear_log;
     crypto_init();
     fuzz_seed("start", 5);
     /* let any messages get flushed */
@@ -39,16 +39,16 @@ void fuzz_common_setup(void) {
 #if DEBUG_TRACE
     if (debug_trace)
     {
-        fprintf(stderr, "Dropbear fuzzer: -v specified, not disabling stderr output\n");
+        fprintf(stderr, "Sillybear fuzzer: -v specified, not disabling stderr output\n");
     }
     else
 #endif
-    if (getenv("DROPBEAR_KEEP_STDERR")) {
-        fprintf(stderr, "Dropbear fuzzer: DROPBEAR_KEEP_STDERR, not disabling stderr output\n");
+    if (getenv("SILLYBEAR_KEEP_STDERR")) {
+        fprintf(stderr, "Sillybear fuzzer: SILLYBEAR_KEEP_STDERR, not disabling stderr output\n");
     } 
     else 
     {
-        fprintf(stderr, "Dropbear fuzzer: Disabling stderr output\n");
+        fprintf(stderr, "Sillybear fuzzer: Disabling stderr output\n");
         fuzz.fake_stderr = fopen("/dev/null", "w");
         assert(fuzz.fake_stderr);
     }
@@ -69,11 +69,11 @@ int fuzz_set_input(const uint8_t *Data, size_t Size) {
 
     fuzz_seed(fuzz.input->data, MIN(fuzz.input->len, 16));
 
-    return DROPBEAR_SUCCESS;
+    return SILLYBEAR_SUCCESS;
 }
 
 #if DEBUG_TRACE
-static void fuzz_dropbear_log(int UNUSED(priority), const char* format, va_list param) {
+static void fuzz_sillybear_log(int UNUSED(priority), const char* format, va_list param) {
     if (debug_trace) {
         char printbuf[1024];
         vsnprintf(printbuf, sizeof(printbuf), format, param);
@@ -81,7 +81,7 @@ static void fuzz_dropbear_log(int UNUSED(priority), const char* format, va_list 
     }
 }
 #else
-static void fuzz_dropbear_log(int UNUSED(priority), const char* UNUSED(format), va_list UNUSED(param)) {
+static void fuzz_sillybear_log(int UNUSED(priority), const char* UNUSED(format), va_list UNUSED(param)) {
     /* No print */
 }
 #endif /* DEBUG_TRACE */
@@ -89,10 +89,10 @@ static void fuzz_dropbear_log(int UNUSED(priority), const char* UNUSED(format), 
 void fuzz_svr_setup(void) {
     fuzz_common_setup();
     
-    _dropbear_exit = svr_dropbear_exit;
+    _sillybear_exit = svr_sillybear_exit;
 
     char *argv[] = { 
-		"dropbear",
+		"sillybear",
         "-E", 
     };
 
@@ -112,8 +112,8 @@ void fuzz_svr_hook_preloop() {
 void fuzz_cli_setup(void) {
     fuzz_common_setup();
     
-	_dropbear_exit = cli_dropbear_exit;
-	_dropbear_log = cli_dropbear_log;
+	_sillybear_exit = cli_sillybear_exit;
+	_sillybear_log = cli_sillybear_log;
 
     char *argv[] = { 
 		"dbclient",
@@ -127,7 +127,7 @@ void fuzz_cli_setup(void) {
 
     load_fixed_client_key();
     /* Avoid password prompt */
-    setenv(DROPBEAR_PASSWORD_ENV, "password", 1);
+    setenv(SILLYBEAR_PASSWORD_ENV, "password", 1);
 }
 
 #include "fuzz-hostkeys.c"   
@@ -139,11 +139,11 @@ static void load_fixed_client_key(void) {
     enum signkey_type keytype;
 
     key = new_sign_key();
-    keytype = DROPBEAR_SIGNKEY_ANY;
+    keytype = SILLYBEAR_SIGNKEY_ANY;
     buf_putbytes(b, keyed25519, keyed25519_len);
     buf_setpos(b, 0);
-    if (buf_get_priv_key(b, key, &keytype) == DROPBEAR_FAILURE) {
-        dropbear_exit("failed fixed ed25519 hostkey");
+    if (buf_get_priv_key(b, key, &keytype) == SILLYBEAR_FAILURE) {
+        sillybear_exit("failed fixed ed25519 hostkey");
     }
     list_append(cli_opts.privkeys, key);
 
@@ -162,41 +162,41 @@ static void load_fixed_hostkeys(void) {
     buf_setlen(b, 0);
     buf_putbytes(b, keyr, keyr_len);
     buf_setpos(b, 0);
-    type = DROPBEAR_SIGNKEY_RSA;
-    if (buf_get_priv_key(b, svr_opts.hostkey, &type) == DROPBEAR_FAILURE) {
-        dropbear_exit("failed fixed rsa hostkey");
+    type = SILLYBEAR_SIGNKEY_RSA;
+    if (buf_get_priv_key(b, svr_opts.hostkey, &type) == SILLYBEAR_FAILURE) {
+        sillybear_exit("failed fixed rsa hostkey");
     }
 
     buf_setlen(b, 0);
     buf_putbytes(b, keyd, keyd_len);
     buf_setpos(b, 0);
-    type = DROPBEAR_SIGNKEY_DSS;
-    if (buf_get_priv_key(b, svr_opts.hostkey, &type) == DROPBEAR_FAILURE) {
-        dropbear_exit("failed fixed dss hostkey");
+    type = SILLYBEAR_SIGNKEY_DSS;
+    if (buf_get_priv_key(b, svr_opts.hostkey, &type) == SILLYBEAR_FAILURE) {
+        sillybear_exit("failed fixed dss hostkey");
     }
 
     buf_setlen(b, 0);
     buf_putbytes(b, keye, keye_len);
     buf_setpos(b, 0);
-    type = DROPBEAR_SIGNKEY_ECDSA_NISTP256;
-    if (buf_get_priv_key(b, svr_opts.hostkey, &type) == DROPBEAR_FAILURE) {
-        dropbear_exit("failed fixed ecdsa hostkey");
+    type = SILLYBEAR_SIGNKEY_ECDSA_NISTP256;
+    if (buf_get_priv_key(b, svr_opts.hostkey, &type) == SILLYBEAR_FAILURE) {
+        sillybear_exit("failed fixed ecdsa hostkey");
     }
 
     buf_setlen(b, 0);
     buf_putbytes(b, keyed25519, keyed25519_len);
     buf_setpos(b, 0);
-    type = DROPBEAR_SIGNKEY_ED25519;
-    if (buf_get_priv_key(b, svr_opts.hostkey, &type) == DROPBEAR_FAILURE) {
-        dropbear_exit("failed fixed ed25519 hostkey");
+    type = SILLYBEAR_SIGNKEY_ED25519;
+    if (buf_get_priv_key(b, svr_opts.hostkey, &type) == SILLYBEAR_FAILURE) {
+        sillybear_exit("failed fixed ed25519 hostkey");
     }
 
     buf_free(b);
 }
 
 void fuzz_kex_fakealgos(void) {
-    ses.newkeys->recv.crypt_mode = &dropbear_mode_none;
-    ses.newkeys->recv.algo_mac = &dropbear_nohash;
+    ses.newkeys->recv.crypt_mode = &sillybear_mode_none;
+    ses.newkeys->recv.algo_mac = &sillybear_nohash;
 }
 
 void fuzz_get_socket_address(int UNUSED(fd), char **local_host, char **local_port,
@@ -236,15 +236,15 @@ int fuzz_spawn_command(int *ret_writefd, int *ret_readfd, int *ret_errfd, pid_t 
         if (ret_errfd) {
             m_close(*ret_errfd);
         }
-        return DROPBEAR_FAILURE;
+        return SILLYBEAR_FAILURE;
     } else {
         *ret_pid = 999;
-        return DROPBEAR_SUCCESS;
+        return SILLYBEAR_SUCCESS;
 
     }
 }
 
-/* Fake dropbear_listen, always returns failure for now.
+/* Fake sillybear_listen, always returns failure for now.
 TODO make it sometimes return success with wrapfd_new_dummy() sockets.
 Making the listeners fake a new incoming connection will be harder. */
 /* Listen on address:port. 
@@ -253,7 +253,7 @@ Making the listeners fake a new incoming connection will be harder. */
  * Returns the number of sockets bound on success, or -1 on failure. On
  * failure, if errstring wasn't NULL, it'll be a newly malloced error
  * string.*/
-int fuzz_dropbear_listen(const char* UNUSED(address), const char* UNUSED(port),
+int fuzz_sillybear_listen(const char* UNUSED(address), const char* UNUSED(port),
         int *UNUSED(socks), unsigned int UNUSED(sockcount), char **errstring, int *UNUSED(maxfd)) {
     if (errstring) {
         *errstring = m_strdup("fuzzing can't listen (yet)");
@@ -271,7 +271,7 @@ int fuzz_run_server(const uint8_t *Data, size_t Size, int skip_kexmaths, int pos
 
     fuzz.svr_postauth = postauth;
 
-    if (fuzz_set_input(Data, Size) == DROPBEAR_FAILURE) {
+    if (fuzz_set_input(Data, Size) == SILLYBEAR_FAILURE) {
         return 0;
     }
 
@@ -289,8 +289,8 @@ int fuzz_run_server(const uint8_t *Data, size_t Size, int skip_kexmaths, int pos
     } else {
         fuzz.do_jmp = 0;
         m_malloc_free_epoch(1, 1);
-        TRACE(("dropbear_exit longjmped"))
-        /* dropbear_exit jumped here */
+        TRACE(("sillybear_exit longjmped"))
+        /* sillybear_exit jumped here */
     }
 
     return 0;
@@ -304,7 +304,7 @@ int fuzz_run_client(const uint8_t *Data, size_t Size, int skip_kexmaths) {
         once = 1;
     }
 
-    if (fuzz_set_input(Data, Size) == DROPBEAR_FAILURE) {
+    if (fuzz_set_input(Data, Size) == SILLYBEAR_FAILURE) {
         return 0;
     }
 
@@ -325,8 +325,8 @@ int fuzz_run_client(const uint8_t *Data, size_t Size, int skip_kexmaths) {
     } else {
         fuzz.do_jmp = 0;
         m_malloc_free_epoch(1, 1);
-        TRACE(("dropbear_exit longjmped"))
-        /* dropbear_exit jumped here */
+        TRACE(("sillybear_exit longjmped"))
+        /* sillybear_exit jumped here */
     }
 
     return 0;

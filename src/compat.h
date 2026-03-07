@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,8 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_COMPAT_H_
-#define DROPBEAR_COMPAT_H_
+#ifndef SILLYBEAR_COMPAT_H_
+#define SILLYBEAR_COMPAT_H_
 
 #include "includes.h"
 
@@ -49,8 +49,8 @@ void setusershell(void);
 void endusershell(void);
 #endif
 
-#ifndef DROPBEAR_PATH_DEVNULL
-#define DROPBEAR_PATH_DEVNULL "/dev/null"
+#ifndef SILLYBEAR_PATH_DEVNULL
+#define SILLYBEAR_PATH_DEVNULL "/dev/null"
 #endif
 
 #if !(defined(HAVE_HTOLE64) || defined(HAVE_DECL_HTOLE64))
@@ -62,4 +62,4 @@ uint32_t le32toh(uint32_t inp);
 
 #endif /* HAVE_HTOLE64 */
 
-#endif /* DROPBEAR_COMPAT_H_ */
+#endif /* SILLYBEAR_COMPAT_H_ */

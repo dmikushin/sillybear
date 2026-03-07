@@ -1,5 +1,5 @@
 /* To be included only by sntrup761.c, provides
- * random and sha512 implementation from Dropbear.
+ * random and sha512 implementation from Sillybear.
  * Partially based on OpenSSH crypto_api.h */
 /*
  * Assembled from generated headers and source files by Markus Friedl.
@@ -10,7 +10,7 @@
 #include "dbrandom.h"
 #include "sntrup761.h"
 
-#if DROPBEAR_SNTRUP761
+#if SILLYBEAR_SNTRUP761
 
 typedef int8_t crypto_int8;
 typedef uint8_t crypto_uint8;
@@ -41,4 +41,4 @@ static int crypto_hash_sha512(uint8_t *out, const uint8_t *m,
   return sha512_done(&hs, out);
 }
 
-#endif /* DROPBEAR_SNTRUP761 */
+#endif /* SILLYBEAR_SNTRUP761 */

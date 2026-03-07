@@ -5,7 +5,7 @@
 #include "debug.h"
 #include "runopts.h"
 
-struct dropbear_progress_connection {
+struct sillybear_progress_connection {
 	struct addrinfo *res;
 	struct addrinfo *res_iter;
 
@@ -21,12 +21,12 @@ struct dropbear_progress_connection {
 
 	char* errstring;
 	char *bind_address, *bind_port;
-	enum dropbear_prio prio;
+	enum sillybear_prio prio;
 };
 
 /* Deallocate a progress connection. Removes from the pending list if iter!=NULL.
 Does not close sockets */
-static void remove_connect(struct dropbear_progress_connection *c, m_list_elem *iter) {
+static void remove_connect(struct sillybear_progress_connection *c, m_list_elem *iter) {
 	if (c->res) {
 		/* Only call freeaddrinfo if connection is not AF_UNIX. */
 		if (c->res->ai_family != AF_UNIX) {
@@ -48,30 +48,30 @@ static void remove_connect(struct dropbear_progress_connection *c, m_list_elem *
 }
 
 static void cancel_callback(int result, int sock, void* UNUSED(data), const char* UNUSED(errstring)) {
-	if (result == DROPBEAR_SUCCESS)
+	if (result == SILLYBEAR_SUCCESS)
 	{
 		m_close(sock);
 	}
 }
 
-void cancel_connect(struct dropbear_progress_connection *c) {
+void cancel_connect(struct sillybear_progress_connection *c) {
 	c->cb = cancel_callback;
 	c->cb_data = NULL;
 }
 
-static void connect_try_next(struct dropbear_progress_connection *c) {
+static void connect_try_next(struct sillybear_progress_connection *c) {
 	struct addrinfo *r;
 	int err;
 	int res = 0;
 	int fastopen = 0;
 	int retry_errno = EINPROGRESS;
-#if DROPBEAR_CLIENT_TCP_FAST_OPEN
+#if SILLYBEAR_CLIENT_TCP_FAST_OPEN
 	struct msghdr message;
 #endif
 
 	for (r = c->res_iter; r; r = r->ai_next)
 	{
-		dropbear_assert(c->sock == -1);
+		sillybear_assert(c->sock == -1);
 
 		c->sock = socket(r->ai_family, r->ai_socktype, r->ai_protocol);
 		if (c->sock < 0) {
@@ -126,7 +126,7 @@ static void connect_try_next(struct dropbear_progress_connection *c) {
 		set_sock_priority(c->sock, c->prio);
 		setnonblocking(c->sock);
 
-#if DROPBEAR_CLIENT_TCP_FAST_OPEN
+#if SILLYBEAR_CLIENT_TCP_FAST_OPEN
 		fastopen = (c->writequeue != NULL && r->ai_family != AF_UNIX);
 
 		if (fastopen) {
@@ -185,11 +185,11 @@ static void connect_try_next(struct dropbear_progress_connection *c) {
 }
 
 /* Connect via TCP to a host. */
-struct dropbear_progress_connection *connect_remote(const char* remotehost, const char* remoteport,
+struct sillybear_progress_connection *connect_remote(const char* remotehost, const char* remoteport,
 	connect_callback cb, void* cb_data,
-	const char* bind_address, const char* bind_port, enum dropbear_prio prio)
+	const char* bind_address, const char* bind_port, enum sillybear_prio prio)
 {
-	struct dropbear_progress_connection *c = NULL;
+	struct sillybear_progress_connection *c = NULL;
 	int err;
 	struct addrinfo hints;
 
@@ -203,7 +203,7 @@ struct dropbear_progress_connection *connect_remote(const char* remotehost, cons
 
 	list_append(&ses.conn_pending, c);
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (fuzz.fuzzing) {
 		c->errstring = m_strdup("fuzzing connect_remote always fails");
 		return c;
@@ -238,10 +238,10 @@ struct dropbear_progress_connection *connect_remote(const char* remotehost, cons
 
 
 /* Connect to stream local socket. */
-struct dropbear_progress_connection *connect_streamlocal(const char* localpath,
-	connect_callback cb, void* cb_data, enum dropbear_prio prio)
+struct sillybear_progress_connection *connect_streamlocal(const char* localpath,
+	connect_callback cb, void* cb_data, enum sillybear_prio prio)
 {
-	struct dropbear_progress_connection *c = NULL;
+	struct sillybear_progress_connection *c = NULL;
 	struct sockaddr_un *sunaddr;
 
 	c = m_malloc(sizeof(*c));
@@ -254,7 +254,7 @@ struct dropbear_progress_connection *connect_streamlocal(const char* localpath,
 
 	list_append(&ses.conn_pending, c);
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (fuzz.fuzzing) {
 		c->errstring = m_strdup("fuzzing connect_streamlocal always fails");
 		return c;
@@ -290,7 +290,7 @@ struct dropbear_progress_connection *connect_streamlocal(const char* localpath,
 
 void remove_connect_pending() {
 	while (ses.conn_pending.first) {
-		struct dropbear_progress_connection *c = ses.conn_pending.first->item;
+		struct sillybear_progress_connection *c = ses.conn_pending.first->item;
 		remove_connect(c, ses.conn_pending.first);
 	}
 }
@@ -301,7 +301,7 @@ void set_connect_fds(fd_set *writefd) {
 	iter = ses.conn_pending.first;
 	while (iter) {
 		m_list_elem *next_iter = iter->next;
-		struct dropbear_progress_connection *c = iter->item;
+		struct sillybear_progress_connection *c = iter->item;
 		/* Set one going */
 		while (c->res_iter && c->sock < 0) {
 			connect_try_next(c);
@@ -313,7 +313,7 @@ void set_connect_fds(fd_set *writefd) {
 			if (!c->errstring) {
 				c->errstring = m_strdup("unexpected failure");
 			}
-			c->cb(DROPBEAR_FAILURE, -1, c->cb_data, c->errstring);
+			c->cb(SILLYBEAR_FAILURE, -1, c->cb_data, c->errstring);
 			remove_connect(c, iter);
 		}
 		iter = next_iter;
@@ -325,7 +325,7 @@ void handle_connect_fds(const fd_set *writefd) {
 	for (iter = ses.conn_pending.first; iter; iter = iter->next) {
 		int val;
 		socklen_t vallen = sizeof(val);
-		struct dropbear_progress_connection *c = iter->item;
+		struct sillybear_progress_connection *c = iter->item;
 
 		if (c->sock < 0 || !FD_ISSET(c->sock, writefd)) {
 			continue;
@@ -348,7 +348,7 @@ void handle_connect_fds(const fd_set *writefd) {
 			c->errstring = m_strdup(strerror(val));
 		} else {
 			/* New connection has been established */
-			c->cb(DROPBEAR_SUCCESS, c->sock, c->cb_data, NULL);
+			c->cb(SILLYBEAR_SUCCESS, c->sock, c->cb_data, NULL);
 			remove_connect(c, iter);
 			TRACE(("leave handle_connect_fds - success"))
 			/* Must return here - remove_connect() invalidates iter */
@@ -357,7 +357,7 @@ void handle_connect_fds(const fd_set *writefd) {
 	}
 }
 
-void connect_set_writequeue(struct dropbear_progress_connection *c, struct Queue *writequeue) {
+void connect_set_writequeue(struct sillybear_progress_connection *c, struct Queue *writequeue) {
 	c->writequeue = writequeue;
 }
 
@@ -383,7 +383,7 @@ void packet_queue_to_iovec(const struct Queue *queue, struct iovec *iov, unsigne
 	{
 		writebuf = (buffer*)l->item;
 		len = writebuf->len - writebuf->pos;
-		dropbear_assert(len > 0);
+		sillybear_assert(len > 0);
 		TRACE2(("write_packet writev #%d len %d/%d", i,
 				len, writebuf->len))
 		iov[i].iov_base = buf_getptr(writebuf, len);
@@ -417,7 +417,7 @@ void set_sock_nodelay(int sock) {
 	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (void*)&val, sizeof(val));
 }
 
-#if DROPBEAR_SERVER_TCP_FAST_OPEN
+#if SILLYBEAR_SERVER_TCP_FAST_OPEN
 void set_listen_fast_open(int sock) {
 	int qlen = MAX(MAX_UNAUTH_PER_IP, 5);
 	if (setsockopt(sock, SOL_TCP, TCP_FASTOPEN, &qlen, sizeof(qlen)) != 0) {
@@ -427,12 +427,12 @@ void set_listen_fast_open(int sock) {
 
 #endif
 
-void set_sock_priority(int sock, enum dropbear_prio prio) {
+void set_sock_priority(int sock, enum sillybear_prio prio) {
 
 	int rc;
 	int val;
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (fuzz.fuzzing) {
 		TRACE(("fuzzing skips set_sock_prio"))
 		return;
@@ -452,13 +452,13 @@ void set_sock_priority(int sock, enum dropbear_prio prio) {
 	OpenSSH at present uses AF21/CS1, rationale
 	https://cvsweb.openbsd.org/src/usr.bin/ssh/readconf.c#rev1.284
 
-	Old Dropbear/OpenSSH and Debian/Ubuntu OpenSSH (at Jan 2022) use
+	Old Sillybear/OpenSSH and Debian/Ubuntu OpenSSH (at Jan 2022) use
 	IPTOS_LOWDELAY/IPTOS_THROUGHPUT
 
 	DSCP constants are from Linux headers, applicable to other platforms
 	such as macos.
 	*/
-	if (prio == DROPBEAR_PRIO_LOWDELAY) {
+	if (prio == SILLYBEAR_PRIO_LOWDELAY) {
 		val = 0x48; /* IPTOS_DSCP_AF21 */
 	} else {
 		val = 0; /* default */
@@ -478,7 +478,7 @@ void set_sock_priority(int sock, enum dropbear_prio prio) {
 
 #ifdef HAVE_LINUX_PKT_SCHED_H
 	/* Set scheduling priority within the local Linux network stack */
-	if (prio == DROPBEAR_PRIO_LOWDELAY) {
+	if (prio == SILLYBEAR_PRIO_LOWDELAY) {
 		val = TC_PRIO_INTERACTIVE;
 	} else {
 		val = 0;
@@ -529,7 +529,7 @@ int get_sock_port(int sock) {
  * Returns the number of sockets bound on success, or -1 on failure. On
  * failure, if errstring wasn't NULL, it'll be a newly malloced error
  * string.*/
-int dropbear_listen(const char* address, const char* port,
+int sillybear_listen(const char* address, const char* port,
 		int *socks, unsigned int sockcount, char **errstring, int *maxfd, const char* interface) {
 
 	struct addrinfo hints, *res = NULL, *res0 = NULL;
@@ -540,11 +540,11 @@ int dropbear_listen(const char* address, const char* port,
 	uint16_t *allocated_lport_p = NULL;
 	int allocated_lport = 0;
 	
-	TRACE(("enter dropbear_listen"))
+	TRACE(("enter sillybear_listen"))
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (fuzz.fuzzing) {
-		return fuzz_dropbear_listen(address, port, socks, sockcount, errstring, maxfd);
+		return fuzz_sillybear_listen(address, port, socks, sockcount, errstring, maxfd);
 	}
 #endif
 	
@@ -557,13 +557,13 @@ int dropbear_listen(const char* address, const char* port,
 	 address == NULL and AI_PASSIVE: all interfaces
 	 address != NULL: whatever the address says */
 	if (!address) {
-		TRACE(("dropbear_listen: local loopback"))
+		TRACE(("sillybear_listen: local loopback"))
 	} else {
 		if (address[0] == '\0') {
 			if (interface) {
-				TRACE(("dropbear_listen: %s", interface))
+				TRACE(("sillybear_listen: %s", interface))
 			} else {
-				TRACE(("dropbear_listen: all interfaces"))
+				TRACE(("sillybear_listen: all interfaces"))
 			}
 			address = NULL;
 		}
@@ -582,7 +582,7 @@ int dropbear_listen(const char* address, const char* port,
 			freeaddrinfo(res0);
 			res0 = NULL;
 		}
-		TRACE(("leave dropbear_listen: failed resolving"))
+		TRACE(("leave sillybear_listen: failed resolving"))
 		return -1;
 	}
 
@@ -620,7 +620,7 @@ int dropbear_listen(const char* address, const char* port,
 
 #ifdef SO_BINDTODEVICE
 		if(interface && setsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE, interface, strlen(interface)) < 0) {
-			dropbear_log(LOG_WARNING, "Couldn't set SO_BINDTODEVICE");
+			sillybear_log(LOG_WARNING, "Couldn't set SO_BINDTODEVICE");
 			TRACE(("Failed setsockopt with errno failure, %d %s", errno, strerror(errno)))
 		}
 #endif
@@ -630,7 +630,7 @@ int dropbear_listen(const char* address, const char* port,
 			int on = 1;
 			if (setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, 
 						&on, sizeof(on)) == -1) {
-				dropbear_log(LOG_WARNING, "Couldn't set IPV6_V6ONLY");
+				sillybear_log(LOG_WARNING, "Couldn't set IPV6_V6ONLY");
 			}
 		}
 #endif
@@ -643,7 +643,7 @@ int dropbear_listen(const char* address, const char* port,
 			continue;
 		}
 
-		if (listen(sock, DROPBEAR_LISTEN_BACKLOG) < 0) {
+		if (listen(sock, SILLYBEAR_LISTEN_BACKLOG) < 0) {
 			err = errno;
 			close(sock);
 			TRACE(("listen() failed"))
@@ -670,11 +670,11 @@ int dropbear_listen(const char* address, const char* port,
 			*errstring = (char*)m_malloc(len);
 			snprintf(*errstring, len, "Error listening: %s", strerror(err));
 		}
-		TRACE(("leave dropbear_listen: failure, %s", strerror(err)))
+		TRACE(("leave sillybear_listen: failure, %s", strerror(err)))
 		return -1;
 	}
 
-	TRACE(("leave dropbear_listen: success, %d socks bound", nsock))
+	TRACE(("leave sillybear_listen: success, %d socks bound", nsock))
 	return nsock;
 }
 
@@ -684,7 +684,7 @@ void get_socket_address(int fd, char **local_host, char **local_port,
 	struct sockaddr_storage addr;
 	socklen_t addrlen;
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (fuzz.fuzzing) {
 		fuzz_get_socket_address(fd, local_host, local_port, remote_host, remote_port, host_lookup);
 		return;
@@ -694,14 +694,14 @@ void get_socket_address(int fd, char **local_host, char **local_port,
 	if (local_host || local_port) {
 		addrlen = sizeof(addr);
 		if (getsockname(fd, (struct sockaddr*)&addr, &addrlen) < 0) {
-			dropbear_exit("Failed socket address: %s", strerror(errno));
+			sillybear_exit("Failed socket address: %s", strerror(errno));
 		}
 		getaddrstring(&addr, local_host, local_port, host_lookup);		
 	}
 	if (remote_host || remote_port) {
 		addrlen = sizeof(addr);
 		if (getpeername(fd, (struct sockaddr*)&addr, &addrlen) < 0) {
-			dropbear_exit("Failed socket address: %s", strerror(errno));
+			sillybear_exit("Failed socket address: %s", strerror(errno));
 		}
 		getaddrstring(&addr, remote_host, remote_port, host_lookup);		
 	}
@@ -755,7 +755,7 @@ void getaddrstring(struct sockaddr_storage* addr,
 			return;
 		} else {
 			/* if we can't do a numeric lookup, something's gone terribly wrong */
-			dropbear_exit("Failed lookup: %s", gai_strerror(ret));
+			sillybear_exit("Failed lookup: %s", gai_strerror(ret));
 		}
 	}
 

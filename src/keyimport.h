@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,14 +22,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_KEYIMPORT_H_
-#define DROPBEAR_KEYIMPORT_H_
+#ifndef SILLYBEAR_KEYIMPORT_H_
+#define SILLYBEAR_KEYIMPORT_H_
 
 #include "includes.h"
 #include "signkey.h"
 
 enum {
-	KEYFILE_DROPBEAR,
+	KEYFILE_SILLYBEAR,
 	KEYFILE_OPENSSH,
 	KEYFILE_SSHCOM
 };
@@ -39,4 +39,4 @@ int import_write(const char *filename, sign_key *key, const char *passphrase,
 sign_key *import_read(const char *filename, const char *passphrase, int filetype);
 int import_encrypted(const char* filename, int filetype);
 
-#endif /* DROPBEAR_KEYIMPORT_H_ */
+#endif /* SILLYBEAR_KEYIMPORT_H_ */

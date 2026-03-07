@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -21,8 +21,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
-#ifndef DROPBEAR_AGENTFWD_H_
-#define DROPBEAR_AGENTFWD_H_
+#ifndef SILLYBEAR_AGENTFWD_H_
+#define SILLYBEAR_AGENTFWD_H_
 
 #include "includes.h"
 #include "chansession.h"
@@ -30,7 +30,7 @@
 #include "auth.h"
 #include "list.h"
 
-#if DROPBEAR_CLI_AGENTFWD
+#if SILLYBEAR_CLI_AGENTFWD
 
 /* From OpenSSH authfd.h */
 #define SSH_AGENT_RSA_SHA2_256          0x02
@@ -53,14 +53,14 @@ void cli_setup_agent(const struct Channel *channel);
 
 extern const struct ChanType cli_chan_agent;
 
-#endif /* DROPBEAR_CLI_AGENTFWD */
+#endif /* SILLYBEAR_CLI_AGENTFWD */
 
-#if DROPBEAR_SVR_AGENTFWD
+#if SILLYBEAR_SVR_AGENTFWD
 
 int svr_agentreq(struct ChanSess * chansess);
 void svr_agentcleanup(struct ChanSess * chansess);
 void svr_agentset(const struct ChanSess *chansess);
 
-#endif /* DROPBEAR_SVR_AGENTFWD */
+#endif /* SILLYBEAR_SVR_AGENTFWD */
 
-#endif /* DROPBEAR_AGENTFWD_H_ */
+#endif /* SILLYBEAR_AGENTFWD_H_ */

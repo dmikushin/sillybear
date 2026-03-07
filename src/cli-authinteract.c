@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2005 Matt Johnston
  * All rights reserved.
@@ -29,14 +29,14 @@
 #include "ssh.h"
 #include "runopts.h"
 
-#if DROPBEAR_CLI_INTERACT_AUTH
+#if SILLYBEAR_CLI_INTERACT_AUTH
 
 static char* get_response(char* prompt)
 {
 	FILE* tty = NULL;
 	char* response = NULL;
 	/* not a password, but a reasonable limit */
-	char buf[DROPBEAR_MAX_CLI_PASS];
+	char buf[SILLYBEAR_MAX_CLI_PASS];
 	char* ret = NULL;
 
 	fprintf(stderr, "%s", prompt);
@@ -92,8 +92,8 @@ void recv_msg_userauth_info_request() {
 
 	num_prompts = buf_getint(ses.payload);
 	
-	if (num_prompts >= DROPBEAR_MAX_CLI_INTERACT_PROMPTS) {
-		dropbear_exit("Too many prompts received for keyboard-interactive");
+	if (num_prompts >= SILLYBEAR_MAX_CLI_INTERACT_PROMPTS) {
+		sillybear_exit("Too many prompts received for keyboard-interactive");
 	}
 
 	/* we'll build the response as we go */
@@ -173,4 +173,4 @@ void cli_auth_interactive() {
 	TRACE(("leave cli_auth_interactive"))
 
 }
-#endif	/* DROPBEAR_CLI_INTERACT_AUTH */
+#endif	/* SILLYBEAR_CLI_INTERACT_AUTH */

@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,8 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_AUTH_H_
-#define DROPBEAR_AUTH_H_
+#ifndef SILLYBEAR_AUTH_H_
+#define SILLYBEAR_AUTH_H_
 
 #include "includes.h"
 #include "signkey.h"
@@ -44,7 +44,7 @@ void svr_switch_user(void);
 void svr_raise_gid_utmp(void);
 void svr_restore_gid(void);
 
-#if DROPBEAR_SVR_PUBKEY_OPTIONS_BUILT
+#if SILLYBEAR_SVR_PUBKEY_OPTIONS_BUILT
 int svr_pubkey_allows_agentfwd(void);
 int svr_pubkey_allows_tcpfwd(void);
 int svr_pubkey_allows_x11fwd(void);
@@ -66,7 +66,7 @@ static inline int svr_pubkey_allows_local_tcpfwd(const char *host, unsigned int 
 
 static inline void svr_pubkey_set_forced_command(struct ChanSess *chansess) { }
 static inline void svr_pubkey_options_cleanup(void) { }
-#define svr_add_pubkey_options(x,y,z) DROPBEAR_SUCCESS
+#define svr_add_pubkey_options(x,y,z) SILLYBEAR_SUCCESS
 #endif
 
 /* Client functions */
@@ -137,13 +137,13 @@ struct AuthState {
 	char *pw_shell;
 	char *pw_name;
 	char *pw_passwd;
-#if DROPBEAR_SVR_PUBKEY_OPTIONS_BUILT
+#if SILLYBEAR_SVR_PUBKEY_OPTIONS_BUILT
 	struct PubKeyOptions* pubkey_options;
 	char *pubkey_info;
 #endif
 };
 
-#if DROPBEAR_SVR_PUBKEY_OPTIONS_BUILT
+#if SILLYBEAR_SVR_PUBKEY_OPTIONS_BUILT
 struct PubKeyOptions;
 struct PubKeyOptions {
 	/* Flags */
@@ -156,7 +156,7 @@ struct PubKeyOptions {
 	/* "permitopen=" option */
 	m_list *permit_open_destinations;
 	
-#if DROPBEAR_SK_ECDSA || DROPBEAR_SK_ED25519
+#if SILLYBEAR_SK_ECDSA || SILLYBEAR_SK_ED25519
 	int no_touch_required_flag;
 	int verify_required_flag;
 #endif
@@ -168,4 +168,4 @@ struct PermitTCPFwdEntry {
 };
 #endif
 
-#endif /* DROPBEAR_AUTH_H_ */
+#endif /* SILLYBEAR_AUTH_H_ */

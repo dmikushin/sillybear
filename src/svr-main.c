@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002-2006 Matt Johnston
  * All rights reserved.
@@ -39,24 +39,24 @@ static void main_inetd(void);
 static void main_noinetd(int argc, char ** argv, const char* multipath);
 static void commonsetup(void);
 
-#if defined(DBMULTI_dropbear) || !DROPBEAR_MULTI
-#if defined(DBMULTI_dropbear) && DROPBEAR_MULTI
-int dropbear_main(int argc, char ** argv, const char* multipath)
+#if defined(DBMULTI_sillybear) || !SILLYBEAR_MULTI
+#if defined(DBMULTI_sillybear) && SILLYBEAR_MULTI
+int sillybear_main(int argc, char ** argv, const char* multipath)
 #else
 int main(int argc, char ** argv)
 #endif
 {
-#if !DROPBEAR_MULTI
+#if !SILLYBEAR_MULTI
 	const char* multipath = NULL;
 #endif
 
-	_dropbear_exit = svr_dropbear_exit;
-	_dropbear_log = svr_dropbear_log;
+	_sillybear_exit = svr_sillybear_exit;
+	_sillybear_log = svr_sillybear_log;
 
 	disallow_core();
 
 	if (argc < 1) {
-		dropbear_exit("Bad argc");
+		sillybear_exit("Bad argc");
 	}
 
 	/* get commandline options */
@@ -70,7 +70,7 @@ int main(int argc, char ** argv)
 	}
 #endif
 
-#if DROPBEAR_DO_REEXEC
+#if SILLYBEAR_DO_REEXEC
 	if (svr_opts.reexec_childpipe >= 0) {
 #ifdef PR_SET_NAME
 		/* Fix the "Name:" in /proc/pid/status, otherwise it's
@@ -88,12 +88,12 @@ int main(int argc, char ** argv)
 	/* notreached */
 #endif
 
-	dropbear_exit("Compiled without normal mode, can't run without -i\n");
+	sillybear_exit("Compiled without normal mode, can't run without -i\n");
 	return -1;
 }
 #endif
 
-#if INETD_MODE || DROPBEAR_DO_REEXEC
+#if INETD_MODE || SILLYBEAR_DO_REEXEC
 static void main_inetd() {
 	char *host, *port = NULL;
 
@@ -105,7 +105,7 @@ static void main_inetd() {
 	if (svr_opts.reexec_childpipe < 0) {
 		/* In case our inetd was lax in logging source addresses */
 		get_socket_address(0, NULL, NULL, &host, &port, 0);
-			dropbear_log(LOG_INFO, "Child connection from %s:%s", host, port);
+			sillybear_log(LOG_INFO, "Child connection from %s:%s", host, port);
 		m_free(host);
 		m_free(port);
 
@@ -158,14 +158,14 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 	listensockcount = listensockets(listensocks, MAX_LISTEN_ADDR, &maxsock);
 	if (listensockcount == 0)
 	{
-		dropbear_exit("No listening ports available.");
+		sillybear_exit("No listening ports available.");
 	}
 
 	for (i = 0; i < listensockcount; i++) {
 		FD_SET(listensocks[i], &fds);
 	}
 
-#if DROPBEAR_DO_REEXEC
+#if SILLYBEAR_DO_REEXEC
 	if (multipath) {
 		execfd = open(multipath, O_CLOEXEC|O_RDONLY);
 	} else {
@@ -186,15 +186,15 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 		}
 #endif
 		if (daemon(0, closefds) < 0) {
-			dropbear_exit("Failed to daemonize: %s", strerror(errno));
+			sillybear_exit("Failed to daemonize: %s", strerror(errno));
 		}
 	}
 
 	/* should be done after syslog is working */
 	if (svr_opts.forkbg) {
-		dropbear_log(LOG_INFO, "Running in background");
+		sillybear_log(LOG_INFO, "Running in background");
 	} else {
-		dropbear_log(LOG_INFO, "Not backgrounding");
+		sillybear_log(LOG_INFO, "Not backgrounding");
 	}
 
 	/* create a PID file so that we can be killed easily */
@@ -207,7 +207,7 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 	/* incoming connection select loop */
 	for(;;) {
 
-		DROPBEAR_FD_ZERO(&fds);
+		SILLYBEAR_FD_ZERO(&fds);
 
 		/* listening sockets */
 		for (i = 0; i < listensockcount; i++) {
@@ -226,7 +226,7 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 
 		if (ses.exitflag) {
 			unlink(svr_opts.pidfile);
-			dropbear_close("Terminated by signal");
+			sillybear_close("Terminated by signal");
 		}
 
 		if (val == 0) {
@@ -238,7 +238,7 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 			if (errno == EINTR) {
 				continue;
 			}
-			dropbear_exit("Listening socket error");
+			sillybear_exit("Listening socket error");
 		}
 
 		/* close fds which have been authed or closed - svr-auth.c handles
@@ -308,7 +308,7 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 			fork_ret = fork();
 #endif
 			if (fork_ret < 0) {
-				dropbear_log(LOG_WARNING, "Error forking: %s", strerror(errno));
+				sillybear_log(LOG_WARNING, "Error forking: %s", strerror(errno));
 				goto out;
 			}
 
@@ -326,13 +326,13 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 
 				/* child */
 				getaddrstring(&remoteaddr, NULL, &remote_port, 0);
-				dropbear_log(LOG_INFO, "Child connection from %s:%s", remote_host, remote_port);
+				sillybear_log(LOG_INFO, "Child connection from %s:%s", remote_host, remote_port);
 				m_free(remote_host);
 				m_free(remote_port);
 
 #if !DEBUG_NOFORK
 				if (setsid() < 0) {
-					dropbear_exit("setsid: %s", strerror(errno));
+					sillybear_exit("setsid: %s", strerror(errno));
 				}
 #endif
 
@@ -344,13 +344,13 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 				m_close(childpipe[0]);
 
 				if (execfd >= 0) {
-#if DROPBEAR_DO_REEXEC
+#if SILLYBEAR_DO_REEXEC
 					/* Add "-2 childpipe[1]" to the args and re-execute ourself. */
 					char **new_argv = m_malloc(sizeof(char*) * (argc+4));
 					char buf[10];
 					int pos0 = 0, new_argc = argc+2;
 
-					/* We need to specially handle "dropbearmulti dropbear". */
+					/* We need to specially handle "sillybearmulti sillybear". */
 					if (multipath) {
 						new_argv[0] = (char*)multipath;
 						pos0 = 1;
@@ -364,7 +364,7 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 					new_argv[new_argc] = NULL;
 
 					if ((dup2(childsock, STDIN_FILENO) < 0)) {
-						dropbear_exit("dup2 failed: %s", strerror(errno));
+						sillybear_exit("dup2 failed: %s", strerror(errno));
 					}
 					if (fcntl(childsock, F_SETFD, FD_CLOEXEC) < 0) {
 						TRACE(("cloexec for childsock %d failed: %s", childsock, strerror(errno)))
@@ -375,16 +375,16 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 
 					/* Fall back on plain fork otherwise.
 					 * To be removed in future once re-exec has been well tested */
-					dropbear_log(LOG_WARNING, "fexecve failed, disabling re-exec: %s", strerror(errno));
+					sillybear_log(LOG_WARNING, "fexecve failed, disabling re-exec: %s", strerror(errno));
 					m_close(STDIN_FILENO);
 					m_free(new_argv);
-#endif /* DROPBEAR_DO_REEXEC */
+#endif /* SILLYBEAR_DO_REEXEC */
 				}
 
 				/* start the session */
 				svr_session(childsock, childpipe[1]);
 				/* don't return */
-				dropbear_assert(0);
+				sillybear_assert(0);
 			}
 
 out:
@@ -413,7 +413,7 @@ static void sigchld_handler(int UNUSED(unused)) {
 	sa_chld.sa_flags = SA_NOCLDSTOP;
 	sigemptyset(&sa_chld.sa_mask);
 	if (sigaction(SIGCHLD, &sa_chld, NULL) < 0) {
-		dropbear_exit("signal() error");
+		sillybear_exit("signal() error");
 	}
 	errno = saved_errno;
 }
@@ -451,7 +451,7 @@ static void commonsetup() {
 		signal(SIGTERM, sigintterm_handler) == SIG_ERR ||
 #endif
 		signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-		dropbear_exit("signal() error");
+		sillybear_exit("signal() error");
 	}
 
 	/* catch and reap zombie children */
@@ -459,10 +459,10 @@ static void commonsetup() {
 	sa_chld.sa_flags = SA_NOCLDSTOP;
 	sigemptyset(&sa_chld.sa_mask);
 	if (sigaction(SIGCHLD, &sa_chld, NULL) < 0) {
-		dropbear_exit("signal() error");
+		sillybear_exit("signal() error");
 	}
 	if (signal(SIGSEGV, sigsegv_handler) == SIG_ERR) {
-		dropbear_exit("signal() error");
+		sillybear_exit("signal() error");
 	}
 
 	crypto_init();
@@ -486,12 +486,12 @@ static size_t listensockets(int *socks, size_t sockcount, int *maxfd) {
 
 		TRACE(("listening on '%s:%s'", svr_opts.addresses[i], svr_opts.ports[i]))
 
-		nsock = dropbear_listen(svr_opts.addresses[i], svr_opts.ports[i], &socks[sockpos], 
+		nsock = sillybear_listen(svr_opts.addresses[i], svr_opts.ports[i], &socks[sockpos], 
 				sockcount - sockpos,
 				&errstring, maxfd, svr_opts.interface);
 
 		if (nsock < 0) {
-			dropbear_log(LOG_WARNING, "Failed listening on '%s': %s", 
+			sillybear_log(LOG_WARNING, "Failed listening on '%s': %s", 
 							svr_opts.ports[i], errstring);
 			m_free(errstring);
 			continue;
@@ -499,8 +499,8 @@ static size_t listensockets(int *socks, size_t sockcount, int *maxfd) {
 
 		for (n = 0; n < (unsigned int)nsock; n++) {
 			int sock = socks[sockpos + n];
-			set_sock_priority(sock, DROPBEAR_PRIO_LOWDELAY);
-#if DROPBEAR_SERVER_TCP_FAST_OPEN
+			set_sock_priority(sock, SILLYBEAR_PRIO_LOWDELAY);
+#if SILLYBEAR_SERVER_TCP_FAST_OPEN
 			set_listen_fast_open(sock);
 #endif
 		}

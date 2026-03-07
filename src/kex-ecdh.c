@@ -7,13 +7,13 @@
 #include "ecc.h"
 #include "kex.h"
 
-#if DROPBEAR_ECDH
+#if SILLYBEAR_ECDH
 struct kex_ecdh_param *gen_kexecdh_param() {
     struct kex_ecdh_param *param = m_malloc(sizeof(*param));
-    const struct dropbear_ecc_curve *curve = ses.newkeys->algo_kex->details;
-    if (ecc_make_key_ex(NULL, dropbear_ltc_prng, 
+    const struct sillybear_ecc_curve *curve = ses.newkeys->algo_kex->details;
+    if (ecc_make_key_ex(NULL, sillybear_ltc_prng, 
         &param->key, curve->dp) != CRYPT_OK) {
-        dropbear_exit("ECC error");
+        sillybear_exit("ECC error");
     }
     return param;
 }
@@ -25,21 +25,21 @@ void free_kexecdh_param(struct kex_ecdh_param *param) {
 }
 void kexecdh_comb_key(struct kex_ecdh_param *param, buffer *pub_them,
         sign_key *hostkey) {
-    const struct dropbear_ecc_curve *curve
+    const struct sillybear_ecc_curve *curve
         = ses.newkeys->algo_kex->details;
     /* public keys from client and server */
     ecc_key *Q_C, *Q_S, *Q_them;
 
     Q_them = buf_get_ecc_raw_pubkey(pub_them, curve);
     if (Q_them == NULL) {
-        dropbear_exit("ECC error");
+        sillybear_exit("ECC error");
     }
 
-    ses.dh_K = dropbear_ecc_shared_secret(Q_them, &param->key);
+    ses.dh_K = sillybear_ecc_shared_secret(Q_them, &param->key);
 
     /* Create the remainder of the hash buffer, to generate the exchange hash
        See RFC5656 section 4 page 7 */
-    if (IS_DROPBEAR_CLIENT) {
+    if (IS_SILLYBEAR_CLIENT) {
         Q_C = &param->key;
         Q_S = Q_them;
     } else {
@@ -62,5 +62,5 @@ void kexecdh_comb_key(struct kex_ecdh_param *param, buffer *pub_them,
     /* calculate the hash H to sign */
     finish_kexhashbuf();
 }
-#endif /* DROPBEAR_ECDH */
+#endif /* SILLYBEAR_ECDH */
 

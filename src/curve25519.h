@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,16 +22,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_CURVE25519_H
-#define DROPBEAR_CURVE25519_H
+#ifndef SILLYBEAR_CURVE25519_H
+#define SILLYBEAR_CURVE25519_H
 
-void dropbear_curve25519_scalarmult(unsigned char *q, const unsigned char *n, const unsigned char *p);
-void dropbear_ed25519_make_key(unsigned char *pk, unsigned char  *sk);
-void dropbear_ed25519_sign(const unsigned char *m, unsigned long mlen,
+void sillybear_curve25519_scalarmult(unsigned char *q, const unsigned char *n, const unsigned char *p);
+void sillybear_ed25519_make_key(unsigned char *pk, unsigned char  *sk);
+void sillybear_ed25519_sign(const unsigned char *m, unsigned long mlen,
 			  unsigned char *s, unsigned long *slen,
 			  const unsigned char *sk, const unsigned char *pk);
-int dropbear_ed25519_verify(const unsigned char *m, unsigned long mlen,
+int sillybear_ed25519_verify(const unsigned char *m, unsigned long mlen,
 			    const unsigned char *s, unsigned long slen,
 			    const unsigned char *pk);
 
-#endif /* DROPBEAR_CURVE25519_H */
+#endif /* SILLYBEAR_CURVE25519_H */

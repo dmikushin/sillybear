@@ -3,12 +3,12 @@
 /* LibTomMath, multiple-precision integer library -- Tom St Denis */
 /* SPDX-License-Identifier: Unlicense */
 
-/* Dropbear sets this separately, avoid platform code */
+/* Sillybear sets this separately, avoid platform code */
 mp_err(*s_mp_rand_source)(void *out, size_t size) = NULL;
 
 void mp_rand_source(mp_err(*source)(void *out, size_t size))
 {
-   /* Dropbear, don't reset to platform if source==NULL */
+   /* Sillybear, don't reset to platform if source==NULL */
    s_mp_rand_source = source;
 }
 

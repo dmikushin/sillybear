@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002-2004 Matt Johnston
  * All rights reserved.
@@ -77,7 +77,7 @@ void chaninitialise(const struct ChanType *chantypes[]) {
 
 	ses.chantypes = chantypes;
 
-#if DROPBEAR_LISTENERS
+#if SILLYBEAR_LISTENERS
 	listeners_initialise();
 #endif
 
@@ -162,7 +162,7 @@ static struct Channel* newchannel(unsigned int remotechan,
 	newchan->recvdonelen = 0;
 	newchan->recvmaxpacket = RECV_MAX_CHANNEL_DATA_LEN;
 
-	newchan->prio = DROPBEAR_PRIO_NORMAL;
+	newchan->prio = SILLYBEAR_PRIO_NORMAL;
 
 	ses.channels[i] = newchan;
 	ses.chancount++;
@@ -183,9 +183,9 @@ static struct Channel* getchannel_msg(const char* kind) {
 	chan = buf_getint(ses.payload);
 	if (chan >= ses.chansize || ses.channels[chan] == NULL) {
 		if (kind) {
-			dropbear_exit("%s for unknown channel %d", kind, chan);
+			sillybear_exit("%s for unknown channel %d", kind, chan);
 		} else {
-			dropbear_exit("Unknown channel %d", chan);
+			sillybear_exit("Unknown channel %d", chan);
 		}
 	}
 	return ses.channels[chan];
@@ -252,7 +252,7 @@ void channelio(const fd_set *readfds, const fd_set *writefds) {
 		}
 	}
 
-#if DROPBEAR_LISTENERS
+#if SILLYBEAR_LISTENERS
 	handle_listeners(readfds);
 #endif
 }
@@ -350,7 +350,7 @@ void channel_connect_done(int result, int sock, void* user_data, const char* err
 
 	TRACE(("enter channel_connect_done"))
 
-	if (result == DROPBEAR_SUCCESS)
+	if (result == SILLYBEAR_SUCCESS)
 	{
 		channel->readfd = channel->writefd = sock;
 		channel->bidir_fd = 1;
@@ -428,13 +428,13 @@ static int writechannel_fallback(struct Channel* channel, int fd, circbuffer *cb
 		if (errno != EINTR && errno != EAGAIN) {
 			TRACE(("channel IO write error fd %d %s", fd, strerror(errno)))
 			close_chan_fd(channel, fd, SHUT_WR);
-			return DROPBEAR_FAILURE;
+			return SILLYBEAR_FAILURE;
 		}
 	} else {
 		cbuf_incrread(cbuf, written);
 		channel->recvdonelen += written;
 	}
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 }
 #endif /* !HAVE_WRITEV */
 
@@ -478,7 +478,7 @@ static int writechannel_writev(struct Channel* channel, int fd, circbuffer *cbuf
 		From common_recv_msg_channel_data() then channelio().
 		The second call may not have any data to write, so we just return. */
 		TRACE(("leave writechannel, no data"))
-		return DROPBEAR_SUCCESS;
+		return SILLYBEAR_SUCCESS;
 	}
 
 	if (morelen) {
@@ -492,7 +492,7 @@ static int writechannel_writev(struct Channel* channel, int fd, circbuffer *cbuf
 		if (errno != EINTR && errno != EAGAIN) {
 			TRACE(("channel IO write error fd %d %s", fd, strerror(errno)))
 			close_chan_fd(channel, fd, SHUT_WR);
-			return DROPBEAR_FAILURE;
+			return SILLYBEAR_FAILURE;
 		}
 	} else {
 		int cbuf_written = MIN(circ_len1+circ_len2, (unsigned int)written);
@@ -502,17 +502,17 @@ static int writechannel_writev(struct Channel* channel, int fd, circbuffer *cbuf
 		}
 		channel->recvdonelen += written;
 	}
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 }
 #endif /* HAVE_WRITEV */
 
 /* Called to write data out to the local side of the channel. 
    Writes the circular buffer contents and also the "moredata" buffer
    if not null. Will ignore EAGAIN.
-   Returns DROPBEAR_FAILURE if writing to fd had an error and the channel is being closed, DROPBEAR_SUCCESS otherwise */
+   Returns SILLYBEAR_FAILURE if writing to fd had an error and the channel is being closed, SILLYBEAR_SUCCESS otherwise */
 static int writechannel(struct Channel* channel, int fd, circbuffer *cbuf,
 	const unsigned char *moredata, unsigned int *morelen) {
-	int ret = DROPBEAR_SUCCESS;
+	int ret = SILLYBEAR_SUCCESS;
 	TRACE(("enter writechannel fd %d", fd))
 #ifdef HAVE_WRITEV
 	ret = writechannel_writev(channel, fd, cbuf, moredata, morelen);
@@ -527,9 +527,9 @@ static int writechannel(struct Channel* channel, int fd, circbuffer *cbuf,
 		channel->recvdonelen = 0;
 	}
 
-	dropbear_assert(channel->recvwindow <= opts.recv_window);
-	dropbear_assert(channel->recvwindow <= cbuf_getavail(channel->writebuf));
-	dropbear_assert(channel->extrabuf == NULL ||
+	sillybear_assert(channel->recvwindow <= opts.recv_window);
+	sillybear_assert(channel->recvwindow <= cbuf_getavail(channel->writebuf));
+	sillybear_assert(channel->extrabuf == NULL ||
 			channel->recvwindow <= cbuf_getavail(channel->extrabuf));
 	
 	TRACE(("leave writechannel"))
@@ -580,7 +580,7 @@ void setchannelfds(fd_set *readfds, fd_set *writefds, int allow_reads) {
 
 	} /* foreach channel */
 
-#if DROPBEAR_LISTENERS
+#if SILLYBEAR_LISTENERS
 	set_listener_fds(readfds);
 #endif
 
@@ -636,7 +636,7 @@ static void remove_channel(struct Channel * channel) {
 	}
 
 
-	if (IS_DROPBEAR_SERVER || (channel->writefd != STDOUT_FILENO)) {
+	if (IS_SILLYBEAR_SERVER || (channel->writefd != STDOUT_FILENO)) {
 		/* close the FDs in case they haven't been done
 		 * yet (they might have been shutdown etc) */
 		TRACE(("CLOSE writefd %d", channel->writefd))
@@ -703,7 +703,7 @@ static void send_msg_channel_data(struct Channel *channel, int isextended) {
 	CHECKCLEARTOWRITE();
 
 	TRACE(("enter send_msg_channel_data"))
-	dropbear_assert(!channel->sent_close);
+	sillybear_assert(!channel->sent_close);
 
 	if (isextended) {
 		fd = channel->errfd;
@@ -711,7 +711,7 @@ static void send_msg_channel_data(struct Channel *channel, int isextended) {
 		fd = channel->readfd;
 	}
 	TRACE(("enter send_msg_channel_data isextended %d fd %d", isextended, fd))
-	dropbear_assert(fd >= 0);
+	sillybear_assert(fd >= 0);
 
 	maxlen = MIN(channel->transwindow, channel->transmaxpacket);
 	/* -(1+4+4) is SSH_MSG_CHANNEL_DATA, channel number, string length, and 
@@ -797,7 +797,7 @@ void common_recv_msg_channel_data(struct Channel *channel, int fd,
 	TRACE(("enter recv_msg_channel_data"))
 
 	if (channel->recv_eof) {
-		dropbear_exit("Received data after eof");
+		sillybear_exit("Received data after eof");
 	}
 
 	if (fd < 0 || !cbuf) {
@@ -816,12 +816,12 @@ void common_recv_msg_channel_data(struct Channel *channel, int fd,
 	 * lead to corrupted file transfers etc (chunks missed etc). It's better to
 	 * just die horribly */
 	if (datalen > maxdata) {
-		dropbear_exit("Oversized packet");
+		sillybear_exit("Oversized packet");
 	}
 
-	dropbear_assert(channel->recvwindow >= datalen);
+	sillybear_assert(channel->recvwindow >= datalen);
 	channel->recvwindow -= datalen;
-	dropbear_assert(channel->recvwindow <= opts.recv_window);
+	sillybear_assert(channel->recvwindow <= opts.recv_window);
 
 	/* Attempt to write the data immediately without having to put it in the circular buffer */
 	consumed = datalen;
@@ -835,7 +835,7 @@ void common_recv_msg_channel_data(struct Channel *channel, int fd,
 	 * just "leave it for next time" like with writechannel, since this
 	 * is payload data.
 	 * If the writechannel() failed then remaining data is discarded */
-	if (res == DROPBEAR_SUCCESS) {
+	if (res == SILLYBEAR_SUCCESS) {
 		len = datalen;
 		while (len > 0) {
 			buflen = cbuf_writelen(cbuf);
@@ -1091,7 +1091,7 @@ static void close_chan_fd(struct Channel *channel, int fd, int how) {
 }
 
 
-#if (DROPBEAR_LISTENERS) || (DROPBEAR_CLIENT)
+#if (SILLYBEAR_LISTENERS) || (SILLYBEAR_CLIENT)
 /* Create a new channel, and start the open request. This is intended
  * for X11, agent, tcp forwarding, and should be filled with channel-specific
  * options, with the calling function calling encrypt_packet() after
@@ -1105,7 +1105,7 @@ int send_msg_channel_open_init(int fd, const struct ChanType *type) {
 	chan = newchannel(0, type, 0, 0);
 	if (!chan) {
 		TRACE(("leave send_msg_channel_open_init() - FAILED in newchannel()"))
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	/* Outbound opened channels don't make use of in-progress connections,
@@ -1130,7 +1130,7 @@ int send_msg_channel_open_init(int fd, const struct ChanType *type) {
 	buf_putint(ses.writepayload, RECV_MAX_CHANNEL_DATA_LEN);
 
 	TRACE(("leave send_msg_channel_open_init()"))
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 }
 
 /* Confirmation that our channel open request was 
@@ -1145,7 +1145,7 @@ void recv_msg_channel_open_confirmation() {
 	channel = getchannel();
 
 	if (!channel->await_open) {
-		dropbear_exit("Unexpected channel reply");
+		sillybear_exit("Unexpected channel reply");
 	}
 	channel->await_open = 0;
 
@@ -1179,13 +1179,13 @@ void recv_msg_channel_open_failure() {
 	channel = getchannel();
 
 	if (!channel->await_open) {
-		dropbear_exit("Unexpected channel reply");
+		sillybear_exit("Unexpected channel reply");
 	}
 	channel->await_open = 0;
 
 	remove_channel(channel);
 }
-#endif /* DROPBEAR_LISTENERS */
+#endif /* SILLYBEAR_LISTENERS */
 
 void send_msg_request_success() {
 	CHECKCLEARTOWRITE();

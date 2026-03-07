@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -31,7 +31,7 @@
 #include "auth.h"
 #include "runopts.h"
 
-#if DROPBEAR_SVR_PASSWORD_AUTH
+#if SILLYBEAR_SVR_PASSWORD_AUTH
 
 /* not constant time when strings are differing lengths. 
  string content isn't leaked, and crypt hashes are predictable length. */
@@ -65,7 +65,7 @@ void svr_auth_password(int valid_user) {
 	}
 
 	password = buf_getstring(ses.payload, &passwordlen);
-	if (valid_user && passwordlen <= DROPBEAR_MAX_PASSWORD_LEN) {
+	if (valid_user && passwordlen <= SILLYBEAR_MAX_PASSWORD_LEN) {
 		/* the first bytes of passwdcrypt are the salt */
 		passwdcrypt = ses.authstate.pw_passwd;
 		testcrypt = crypt(password, passwdcrypt);
@@ -80,8 +80,8 @@ void svr_auth_password(int valid_user) {
 		return;
 	}
 
-	if (passwordlen > DROPBEAR_MAX_PASSWORD_LEN) {
-		dropbear_log(LOG_WARNING,
+	if (passwordlen > SILLYBEAR_MAX_PASSWORD_LEN) {
+		sillybear_log(LOG_WARNING,
 				"Too-long password attempt for '%s' from %s",
 				ses.authstate.pw_name,
 				svr_ses.addrstring);
@@ -91,7 +91,7 @@ void svr_auth_password(int valid_user) {
 
 	if (testcrypt == NULL) {
 		/* crypt() with an invalid salt like "!!" */
-		dropbear_log(LOG_WARNING, "User account '%s' is locked",
+		sillybear_log(LOG_WARNING, "User account '%s' is locked",
 				ses.authstate.pw_name);
 		send_msg_userauth_failure(0, 1);
 		return;
@@ -99,7 +99,7 @@ void svr_auth_password(int valid_user) {
 
 	/* check for empty password */
 	if (passwdcrypt[0] == '\0') {
-		dropbear_log(LOG_WARNING, "User '%s' has blank password, rejected",
+		sillybear_log(LOG_WARNING, "User '%s' has blank password, rejected",
 				ses.authstate.pw_name);
 		send_msg_userauth_failure(0, 1);
 		return;
@@ -108,7 +108,7 @@ void svr_auth_password(int valid_user) {
 	if (constant_time_strcmp(testcrypt, passwdcrypt) == 0) {
 		if (svr_opts.multiauthmethod && (ses.authstate.authtypes & ~AUTH_TYPE_PASSWORD)) {
 			/* successful password authentication, but extra auth required */
-			dropbear_log(LOG_NOTICE,
+			sillybear_log(LOG_NOTICE,
 					"Password auth succeeded for '%s' from %s, extra auth required",
 					ses.authstate.pw_name,
 					svr_ses.addrstring);
@@ -116,14 +116,14 @@ void svr_auth_password(int valid_user) {
 			send_msg_userauth_failure(1, 0);  /* Send partial success */
 		} else {
 			/* successful authentication */
-			dropbear_log(LOG_NOTICE, 
+			sillybear_log(LOG_NOTICE, 
 					"Password auth succeeded for '%s' from %s",
 					ses.authstate.pw_name,
 					svr_ses.addrstring);
 			send_msg_userauth_success();
 		}
 	} else {
-		dropbear_log(LOG_WARNING,
+		sillybear_log(LOG_WARNING,
 				"Bad password attempt for '%s' from %s",
 				ses.authstate.pw_name,
 				svr_ses.addrstring);

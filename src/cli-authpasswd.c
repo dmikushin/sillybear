@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -29,9 +29,9 @@
 #include "ssh.h"
 #include "runopts.h"
 
-#if DROPBEAR_CLI_PASSWORD_AUTH
+#if SILLYBEAR_CLI_PASSWORD_AUTH
 
-#if DROPBEAR_CLI_ASKPASS_HELPER
+#if SILLYBEAR_CLI_ASKPASS_HELPER
 /* Returns 1 if we want to use the askpass program, 0 otherwise */
 static int want_askpass()
 {
@@ -49,7 +49,7 @@ static char *gui_getpass(const char *prompt) {
 
 	pid_t pid;
 	int p[2], maxlen, len, status;
-	static char buf[DROPBEAR_MAX_CLI_PASS + 1];
+	static char buf[SILLYBEAR_MAX_CLI_PASS + 1];
 	char* helper = NULL;
 
 	TRACE(("enter gui_getpass"))
@@ -113,7 +113,7 @@ static char *gui_getpass(const char *prompt) {
 	TRACE(("leave gui_getpass"))
 	return(buf);
 }
-#endif /* DROPBEAR_CLI_ASKPASS_HELPER */
+#endif /* SILLYBEAR_CLI_ASKPASS_HELPER */
 
 void cli_auth_password() {
 
@@ -125,12 +125,12 @@ void cli_auth_password() {
 
 	snprintf(prompt, sizeof(prompt), "%s@%s's password: ", 
 				cli_opts.username, cli_opts.remotehost);
-#if DROPBEAR_CLI_ASKPASS_HELPER
+#if SILLYBEAR_CLI_ASKPASS_HELPER
 	if (want_askpass())
 	{
 		password = gui_getpass(prompt);
 		if (!password) {
-			dropbear_exit("No password");
+			sillybear_exit("No password");
 		}
 	} else
 #endif
@@ -158,4 +158,4 @@ void cli_auth_password() {
 	cli_ses.is_trivial_auth = 0;
 	TRACE(("leave cli_auth_password"))
 }
-#endif	/* DROPBEAR_CLI_PASSWORD_AUTH */
+#endif	/* SILLYBEAR_CLI_PASSWORD_AUTH */

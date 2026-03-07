@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  *
  * Copyright (c) 2023 TJ Kolev
  * All rights reserved.
@@ -25,7 +25,7 @@
 #include "dbutil.h"
 #include "runopts.h"
 
-#if DROPBEAR_USE_SSH_CONFIG
+#if SILLYBEAR_USE_SSH_CONFIG
 
 #define TOKEN_CHARS " =\t\n"
 
@@ -66,7 +66,7 @@ void read_config_file(char* filename, FILE* config_file, cli_runopts* options) {
 
 	buf = buf_new(MAX_CONF_LINE);
 	line = buf->data;
-	while (buf_getline(buf, config_file) == DROPBEAR_SUCCESS) {
+	while (buf_getline(buf, config_file) == SILLYBEAR_SUCCESS) {
 		char* commentStart = NULL;
 		cfg_option cfg_opt;
 		int found;
@@ -76,7 +76,7 @@ void read_config_file(char* filename, FILE* config_file, cli_runopts* options) {
 
 		/* Add nul terminator */
 		if (buf->len == buf->size) {
-			dropbear_exit("Long line %s:%d", filename, linenum);
+			sillybear_exit("Long line %s:%d", filename, linenum);
 		}
 		buf_setpos(buf, buf->len);
 		buf_putbyte(buf, '\0');
@@ -102,13 +102,13 @@ void read_config_file(char* filename, FILE* config_file, cli_runopts* options) {
 		}
 
 		if (!found) {
-			dropbear_exit("Unsupported option %s at %s:%d", cfg_key, filename, linenum);
+			sillybear_exit("Unsupported option %s at %s:%d", cfg_key, filename, linenum);
 		}
 
 
 		cfg_val = strtok_r(NULL, TOKEN_CHARS, &saveptr);
 		if (NULL == cfg_val) {
-			dropbear_exit("Missing value for %s at %s:%d", cfg_key, filename, linenum);
+			sillybear_exit("Missing value for %s at %s:%d", cfg_key, filename, linenum);
 		}
 
 		if (in_host_section) {
@@ -140,7 +140,7 @@ void read_config_file(char* filename, FILE* config_file, cli_runopts* options) {
 				}
 
 				case opIdentityFile: {
-#if DROPBEAR_CLI_PUBKEY_AUTH
+#if SILLYBEAR_CLI_PUBKEY_AUTH
 					char* key_file_path;
 					if (strncmp(cfg_val, "~/", 2) == 0) {
 						key_file_path = expand_homedir_path(cfg_val);
@@ -155,7 +155,7 @@ void read_config_file(char* filename, FILE* config_file, cli_runopts* options) {
 					loadidentityfile(key_file_path, 1);
 					m_free(key_file_path);
 #else
-					dropbear_exit("identityfile isn't supported in %s", filename);
+					sillybear_exit("identityfile isn't supported in %s", filename);
 #endif
 					break;
 				}
@@ -174,4 +174,4 @@ outloop:
 	buf_free(buf);
 }
 
-#endif /* DROPBEAR_USE_SSH_CONFIG */
+#endif /* SILLYBEAR_USE_SSH_CONFIG */

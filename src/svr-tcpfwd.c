@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * Copyright (c) 2004 by Mihnea Stoenescu
@@ -35,7 +35,7 @@
 #include "auth.h"
 #include "netio.h"
 
-#if !DROPBEAR_SVR_REMOTETCPFWD
+#if !SILLYBEAR_SVR_REMOTETCPFWD
 
 /* This is better than SSH_MSG_UNIMPLEMENTED */
 void recv_msg_global_request_remotetcp() {
@@ -51,16 +51,16 @@ void recv_msg_global_request_remotetcp() {
 }
 
 /* */
-#endif /* !DROPBEAR_SVR_REMOTETCPFWD */
+#endif /* !SILLYBEAR_SVR_REMOTETCPFWD */
 
 static int svr_cancelremotetcp(void);
 static int svr_remotetcpreq(int *allocated_listen_port);
 static int newtcpdirect(struct Channel * channel);
-#if DROPBEAR_SVR_LOCALSTREAMFWD
+#if SILLYBEAR_SVR_LOCALSTREAMFWD
 static int newstreamlocal(struct Channel * channel);
 #endif
 
-#if DROPBEAR_SVR_REMOTETCPFWD
+#if SILLYBEAR_SVR_REMOTETCPFWD
 static const struct ChanType svr_chan_tcpremote = {
 	"forwarded-tcpip",
 	NULL,
@@ -78,7 +78,7 @@ void recv_msg_global_request_remotetcp() {
 	char* reqname = NULL;
 	unsigned int namelen;
 	unsigned int wantreply = 0;
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 
 	TRACE(("enter recv_msg_global_request_remotetcp"))
 
@@ -99,7 +99,7 @@ void recv_msg_global_request_remotetcp() {
 		int allocated_listen_port = 0;
 		ret = svr_remotetcpreq(&allocated_listen_port);
 		/* client expects-port-number-to-make-use-of-server-allocated-ports */
-		if (DROPBEAR_SUCCESS == ret) {
+		if (SILLYBEAR_SUCCESS == ret) {
 			CHECKCLEARTOWRITE();
 			buf_putbyte(ses.writepayload, SSH_MSG_REQUEST_SUCCESS);
 			buf_putint(ses.writepayload, allocated_listen_port);
@@ -114,7 +114,7 @@ void recv_msg_global_request_remotetcp() {
 
 out:
 	if (wantreply) {
-		if (ret == DROPBEAR_SUCCESS) {
+		if (ret == SILLYBEAR_SUCCESS) {
 			send_msg_request_success();
 		} else {
 			send_msg_request_failure();
@@ -138,7 +138,7 @@ static int matchtcp(const void* typedata1, const void* typedata2) {
 
 static int svr_cancelremotetcp() {
 
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 	char * bindaddr = NULL;
 	unsigned int addrlen;
 	unsigned int port;
@@ -162,7 +162,7 @@ static int svr_cancelremotetcp() {
 	listener = get_listener(CHANNEL_ID_TCPFORWARDED, &tcpinfo, matchtcp);
 	if (listener) {
 		remove_listener( listener );
-		ret = DROPBEAR_SUCCESS;
+		ret = SILLYBEAR_SUCCESS;
 	}
 
 out:
@@ -173,7 +173,7 @@ out:
 
 static int svr_remotetcpreq(int *allocated_listen_port) {
 
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 	char * request_addr = NULL;
 	unsigned int addrlen;
 	struct TCPListener *tcpinfo = NULL;
@@ -221,13 +221,13 @@ static int svr_remotetcpreq(int *allocated_listen_port) {
 	}
 
 	ret = listen_tcpfwd(tcpinfo, &listener);
-	if (DROPBEAR_SUCCESS == ret) {
+	if (SILLYBEAR_SUCCESS == ret) {
 		tcpinfo->listenport = get_sock_port(listener->socks[0]);
 		*allocated_listen_port = tcpinfo->listenport;
 	}
 
 out:
-	if (ret == DROPBEAR_FAILURE) {
+	if (ret == SILLYBEAR_FAILURE) {
 		/* we only free it if a listener wasn't created, since the listener
 		 * has to remember it if it's to be cancelled */
 		m_free(request_addr);
@@ -239,9 +239,9 @@ out:
 	return ret;
 }
 
-#endif /* DROPBEAR_SVR_REMOTETCPFWD */
+#endif /* SILLYBEAR_SVR_REMOTETCPFWD */
 
-#if DROPBEAR_SVR_LOCALTCPFWD
+#if SILLYBEAR_SVR_LOCALTCPFWD
 
 const struct ChanType svr_chan_tcpdirect = {
 	"direct-tcpip",
@@ -300,7 +300,7 @@ static int newtcpdirect(struct Channel * channel) {
 
 	snprintf(portstring, sizeof(portstring), "%u", destport);
 	channel->conn_pending = connect_remote(desthost, portstring, channel_connect_done,
-		channel, NULL, NULL, DROPBEAR_PRIO_NORMAL);
+		channel, NULL, NULL, SILLYBEAR_PRIO_NORMAL);
 
 	err = SSH_OPEN_IN_PROGRESS;
 
@@ -311,10 +311,10 @@ out:
 	return err;
 }
 
-#endif /* DROPBEAR_SVR_LOCALTCPFWD */
+#endif /* SILLYBEAR_SVR_LOCALTCPFWD */
 
 
-#if DROPBEAR_SVR_LOCALSTREAMFWD
+#if SILLYBEAR_SVR_LOCALSTREAMFWD
 
 const struct ChanType svr_chan_streamlocal = {
 	"direct-streamlocal@openssh.com",
@@ -365,7 +365,7 @@ static int newstreamlocal(struct Channel * channel) {
 	}
 
 	channel->conn_pending = connect_streamlocal(destsocket, channel_connect_done,
-		channel, DROPBEAR_PRIO_NORMAL);
+		channel, SILLYBEAR_PRIO_NORMAL);
 
 	err = SSH_OPEN_IN_PROGRESS;
 
@@ -375,4 +375,4 @@ out:
 	return err;
 }
 
-#endif /* DROPBEAR_SVR_LOCALSTREAMFWD */
+#endif /* SILLYBEAR_SVR_LOCALSTREAMFWD */

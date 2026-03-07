@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,9 +22,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_SERVICE_H_
-#define DROPBEAR_SERVICE_H_
+#ifndef SILLYBEAR_SERVICE_H_
+#define SILLYBEAR_SERVICE_H_
 
 void recv_msg_service_request(void); /* Server */
 
-#endif /* DROPBEAR_SERVICE_H_ */
+#endif /* SILLYBEAR_SERVICE_H_ */

@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * Copyright (c) 2004 by Mihnea Stoenescu
@@ -88,7 +88,7 @@ static void cli_closechansess(const struct Channel *UNUSED(channel)) {
 
 	/* This channel hasn't gone yet, so we have > 1 */
 	if (ses.chancount > 1) {
-		dropbear_log(LOG_INFO, "Waiting for other channels to close...");
+		sillybear_log(LOG_INFO, "Waiting for other channels to close...");
 	}
 }
 
@@ -106,7 +106,7 @@ static void cli_tty_setup() {
 	}
 
 	if (tcgetattr(STDIN_FILENO, &tio) == -1) {
-		dropbear_exit("Failed to set raw TTY mode");
+		sillybear_exit("Failed to set raw TTY mode");
 	}
 
 	/* make a copy */
@@ -125,7 +125,7 @@ static void cli_tty_setup() {
 	tio.c_cc[VMIN] = 1;
 	tio.c_cc[VTIME] = 0;
 	if (tcsetattr(STDIN_FILENO, TCSADRAIN, &tio) == -1) {
-		dropbear_exit("Failed to set raw TTY mode");
+		sillybear_exit("Failed to set raw TTY mode");
 	}
 
 	cli_ses.tty_raw_mode = 1;
@@ -142,7 +142,7 @@ void cli_tty_cleanup() {
 	}
 
 	if (tcsetattr(STDIN_FILENO, TCSADRAIN, &cli_ses.saved_tio) == -1) {
-		dropbear_log(LOG_WARNING, "Failed restoring TTY");
+		sillybear_log(LOG_WARNING, "Failed restoring TTY");
 	} else {
 		cli_ses.tty_raw_mode = 0; 
 	}
@@ -163,7 +163,7 @@ static void put_termcodes() {
 	TRACE(("enter put_termcodes"))
 
 	if (tcgetattr(STDIN_FILENO, &tio) == -1) {
-		dropbear_log(LOG_WARNING, "Failed reading termmodes");
+		sillybear_log(LOG_WARNING, "Failed reading termmodes");
 		buf_putint(ses.writepayload, 1); /* Just the terminator */
 		buf_putbyte(ses.writepayload, 0); /* TTY_OP_END */
 		return;
@@ -172,7 +172,7 @@ static void put_termcodes() {
 	bufpos1 = ses.writepayload->pos;
 	buf_putint(ses.writepayload, 0); /* A placeholder for the final length */
 
-	/* As with Dropbear server, we ignore baud rates for now */
+	/* As with Sillybear server, we ignore baud rates for now */
 	for (sshcode = 1; sshcode < MAX_TERMCODE; sshcode++) {
 
 		termcode = &termcodes[sshcode];
@@ -298,7 +298,7 @@ static void send_chansess_pty_req(const struct Channel *channel) {
 
 	/* Set up a window-change handler */
 	if (signal(SIGWINCH, sigwinch_handler) == SIG_ERR) {
-		dropbear_exit("Signal error");
+		sillybear_exit("Signal error");
 	}
 	TRACE(("leave send_chansess_pty_req"))
 }
@@ -355,14 +355,14 @@ static int cli_initchansess(struct Channel *channel) {
 
 	cli_init_stdpipe_sess(channel);
 
-#if DROPBEAR_CLI_AGENTFWD
+#if SILLYBEAR_CLI_AGENTFWD
 	if (cli_opts.agent_fwd) {
 		cli_setup_agent(channel);
 	}
 #endif
 	if (cli_opts.wantpty) {
 		send_chansess_pty_req(channel);
-		channel->prio = DROPBEAR_PRIO_LOWDELAY;
+		channel->prio = SILLYBEAR_PRIO_LOWDELAY;
 	}
 
 	send_chansess_shell_req(channel);
@@ -376,7 +376,7 @@ static int cli_initchansess(struct Channel *channel) {
 	return 0; /* Success */
 }
 
-#if DROPBEAR_CLI_NETCAT
+#if SILLYBEAR_CLI_NETCAT
 
 static const struct ChanType cli_chan_netcat = {
 	"direct-tcpip",
@@ -396,8 +396,8 @@ void cli_send_netcat_request() {
 	cli_opts.wantpty = 0;
 
 	if (send_msg_channel_open_init(STDIN_FILENO, &cli_chan_netcat) 
-			== DROPBEAR_FAILURE) {
-		dropbear_exit("Couldn't open initial channel");
+			== SILLYBEAR_FAILURE) {
+		sillybear_exit("Couldn't open initial channel");
 	}
 
 	buf_putstring(ses.writepayload, cli_opts.netcat_host,
@@ -418,8 +418,8 @@ void cli_send_chansess_request() {
 	TRACE(("enter cli_send_chansess_request"))
 
 	if (send_msg_channel_open_init(STDIN_FILENO, &clichansess) 
-			== DROPBEAR_FAILURE) {
-		dropbear_exit("Couldn't open initial channel");
+			== SILLYBEAR_FAILURE) {
+		sillybear_exit("Couldn't open initial channel");
 	}
 
 	/* No special channel request data */
@@ -433,7 +433,7 @@ static int
 do_escape(unsigned char c) {
 	switch (c) {
 		case '.':
-			dropbear_exit("Terminated");
+			sillybear_exit("Terminated");
 			return 1;
 		case 0x1a:
 			/* ctrl-z */
@@ -467,13 +467,13 @@ void cli_escape_handler(const struct Channel* UNUSED(channel), const unsigned ch
 
 	c = buf[0];
 
-	if (cli_ses.last_char == DROPBEAR_ESCAPE_CHAR) {
+	if (cli_ses.last_char == SILLYBEAR_ESCAPE_CHAR) {
 		skip_char = do_escape(c);
 		cli_ses.last_char = 0x0;
 	} else {
-		if (c == DROPBEAR_ESCAPE_CHAR) {
+		if (c == SILLYBEAR_ESCAPE_CHAR) {
 			if (cli_ses.last_char == '\r') {
-				cli_ses.last_char = DROPBEAR_ESCAPE_CHAR;
+				cli_ses.last_char = SILLYBEAR_ESCAPE_CHAR;
 				skip_char = 1;
 			} else {
 				cli_ses.last_char = 0x0;

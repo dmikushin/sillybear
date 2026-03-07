@@ -23,7 +23,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 		once = 1;
 	}
 
-	if (fuzz_set_input(Data, Size) == DROPBEAR_FAILURE) {
+	if (fuzz_set_input(Data, Size) == SILLYBEAR_FAILURE) {
 		return 0;
 	}
 
@@ -71,8 +71,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 		m_free(cli_opts.username);
 
 		m_malloc_free_epoch(1, 1);
-		TRACE(("dropbear_exit longjmped"))
-		/* dropbear_exit jumped here */
+		TRACE(("sillybear_exit longjmped"))
+		/* sillybear_exit jumped here */
 	}
 
 	return 0;

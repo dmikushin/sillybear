@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  *
  * Copied from OpenSSH-3.5p1 source, modified by Matt Johnston 2003
  * 
@@ -55,13 +55,13 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 
 	i = openpty(ptyfd, ttyfd, NULL, NULL, NULL);
 	if (i < 0) {
-		dropbear_log(LOG_WARNING, 
+		sillybear_log(LOG_WARNING, 
 				"pty_allocate: openpty: %.100s", strerror(errno));
 		return 0;
 	}
 	name = ttyname(*ttyfd);
 	if (!name) {
-		dropbear_exit("ttyname fails for openpty device");
+		sillybear_exit("ttyname fails for openpty device");
 	}
 
 	strlcpy(namebuf, name, namebuflen);	/* possible truncation */
@@ -76,7 +76,7 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 
 	slave = _getpty(ptyfd, O_RDWR, 0622, 0);
 	if (slave == NULL) {
-		dropbear_log(LOG_WARNING,
+		sillybear_log(LOG_WARNING,
 				"pty_allocate: _getpty: %.100s", strerror(errno));
 		return 0;
 	}
@@ -84,7 +84,7 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 	/* Open the slave side. */
 	*ttyfd = open(namebuf, O_RDWR | O_NOCTTY);
 	if (*ttyfd < 0) {
-		dropbear_log(LOG_WARNING,
+		sillybear_log(LOG_WARNING,
 				"pty_allocate error: ttyftd open error");
 		close(*ptyfd);
 		return 0;
@@ -103,23 +103,23 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 
 	ptm = open("/dev/ptmx", O_RDWR | O_NOCTTY);
 	if (ptm < 0) {
-		dropbear_log(LOG_WARNING,
+		sillybear_log(LOG_WARNING,
 				"pty_allocate: /dev/ptmx: %.100s", strerror(errno));
 		return 0;
 	}
 	if (grantpt(ptm) < 0) {
-		dropbear_log(LOG_WARNING,
+		sillybear_log(LOG_WARNING,
 				"grantpt: %.100s", strerror(errno));
 		return 0;
 	}
 	if (unlockpt(ptm) < 0) {
-		dropbear_log(LOG_WARNING,
+		sillybear_log(LOG_WARNING,
 				"unlockpt: %.100s", strerror(errno));
 		return 0;
 	}
 	pts = ptsname(ptm);
 	if (pts == NULL) {
-		dropbear_log(LOG_WARNING,
+		sillybear_log(LOG_WARNING,
 				"Slave pty side name could not be obtained.");
 	}
 	strlcpy(namebuf, pts, namebuflen);
@@ -128,7 +128,7 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 	/* Open the slave side. */
 	*ttyfd = open(namebuf, O_RDWR | O_NOCTTY);
 	if (*ttyfd < 0) {
-		dropbear_log(LOG_ERR,
+		sillybear_log(LOG_ERR,
 			"error opening pts %.100s: %.100s", namebuf, strerror(errno));
 		close(*ptyfd);
 		return 0;
@@ -139,16 +139,16 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 	 * HP-UX pts(7) doesn't have ttcompat module.
 	 */
 	if (ioctl(*ttyfd, I_PUSH, "ptem") < 0) {
-		dropbear_log(LOG_WARNING,
+		sillybear_log(LOG_WARNING,
 				"ioctl I_PUSH ptem: %.100s", strerror(errno));
 	}
 	if (ioctl(*ttyfd, I_PUSH, "ldterm") < 0) {
-		dropbear_log(LOG_WARNING,
+		sillybear_log(LOG_WARNING,
 			"ioctl I_PUSH ldterm: %.100s", strerror(errno));
 	}
 #ifndef __hpux
 	if (ioctl(*ttyfd, I_PUSH, "ttcompat") < 0) {
-		dropbear_log(LOG_WARNING,
+		sillybear_log(LOG_WARNING,
 			"ioctl I_PUSH ttcompat: %.100s", strerror(errno));
 	}
 #endif
@@ -161,18 +161,18 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 
 	*ptyfd = open("/dev/ptc", O_RDWR | O_NOCTTY);
 	if (*ptyfd < 0) {
-		dropbear_log(LOG_ERR,
+		sillybear_log(LOG_ERR,
 			"Could not open /dev/ptc: %.100s", strerror(errno));
 		return 0;
 	}
 	name = ttyname(*ptyfd);
 	if (!name) {
-		dropbear_exit("ttyname fails for /dev/ptc device");
+		sillybear_exit("ttyname fails for /dev/ptc device");
 	}
 	strlcpy(namebuf, name, namebuflen);
 	*ttyfd = open(name, O_RDWR | O_NOCTTY);
 	if (*ttyfd < 0) {
-		dropbear_log(LOG_ERR,
+		sillybear_log(LOG_ERR,
 			"Could not open pty slave side %.100s: %.100s",
 		    name, strerror(errno));
 		close(*ptyfd);
@@ -210,14 +210,14 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 		/* Open the slave side. */
 		*ttyfd = open(namebuf, O_RDWR | O_NOCTTY);
 		if (*ttyfd < 0) {
-			dropbear_log(LOG_ERR,
+			sillybear_log(LOG_ERR,
 				"pty_allocate: %.100s: %.100s", namebuf, strerror(errno));
 			close(*ptyfd);
 			return 0;
 		}
 		/* set tty modes to a sane state for broken clients */
 		if (tcgetattr(*ptyfd, &tio) < 0) {
-			dropbear_log(LOG_WARNING,
+			sillybear_log(LOG_WARNING,
 				"ptyallocate: tty modes failed: %.100s", strerror(errno));
 		} else {
 			tio.c_lflag |= (ECHO | ISIG | ICANON);
@@ -226,7 +226,7 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 
 			/* Set the new modes for the terminal. */
 			if (tcsetattr(*ptyfd, TCSANOW, &tio) < 0) {
-				dropbear_log(LOG_WARNING,
+				sillybear_log(LOG_WARNING,
 					"Setting tty modes for pty failed: %.100s",
 					strerror(errno));
 			}
@@ -234,7 +234,7 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 
 		return 1;
 	}
-	dropbear_log(LOG_WARNING, "Failed to open any /dev/pty?? devices");
+	sillybear_log(LOG_WARNING, "Failed to open any /dev/pty?? devices");
 	return 0;
 #endif /* HAVE_DEV_PTS_AND_PTC */
 #endif /* USE_DEV_PTMX */
@@ -249,12 +249,12 @@ pty_release(const char *tty_name)
 {
 	if (chown(tty_name, (uid_t) 0, (gid_t) 0) < 0
 			&& (errno != ENOENT)) {
-		dropbear_log(LOG_ERR,
+		sillybear_log(LOG_ERR,
 				"chown %.100s 0 0 failed: %.100s", tty_name, strerror(errno));
 	}
 	if (chmod(tty_name, (mode_t) 0666) < 0
 			&& (errno != ENOENT)) {
-		dropbear_log(LOG_ERR,
+		sillybear_log(LOG_ERR,
 			"chmod %.100s 0666 failed: %.100s", tty_name, strerror(errno));
 	}
 }
@@ -282,7 +282,7 @@ pty_make_controlling_tty(int *ttyfd, const char *tty_name)
 	}
 #endif /* TIOCNOTTY */
 	if (setsid() < 0) {
-		dropbear_log(LOG_ERR,
+		sillybear_log(LOG_ERR,
 			"setsid: %.100s", strerror(errno));
 	}
 
@@ -292,20 +292,20 @@ pty_make_controlling_tty(int *ttyfd, const char *tty_name)
 	 */
 	fd = open(_PATH_TTY, O_RDWR | O_NOCTTY);
 	if (fd >= 0) {
-		dropbear_log(LOG_ERR,
+		sillybear_log(LOG_ERR,
 				"Failed to disconnect from controlling tty.\n");
 		close(fd);
 	}
 	/* Make it our controlling tty. */
 #ifdef TIOCSCTTY
 	if (ioctl(*ttyfd, TIOCSCTTY, NULL) < 0) {
-		dropbear_log(LOG_ERR,
+		sillybear_log(LOG_ERR,
 			"ioctl(TIOCSCTTY): %.100s", strerror(errno));
 	}
 #endif /* TIOCSCTTY */
 #ifdef HAVE_NEWS4
 	if (setpgrp(0,0) < 0) {
-		dropbear_log(LOG_ERR,
+		sillybear_log(LOG_ERR,
 			error("SETPGRP %s",strerror(errno)));
 	}
 #endif /* HAVE_NEWS4 */
@@ -316,7 +316,7 @@ pty_make_controlling_tty(int *ttyfd, const char *tty_name)
 #endif /* USE_VHANGUP */
 	fd = open(tty_name, O_RDWR);
 	if (fd < 0) {
-		dropbear_log(LOG_ERR,
+		sillybear_log(LOG_ERR,
 			"%.100s: %.100s", tty_name, strerror(errno));
 	} else {
 #ifdef USE_VHANGUP
@@ -329,7 +329,7 @@ pty_make_controlling_tty(int *ttyfd, const char *tty_name)
 	/* Verify that we now have a controlling tty. */
 	fd = open(_PATH_TTY, O_WRONLY);
 	if (fd < 0) {
-		dropbear_log(LOG_ERR,
+		sillybear_log(LOG_ERR,
 			"open /dev/tty failed - could not set controlling tty: %.100s",
 		    strerror(errno));
 	} else {
@@ -376,7 +376,7 @@ pty_setowner(struct passwd *pw, const char *tty_name)
 	 * tty is owned by root.
 	 */
 	if (stat(tty_name, &st)) {
-		dropbear_exit("pty_setowner: stat(%.101s) failed: %.100s",
+		sillybear_exit("pty_setowner: stat(%.101s) failed: %.100s",
 				tty_name, strerror(errno));
 	}
 
@@ -386,12 +386,12 @@ pty_setowner(struct passwd *pw, const char *tty_name)
 		if (chown(tty_name, pw->pw_uid, gid) < 0) {
 			if (errno == EROFS &&
 			    (st.st_uid == pw->pw_uid || st.st_uid == 0)) {
-				dropbear_log(LOG_ERR,
+				sillybear_log(LOG_ERR,
 					"chown(%.100s, %u, %u) failed: %.100s",
 						tty_name, (unsigned int)pw->pw_uid, (unsigned int)gid,
 						strerror(errno));
 			} else {
-				dropbear_exit("chown(%.100s, %u, %u) failed: %.100s",
+				sillybear_exit("chown(%.100s, %u, %u) failed: %.100s",
 				    tty_name, (unsigned int)pw->pw_uid, (unsigned int)gid,
 				    strerror(errno));
 			}
@@ -402,11 +402,11 @@ pty_setowner(struct passwd *pw, const char *tty_name)
 		if (chmod(tty_name, mode) < 0) {
 			if (errno == EROFS &&
 			    (st.st_mode & (S_IRGRP | S_IROTH)) == 0) {
-				dropbear_log(LOG_ERR,
+				sillybear_log(LOG_ERR,
 					"chmod(%.100s, 0%o) failed: %.100s",
 					tty_name, mode, strerror(errno));
 			} else {
-				dropbear_exit("chmod(%.100s, 0%o) failed: %.100s",
+				sillybear_exit("chmod(%.100s, 0%o) failed: %.100s",
 				    tty_name, mode, strerror(errno));
 			}
 		}

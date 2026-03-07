@@ -1307,7 +1307,7 @@
 #   define LTM_LAST
 #endif
 
-/* Dropbear doesn't need these. */
+/* Sillybear doesn't need these. */
 #undef BN_MP_KARATSUBA_MUL_C
 #undef BN_MP_KARATSUBA_SQR_C
 #undef BN_MP_TOOM_MUL_C
@@ -1316,7 +1316,7 @@
 #undef BN_S_MP_KARATSUBA_SQR_C
 #undef BN_S_MP_TOOM_MUL_C
 #undef BN_S_MP_TOOM_SQR_C
-/* Dropbear uses its own random source */
+/* Sillybear uses its own random source */
 #undef BN_S_MP_RAND_PLATFORM_C
 
 #include "dbmalloc.h"

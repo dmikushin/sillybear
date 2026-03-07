@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -55,10 +55,10 @@ process_file(hash_state *hs, const char *filename,
 		unsigned int wantlen, int prngd) {
 	int readfd = -1;
 	unsigned int readcount;
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 
 	if (prngd) {
-#if DROPBEAR_USE_PRNGD
+#if SILLYBEAR_USE_PRNGD
 		readfd = connect_unix(filename);
 #endif
 	} else {
@@ -79,13 +79,13 @@ process_file(hash_state *hs, const char *filename,
 			wantread = MIN(sizeof(readbuf), wantlen-readcount);
 		}
 
-#if DROPBEAR_USE_PRNGD
+#if SILLYBEAR_USE_PRNGD
 		if (prngd) {
 			char egdcmd[2];
 			egdcmd[0] = 0x02;	/* blocking read */
 			egdcmd[1] = (unsigned char)wantread;
 			if (write(readfd, egdcmd, 2) < 0) {
-				dropbear_exit("Can't send command to egd");
+				sillybear_exit("Can't send command to egd");
 			}
 		}
 #endif
@@ -103,7 +103,7 @@ process_file(hash_state *hs, const char *filename,
 		sha256_process(hs, readbuf, readlen);
 		readcount += readlen;
 	}
-	ret = DROPBEAR_SUCCESS;
+	ret = SILLYBEAR_SUCCESS;
 out:
 	close(readfd);
 	return ret;
@@ -113,7 +113,7 @@ void addrandom(const unsigned char * buf, unsigned int len)
 {
 	hash_state hs;
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (fuzz.fuzzing) {
 		return;
 	}
@@ -131,15 +131,15 @@ void addrandom(const unsigned char * buf, unsigned int len)
 
 static void write_urandom()
 {
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (fuzz.fuzzing) {
 		return;
 	}
 #endif
-#if !DROPBEAR_USE_PRNGD
+#if !SILLYBEAR_USE_PRNGD
 	/* This is opportunistic, don't worry about failure */
 	unsigned char buf[INIT_SEED_SIZE];
-	FILE *f = fopen(DROPBEAR_URANDOM_DEV, "w");
+	FILE *f = fopen(SILLYBEAR_URANDOM_DEV, "w");
 	if (!f) {
 		return;
 	}
@@ -149,7 +149,7 @@ static void write_urandom()
 #endif
 }
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 void fuzz_seed(const unsigned char* dat, unsigned int len) {
 	hash_state hs;
 	sha256_init(&hs);
@@ -165,7 +165,7 @@ void fuzz_seed(const unsigned char* dat, unsigned int len) {
 #ifdef HAVE_GETRANDOM
 /* Reads entropy seed with getrandom(). 
  * May block if the kernel isn't ready.
- * Return DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+ * Return SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 static int process_getrandom(hash_state *hs) {
 	char buf[INIT_SEED_SIZE];
 	ssize_t ret;
@@ -175,12 +175,12 @@ static int process_getrandom(hash_state *hs) {
 	if (ret == -1) {
 		if (errno == ENOSYS) {
 			/* Old kernel */
-			return DROPBEAR_FAILURE;
+			return SILLYBEAR_FAILURE;
 		}
 		/* Other errors fall through to blocking getrandom() */
 		TRACE(("first getrandom() failed: %d %s", errno, strerror(errno)))
 		if (errno == EAGAIN) {
-			dropbear_log(LOG_WARNING, "Waiting for kernel randomness to be initialised...");
+			sillybear_log(LOG_WARNING, "Waiting for kernel randomness to be initialised...");
 		}
 	}
 
@@ -210,10 +210,10 @@ static int process_getrandom(hash_state *hs) {
 	if (ret == sizeof(buf)) {
 		/* Success, stir in the entropy */
 		sha256_process(hs, (void*)buf, sizeof(buf));
-		return DROPBEAR_SUCCESS;
+		return SILLYBEAR_SUCCESS;
 	}
 
-	return DROPBEAR_FAILURE;
+	return SILLYBEAR_FAILURE;
 
 }
 #endif /* HAVE_GETRANDOM */
@@ -228,7 +228,7 @@ void seedrandom() {
 	clock_t clockval;
 	int urandom_seeded = 0;
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (fuzz.fuzzing) {
 		return;
 	}
@@ -241,25 +241,25 @@ void seedrandom() {
 	sha256_process(&hs, (void*)hashpool, sizeof(hashpool));
 
 #ifdef HAVE_GETRANDOM
-	if (process_getrandom(&hs) == DROPBEAR_SUCCESS) {
+	if (process_getrandom(&hs) == SILLYBEAR_SUCCESS) {
 		urandom_seeded = 1;
 	}
 #endif
 
 	if (!urandom_seeded) {
-#if DROPBEAR_USE_PRNGD
-		if (process_file(&hs, DROPBEAR_PRNGD_SOCKET, INIT_SEED_SIZE, 1) 
-				!= DROPBEAR_SUCCESS) {
-			dropbear_exit("Failure reading random device %s", 
-					DROPBEAR_PRNGD_SOCKET);
+#if SILLYBEAR_USE_PRNGD
+		if (process_file(&hs, SILLYBEAR_PRNGD_SOCKET, INIT_SEED_SIZE, 1) 
+				!= SILLYBEAR_SUCCESS) {
+			sillybear_exit("Failure reading random device %s", 
+					SILLYBEAR_PRNGD_SOCKET);
 			urandom_seeded = 1;
 		}
 #else
 		/* non-blocking random source (probably /dev/urandom) */
-		if (process_file(&hs, DROPBEAR_URANDOM_DEV, INIT_SEED_SIZE, 0) 
-				!= DROPBEAR_SUCCESS) {
-			dropbear_exit("Failure reading random device %s", 
-					DROPBEAR_URANDOM_DEV);
+		if (process_file(&hs, SILLYBEAR_URANDOM_DEV, INIT_SEED_SIZE, 0) 
+				!= SILLYBEAR_SUCCESS) {
+			sillybear_exit("Failure reading random device %s", 
+					SILLYBEAR_URANDOM_DEV);
 			urandom_seeded = 1;
 		}
 #endif
@@ -304,7 +304,7 @@ void seedrandom() {
 	counter = 0;
 	donerandinit = 1;
 
-	/* Feed it all back into /dev/urandom - this might help if Dropbear
+	/* Feed it all back into /dev/urandom - this might help if Sillybear
 	 * is running from inetd and gets new state each time */
 	write_urandom();
 }
@@ -317,7 +317,7 @@ void genrandom(unsigned char* buf, unsigned int len) {
 	unsigned int copylen;
 
 	if (!donerandinit) {
-		dropbear_exit("seedrandom not done");
+		sillybear_exit("seedrandom not done");
 	}
 
 	while (len > 0) {

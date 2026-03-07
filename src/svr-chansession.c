@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -181,8 +181,8 @@ static void send_exitsignalstatus(const struct Channel *channel) {
 static void send_msg_chansess_exitstatus(const struct Channel * channel,
 		const struct ChanSess * chansess) {
 
-	dropbear_assert(chansess->exit.exitpid != -1);
-	dropbear_assert(chansess->exit.exitsignal == -1);
+	sillybear_assert(chansess->exit.exitpid != -1);
+	sillybear_assert(chansess->exit.exitsignal == -1);
 
 	CHECKCLEARTOWRITE();
 
@@ -202,8 +202,8 @@ static void send_msg_chansess_exitsignal(const struct Channel * channel,
 
 	int i;
 	char* signame = NULL;
-	dropbear_assert(chansess->exit.exitpid != -1);
-	dropbear_assert(chansess->exit.exitsignal > 0);
+	sillybear_assert(chansess->exit.exitpid != -1);
+	sillybear_assert(chansess->exit.exitsignal > 0);
 
 	TRACE(("send_msg_chansess_exitsignal %d", chansess->exit.exitsignal))
 
@@ -241,7 +241,7 @@ static int newchansess(struct Channel *channel) {
 
 	TRACE(("new chansess %p", (void*)channel))
 
-	dropbear_assert(channel->typedata == NULL);
+	sillybear_assert(channel->typedata == NULL);
 
 	chansess = (struct ChanSess*)m_malloc(sizeof(struct ChanSess));
 	chansess->cmd = NULL;
@@ -259,20 +259,20 @@ static int newchansess(struct Channel *channel) {
 
 	channel->typedata = chansess;
 
-#if DROPBEAR_X11FWD
+#if SILLYBEAR_X11FWD
 	chansess->x11listener = NULL;
 	chansess->x11authprot = NULL;
 	chansess->x11authcookie = NULL;
 #endif
 
-#if DROPBEAR_SVR_AGENTFWD
+#if SILLYBEAR_SVR_AGENTFWD
 	chansess->agentlistener = NULL;
 	chansess->agentfile = NULL;
 	chansess->agentdir = NULL;
 #endif
 
-	/* Will drop to DROPBEAR_PRIO_NORMAL if a non-tty command starts */
-	channel->prio = DROPBEAR_PRIO_LOWDELAY;
+	/* Will drop to SILLYBEAR_PRIO_NORMAL if a non-tty command starts */
+	channel->prio = SILLYBEAR_PRIO_LOWDELAY;
 
 	return 0;
 
@@ -337,18 +337,18 @@ static void cleanupchansess(const struct Channel *channel) {
 		m_free(chansess->tty);
 	}
 
-#if DROPBEAR_X11FWD
+#if SILLYBEAR_X11FWD
 	x11cleanup(chansess);
 #endif
 
-#if DROPBEAR_SVR_AGENTFWD
+#if SILLYBEAR_SVR_AGENTFWD
 	svr_agentcleanup(chansess);
 #endif
 
 	/* clear child pid entries */
 	for (i = 0; i < svr_ses.childpidsize; i++) {
 		if (svr_ses.childpids[i].chansess == chansess) {
-			dropbear_assert(svr_ses.childpids[i].pid > 0);
+			sillybear_assert(svr_ses.childpids[i].pid > 0);
 			TRACE(("closing pid %d", svr_ses.childpids[i].pid))
 			TRACE(("exitpid is %d", chansess->exit.exitpid))
 			svr_ses.childpids[i].pid = -1;
@@ -382,7 +382,7 @@ static void chansessionrequest(struct Channel *channel) {
 	}
 
 	chansess = (struct ChanSess*)channel->typedata;
-	dropbear_assert(chansess != NULL);
+	sillybear_assert(chansess != NULL);
 	TRACE(("type is %s", type))
 
 	if (strcmp(type, "window-change") == 0) {
@@ -395,11 +395,11 @@ static void chansessionrequest(struct Channel *channel) {
 		ret = sessioncommand(channel, chansess, 1, 0);
 	} else if (strcmp(type, "subsystem") == 0) {
 		ret = sessioncommand(channel, chansess, 1, 1);
-#if DROPBEAR_X11FWD
+#if SILLYBEAR_X11FWD
 	} else if (strcmp(type, "x11-req") == 0) {
 		ret = x11req(chansess);
 #endif
-#if DROPBEAR_SVR_AGENTFWD
+#if SILLYBEAR_SVR_AGENTFWD
 	} else if (strcmp(type, "auth-agent-req@openssh.com") == 0) {
 		ret = svr_agentreq(chansess);
 #endif
@@ -412,7 +412,7 @@ static void chansessionrequest(struct Channel *channel) {
 out:
 
 	if (wantreply) {
-		if (ret == DROPBEAR_SUCCESS) {
+		if (ret == SILLYBEAR_SUCCESS) {
 			send_msg_channel_success(channel);
 		} else {
 			send_msg_channel_failure(channel);
@@ -435,17 +435,17 @@ static int sessionsignal(const struct ChanSess *chansess) {
 	if (chansess->pid == 0) {
 		TRACE(("sessionsignal: done no pid"))
 		/* haven't got a process pid yet */
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	if (svr_opts.forced_command || svr_pubkey_has_forced_command()) {
 		TRACE(("disallowed signal for forced_command"));
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
-	if (DROPBEAR_SVR_MULTIUSER && !DROPBEAR_SVR_DROP_PRIVS) {
+	if (SILLYBEAR_SVR_MULTIUSER && !SILLYBEAR_SVR_DROP_PRIVS) {
 		TRACE(("disallow signal without drop privs"));
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	signame = buf_getstring(ses.payload, NULL);
@@ -462,26 +462,26 @@ static int sessionsignal(const struct ChanSess *chansess) {
 	TRACE(("sessionsignal: pid %d signal %d", (int)chansess->pid, sig))
 	if (sig == 0) {
 		/* failed */
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 			
 	if (kill(chansess->pid, sig) < 0) {
 		TRACE(("sessionsignal: kill() errored"))
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	} 
 
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 }
 
 /* Let the process know that the window size has changed, as notified from the
- * client. Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+ * client. Returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 static int sessionwinchange(const struct ChanSess *chansess) {
 
 	int termc, termr, termw, termh;
 
 	if (chansess->master < 0) {
 		/* haven't got a pty yet */
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 			
 	termc = buf_getint(ses.payload);
@@ -491,7 +491,7 @@ static int sessionwinchange(const struct ChanSess *chansess) {
 	
 	pty_change_window_size(chansess->master, termr, termc, termw, termh);
 
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 }
 
 static void get_termmodes(const struct ChanSess *chansess) {
@@ -515,7 +515,7 @@ static void get_termmodes(const struct ChanSess *chansess) {
 	TRACE(("term mode str %d p->l %d p->p %d", 
 				len, ses.payload->len , ses.payload->pos));
 	if (len != ses.payload->len - ses.payload->pos) {
-		dropbear_exit("Bad term mode string");
+		sillybear_exit("Bad term mode string");
 	}
 
 	if (len == 0) {
@@ -580,14 +580,14 @@ static void get_termmodes(const struct ChanSess *chansess) {
 		}
 	}
 	if (tcsetattr(chansess->master, TCSANOW, &termio) < 0) {
-		dropbear_log(LOG_INFO, "Error setting terminal attributes");
+		sillybear_log(LOG_INFO, "Error setting terminal attributes");
 	}
 	TRACE(("leave get_termmodes"))
 }
 
 /* Set up a session pty which will be used to execute the shell or program.
  * The pty is allocated now, and kept for when the shell/program executes.
- * Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+ * Returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 static int sessionpty(struct ChanSess * chansess) {
 
 	unsigned int termlen;
@@ -598,33 +598,33 @@ static int sessionpty(struct ChanSess * chansess) {
 
 	if (!svr_pubkey_allows_pty()) {
 		TRACE(("leave sessionpty : pty forbidden by public key option"))
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	chansess->term = buf_getstring(ses.payload, &termlen);
 	if (termlen > MAX_TERM_LEN) {
 		/* TODO send disconnect ? */
 		TRACE(("leave sessionpty: term len too long"))
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	/* allocate the pty */
 	if (chansess->master != -1) {
-		dropbear_exit("Multiple pty requests");
+		sillybear_exit("Multiple pty requests");
 	}
 	if (pty_allocate(&chansess->master, &chansess->slave, namebuf, 64) == 0) {
 		TRACE(("leave sessionpty: failed to allocate pty"))
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 	
 	chansess->tty = m_strdup(namebuf);
 	if (!chansess->tty) {
-		dropbear_exit("Out of memory"); /* TODO disconnect */
+		sillybear_exit("Out of memory"); /* TODO disconnect */
 	}
 
 	pw = getpwnam(ses.authstate.pw_name);
 	if (!pw)
-		dropbear_exit("getpwnam failed after succeeding previously");
+		sillybear_exit("getpwnam failed after succeeding previously");
 	pty_setowner(pw, chansess->tty);
 
 	/* Set up the rows/col counts */
@@ -634,10 +634,10 @@ static int sessionpty(struct ChanSess * chansess) {
 	get_termmodes(chansess);
 
 	TRACE(("leave sessionpty"))
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 }
 
-#if !DROPBEAR_VFORK
+#if !SILLYBEAR_VFORK
 static void make_connection_string(struct ChanSess *chansess) {
 	char *local_ip, *local_port, *remote_ip, *remote_port;
 	size_t len;
@@ -664,7 +664,7 @@ static void make_connection_string(struct ChanSess *chansess) {
 /* Handle a command request from the client. This is used for both shell
  * and command-execution requests, and passes the command to
  * noptycommand or ptycommand as appropriate.
- * Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+ * Returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 static int sessioncommand(struct Channel *channel, struct ChanSess *chansess,
 		int iscmd, int issubsys) {
 
@@ -678,7 +678,7 @@ static int sessioncommand(struct Channel *channel, struct ChanSess *chansess,
 		 * one command (which fails), then try another. Ie fallback
 		 * from sftp to scp */
 		TRACE(("leave sessioncommand, already have a command"))
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	if (iscmd) {
@@ -690,11 +690,11 @@ static int sessioncommand(struct Channel *channel, struct ChanSess *chansess,
 				m_free(chansess->cmd);
 				/* TODO - send error - too long ? */
 				TRACE(("leave sessioncommand, command too long %d", cmdlen))
-				return DROPBEAR_FAILURE;
+				return SILLYBEAR_FAILURE;
 			}
 		}
 		if (issubsys) {
-#if DROPBEAR_SFTPSERVER
+#if SILLYBEAR_SFTPSERVER
 			if ((cmdlen == 4) && strncmp(chansess->cmd, "sftp", 4) == 0) {
 				char *expand_path = expand_homedir_path(SFTPSERVER_PATH);
 				m_free(chansess->cmd);
@@ -705,7 +705,7 @@ static int sessioncommand(struct Channel *channel, struct ChanSess *chansess,
 			{
 				m_free(chansess->cmd);
 				TRACE(("leave sessioncommand, unknown subsystem"))
-				return DROPBEAR_FAILURE;
+				return SILLYBEAR_FAILURE;
 			}
 		}
 	}
@@ -727,25 +727,25 @@ static int sessioncommand(struct Channel *channel, struct ChanSess *chansess,
 
 #if LOG_COMMANDS
 	if (chansess->cmd) {
-		dropbear_log(LOG_INFO, "User %s executing '%s'", 
+		sillybear_log(LOG_INFO, "User %s executing '%s'", 
 						ses.authstate.pw_name, chansess->cmd);
 	} else {
-		dropbear_log(LOG_INFO, "User %s executing login shell", 
+		sillybear_log(LOG_INFO, "User %s executing login shell", 
 						ses.authstate.pw_name);
 	}
 #endif
 
 	/* uClinux will vfork(), so there'll be a race as 
 	connection_string is freed below. */
-#if !DROPBEAR_VFORK
+#if !SILLYBEAR_VFORK
 	make_connection_string(chansess);
 #endif
 
 	if (chansess->term == NULL) {
 		/* no pty */
 		ret = noptycommand(channel, chansess);
-		if (ret == DROPBEAR_SUCCESS) {
-			channel->prio = DROPBEAR_PRIO_NORMAL;
+		if (ret == SILLYBEAR_SUCCESS) {
+			channel->prio = SILLYBEAR_PRIO_NORMAL;
 			update_channel_prio();
 		}
 	} else {
@@ -753,12 +753,12 @@ static int sessioncommand(struct Channel *channel, struct ChanSess *chansess,
 		ret = ptycommand(channel, chansess);
 	}
 
-#if !DROPBEAR_VFORK
+#if !SILLYBEAR_VFORK
 	m_free(chansess->connection_string);
 	m_free(chansess->client_string);
 #endif
 
-	if (ret == DROPBEAR_FAILURE) {
+	if (ret == SILLYBEAR_FAILURE) {
 		m_free(chansess->cmd);
 	}
 	TRACE(("leave sessioncommand, ret %d", ret))
@@ -767,7 +767,7 @@ static int sessioncommand(struct Channel *channel, struct ChanSess *chansess,
 
 /* Execute a command and set up redirection of stdin/stdout/stderr without a
  * pty.
- * Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+ * Returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 static int noptycommand(struct Channel *channel, struct ChanSess *chansess) {
 	int ret;
 
@@ -776,7 +776,7 @@ static int noptycommand(struct Channel *channel, struct ChanSess *chansess) {
 			&channel->writefd, &channel->readfd, &channel->errfd,
 			&chansess->pid);
 
-	if (ret == DROPBEAR_FAILURE) {
+	if (ret == SILLYBEAR_FAILURE) {
 		return ret;
 	}
 
@@ -804,12 +804,12 @@ static int noptycommand(struct Channel *channel, struct ChanSess *chansess) {
 	}
 
 	TRACE(("leave noptycommand"))
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 }
 
 /* Execute a command or shell within a pty environment, and set up
  * redirection as appropriate.
- * Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+ * Returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 static int ptycommand(struct Channel *channel, struct ChanSess *chansess) {
 
 	pid_t pid;
@@ -825,17 +825,17 @@ static int ptycommand(struct Channel *channel, struct ChanSess *chansess) {
 
 	/* we need to have a pty allocated */
 	if (chansess->master == -1 || chansess->tty == NULL) {
-		dropbear_log(LOG_WARNING, "No pty was allocated, couldn't execute");
-		return DROPBEAR_FAILURE;
+		sillybear_log(LOG_WARNING, "No pty was allocated, couldn't execute");
+		return SILLYBEAR_FAILURE;
 	}
 	
-#if DROPBEAR_VFORK
+#if SILLYBEAR_VFORK
 	pid = vfork();
 #else
 	pid = fork();
 #endif
 	if (pid < 0)
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 
 	if (pid == 0) {
 		/* child */
@@ -843,7 +843,7 @@ static int ptycommand(struct Channel *channel, struct ChanSess *chansess) {
 		TRACE(("back to normal sigchld"))
 		/* Revert to normal sigchld handling */
 		if (signal(SIGCHLD, SIG_DFL) == SIG_ERR) {
-			dropbear_exit("signal() error");
+			sillybear_exit("signal() error");
 		}
 		
 		/* redirect stdin/stdout/stderr */
@@ -854,7 +854,7 @@ static int ptycommand(struct Channel *channel, struct ChanSess *chansess) {
 		if ((dup2(chansess->slave, STDIN_FILENO) < 0) ||
 			(dup2(chansess->slave, STDOUT_FILENO) < 0)) {
 			TRACE(("leave ptycommand: error redirecting filedesc"))
-			return DROPBEAR_FAILURE;
+			return SILLYBEAR_FAILURE;
 			}
 
 		/* write the utmp/wtmp login record - must be after changing the
@@ -872,7 +872,7 @@ static int ptycommand(struct Channel *channel, struct ChanSess *chansess) {
 		to the parent stderr */
 		if (dup2(chansess->slave, STDERR_FILENO) < 0) {
 			TRACE(("leave ptycommand: error redirecting filedesc"))
-			return DROPBEAR_FAILURE;
+			return SILLYBEAR_FAILURE;
 		}
 
 		close(chansess->slave);
@@ -892,7 +892,7 @@ static int ptycommand(struct Channel *channel, struct ChanSess *chansess) {
 				/* more than a screenful is stupid IMHO */
 				motdbuf = buf_new(MOTD_MAXSIZE);
 				expand_path = expand_homedir_path(MOTD_FILENAME);
-				if (buf_readfile(motdbuf, expand_path) == DROPBEAR_SUCCESS) {
+				if (buf_readfile(motdbuf, expand_path) == SILLYBEAR_SUCCESS) {
 					/* incase it is full size, add LF at last position */
 					if (motdbuf->len == motdbuf->size) motdbuf->data[motdbuf->len - 1]=10;
 					buf_setpos(motdbuf, 0);
@@ -934,7 +934,7 @@ static int ptycommand(struct Channel *channel, struct ChanSess *chansess) {
 	}
 
 	TRACE(("leave ptycommand"))
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 }
 
 /* Add the pid of a child to the list for exit-handling */
@@ -973,7 +973,7 @@ static void execchild(const void *user_data) {
 
 	/* with uClinux we'll have vfork()ed, so don't want to overwrite the
 	 * hostkey. can't think of a workaround to clear it */
-#if !DROPBEAR_VFORK
+#if !SILLYBEAR_VFORK
 	/* wipe the hostkey */
 	sign_key_free(svr_opts.hostkey);
 	svr_opts.hostkey = NULL;
@@ -998,7 +998,7 @@ static void execchild(const void *user_data) {
 #endif /* DEBUG_VALGRIND */
 	}
 
-#if !DROPBEAR_SVR_DROP_PRIVS
+#if !SILLYBEAR_SVR_DROP_PRIVS
 	svr_switch_user();
 #endif
 
@@ -1035,7 +1035,7 @@ static void execchild(const void *user_data) {
 	if (chansess->original_command) {
 		addnewvar("SSH_ORIGINAL_COMMAND", chansess->original_command);
 	}
-#if DROPBEAR_SVR_PUBKEY_OPTIONS_BUILT
+#if SILLYBEAR_SVR_PUBKEY_OPTIONS_BUILT
 	if (ses.authstate.pubkey_info != NULL) {
 		addnewvar("SSH_PUBKEYINFO", ses.authstate.pubkey_info);
 	}
@@ -1045,17 +1045,17 @@ static void execchild(const void *user_data) {
 	if (chdir(ses.authstate.pw_dir) < 0) {
 		int e = errno;
 		if (chdir("/") < 0) {
-			dropbear_exit("chdir(\"/\") failed");
+			sillybear_exit("chdir(\"/\") failed");
 		}
 		fprintf(stderr, "Failed chdir '%s': %s\n", ses.authstate.pw_dir, strerror(e));
 	}
 
 
-#if DROPBEAR_X11FWD
+#if SILLYBEAR_X11FWD
 	/* set up X11 forwarding if enabled */
 	x11setauth(chansess);
 #endif
-#if DROPBEAR_SVR_AGENTFWD
+#if SILLYBEAR_SVR_AGENTFWD
 	/* set up agent env variable */
 	svr_agentset(chansess);
 #endif
@@ -1064,7 +1064,7 @@ static void execchild(const void *user_data) {
 	run_shell_command(chansess->cmd, ses.maxfd, usershell);
 
 	/* only reached on error */
-	dropbear_exit("Child failed");
+	sillybear_exit("Child failed");
 }
 
 /* Set up the general chansession environment, in particular child-exit
@@ -1083,7 +1083,7 @@ void svr_chansessinitialise() {
 	sa_chld.sa_flags = SA_NOCLDSTOP;
 	sigemptyset(&sa_chld.sa_mask);
 	if (sigaction(SIGCHLD, &sa_chld, NULL) < 0) {
-		dropbear_exit("signal() error");
+		sillybear_exit("signal() error");
 	}
 	
 }
@@ -1104,6 +1104,6 @@ void addnewvar(const char* param, const char* var) {
 	newvar[plen+vlen+1] = '\0';
 	/* newvar is leaked here, but that's part of putenv()'s semantics */
 	if (putenv(newvar) < 0) {
-		dropbear_exit("environ error");
+		sillybear_exit("environ error");
 	}
 }

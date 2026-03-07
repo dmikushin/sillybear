@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -64,7 +64,7 @@ static const packettype svr_packettypes[] = {
 	{SSH_MSG_CHANNEL_FAILURE, ignore_recv_response},
 	{SSH_MSG_REQUEST_FAILURE, ignore_recv_response}, /* for keepalive */
 	{SSH_MSG_REQUEST_SUCCESS, ignore_recv_response}, /* client */
-#if DROPBEAR_LISTENERS
+#if SILLYBEAR_LISTENERS
 	{SSH_MSG_CHANNEL_OPEN_CONFIRMATION, recv_msg_channel_open_confirmation},
 	{SSH_MSG_CHANNEL_OPEN_FAILURE, recv_msg_channel_open_failure},
 #endif
@@ -73,10 +73,10 @@ static const packettype svr_packettypes[] = {
 
 static const struct ChanType *svr_chantypes[] = {
 	&svrchansess,
-#if DROPBEAR_SVR_LOCALTCPFWD
+#if SILLYBEAR_SVR_LOCALTCPFWD
 	&svr_chan_tcpdirect,
 #endif
-#if DROPBEAR_SVR_LOCALSTREAMFWD
+#if SILLYBEAR_SVR_LOCALSTREAMFWD
 	&svr_chan_streamlocal,
 #endif
 	NULL /* Null termination is mandatory. */
@@ -92,7 +92,7 @@ svr_session_cleanup(void) {
 	m_free(svr_ses.childpids);
 	svr_ses.childpidsize = 0;
 
-#if DROPBEAR_PLUGIN
+#if SILLYBEAR_PLUGIN
         if (svr_ses.plugin_handle != NULL) {
             if (svr_ses.plugin_instance) {
                 svr_ses.plugin_instance->delete_plugin(svr_ses.plugin_instance);
@@ -113,7 +113,7 @@ void svr_session(int sock, int childpipe) {
 
 	/* Initialise server specific parts of the session */
 	svr_ses.childpipe = childpipe;
-#if DROPBEAR_VFORK
+#if SILLYBEAR_VFORK
 	svr_ses.server_pid = getpid();
 #endif
 
@@ -125,7 +125,7 @@ void svr_session(int sock, int childpipe) {
 	m_free(host);
 	m_free(port);
 
-#if DROPBEAR_PLUGIN
+#if SILLYBEAR_PLUGIN
         /* Initializes the PLUGIN Plugin */
         svr_ses.plugin_handle = NULL;
         svr_ses.plugin_instance = NULL;
@@ -140,33 +140,33 @@ void svr_session(int sock, int childpipe) {
             /* RTLD_NOW: fails if not all the symbols are resolved now. Better fail now than at run-time */
             svr_ses.plugin_handle = dlopen(svr_opts.pubkey_plugin, RTLD_NOW);
             if (svr_ses.plugin_handle == NULL) {
-                dropbear_exit("failed to load external pubkey plugin '%s': %s", svr_opts.pubkey_plugin, dlerror());
+                sillybear_exit("failed to load external pubkey plugin '%s': %s", svr_opts.pubkey_plugin, dlerror());
             }
-            pluginConstructor = (PubkeyExtPlugin_newFn)dlsym(svr_ses.plugin_handle, DROPBEAR_PUBKEY_PLUGIN_FNNAME_NEW);
+            pluginConstructor = (PubkeyExtPlugin_newFn)dlsym(svr_ses.plugin_handle, SILLYBEAR_PUBKEY_PLUGIN_FNNAME_NEW);
             if (!pluginConstructor) {
-                dropbear_exit("plugin constructor method not found in external pubkey plugin");
+                sillybear_exit("plugin constructor method not found in external pubkey plugin");
             }
 
             /* Create an instance of the plugin */
             svr_ses.plugin_instance = pluginConstructor(verbose, svr_opts.pubkey_plugin_options, svr_ses.addrstring);
             if (svr_ses.plugin_instance == NULL) {
-                dropbear_exit("external plugin initialization failed");
+                sillybear_exit("external plugin initialization failed");
             }
             /* Check if the plugin is compatible */
-            if ( (svr_ses.plugin_instance->api_version[0] != DROPBEAR_PLUGIN_VERSION_MAJOR) ||
-                 (svr_ses.plugin_instance->api_version[1] < DROPBEAR_PLUGIN_VERSION_MINOR) ) {
-                dropbear_exit("plugin version check failed: "
-                              "Dropbear=%d.%d, plugin=%d.%d",
-                        DROPBEAR_PLUGIN_VERSION_MAJOR, DROPBEAR_PLUGIN_VERSION_MINOR,
+            if ( (svr_ses.plugin_instance->api_version[0] != SILLYBEAR_PLUGIN_VERSION_MAJOR) ||
+                 (svr_ses.plugin_instance->api_version[1] < SILLYBEAR_PLUGIN_VERSION_MINOR) ) {
+                sillybear_exit("plugin version check failed: "
+                              "Sillybear=%d.%d, plugin=%d.%d",
+                        SILLYBEAR_PLUGIN_VERSION_MAJOR, SILLYBEAR_PLUGIN_VERSION_MINOR,
                         svr_ses.plugin_instance->api_version[0], svr_ses.plugin_instance->api_version[1]);
             }
-            if (svr_ses.plugin_instance->api_version[1] > DROPBEAR_PLUGIN_VERSION_MINOR) {
-                dropbear_log(LOG_WARNING, "plugin API newer than dropbear API: "
-                              "Dropbear=%d.%d, plugin=%d.%d",
-                        DROPBEAR_PLUGIN_VERSION_MAJOR, DROPBEAR_PLUGIN_VERSION_MINOR,
+            if (svr_ses.plugin_instance->api_version[1] > SILLYBEAR_PLUGIN_VERSION_MINOR) {
+                sillybear_log(LOG_WARNING, "plugin API newer than sillybear API: "
+                              "Sillybear=%d.%d, plugin=%d.%d",
+                        SILLYBEAR_PLUGIN_VERSION_MAJOR, SILLYBEAR_PLUGIN_VERSION_MINOR,
                         svr_ses.plugin_instance->api_version[0], svr_ses.plugin_instance->api_version[1]);
             }
-            dropbear_log(LOG_INFO, "successfully loaded and initialized pubkey plugin '%s'", svr_opts.pubkey_plugin);
+            sillybear_log(LOG_INFO, "successfully loaded and initialized pubkey plugin '%s'", svr_opts.pubkey_plugin);
         }
 #endif
 
@@ -198,7 +198,7 @@ void svr_session(int sock, int childpipe) {
 	/* start off with key exchange */
 	send_msg_kexinit();
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
     if (fuzz.fuzzing) {
         fuzz_svr_hook_preloop();
     }
@@ -212,14 +212,14 @@ void svr_session(int sock, int childpipe) {
 }
 
 /* cleanup and exit - format must be <= 100 chars */
-void svr_dropbear_exit(int exitcode, const char* format, va_list param) {
+void svr_sillybear_exit(int exitcode, const char* format, va_list param) {
 	char exitmsg[150];
 	char fullmsg[300];
 	char fromaddr[60];
 	int i;
 	int add_delay = 0;
 
-#if DROPBEAR_PLUGIN
+#if SILLYBEAR_PLUGIN
 	if ((ses.plugin_session != NULL)) {
 		svr_ses.plugin_instance->delete_session(ses.plugin_session);
 	}
@@ -259,13 +259,13 @@ void svr_dropbear_exit(int exitcode, const char* format, va_list param) {
 		add_delay = 1;
 	}
 
-	dropbear_log(LOG_INFO, "%s", fullmsg);
+	sillybear_log(LOG_INFO, "%s", fullmsg);
 
 	/* To make it harder for attackers, introduce a delay to keep an
 	 * unauthenticated session open a bit longer, thus blocking a connection
 	 * slot until after the delay. Without this, while there is a limit on
 	 * the amount of attempts an attacker can make at the same time
-	 * (MAX_UNAUTH_PER_IP), the time taken by dropbear to handle one attempt
+	 * (MAX_UNAUTH_PER_IP), the time taken by sillybear to handle one attempt
 	 * is still short and thus for each of the allowed parallel attempts
 	 * many attempts can be chained one after the other. The attempt rate is
 	 * then:
@@ -274,12 +274,12 @@ void svr_dropbear_exit(int exitcode, const char* format, va_list param) {
 	 *     "MAX_UNAUTH_PER_IP / UNAUTH_CLOSE_DELAY".
 	 */
 	if ((add_delay != 0) && (UNAUTH_CLOSE_DELAY > 0)) {
-		TRACE(("svr_dropbear_exit: start delay of %d seconds", UNAUTH_CLOSE_DELAY));
+		TRACE(("svr_sillybear_exit: start delay of %d seconds", UNAUTH_CLOSE_DELAY));
 		sleep(UNAUTH_CLOSE_DELAY);
-		TRACE(("svr_dropbear_exit: end delay of %d seconds", UNAUTH_CLOSE_DELAY));
+		TRACE(("svr_sillybear_exit: end delay of %d seconds", UNAUTH_CLOSE_DELAY));
 	}
 
-#if DROPBEAR_VFORK
+#if SILLYBEAR_VFORK
 	/* For uclinux only the main server process should cleanup - we don't want
 	 * forked children doing that */
 	if (svr_ses.server_pid == getpid())
@@ -289,7 +289,7 @@ void svr_dropbear_exit(int exitcode, const char* format, va_list param) {
 		session_cleanup();
 	}
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	/* longjmp before cleaning up svr_opts */
     if (fuzz.do_jmp) {
         longjmp(fuzz.jmp, 1);
@@ -300,7 +300,7 @@ void svr_dropbear_exit(int exitcode, const char* format, va_list param) {
 		sign_key_free(svr_opts.hostkey);
 		svr_opts.hostkey = NULL;
 	}
-	for (i = 0; i < DROPBEAR_MAX_PORTS; i++) {
+	for (i = 0; i < SILLYBEAR_MAX_PORTS; i++) {
 		m_free(svr_opts.addresses[i]);
 		m_free(svr_opts.ports[i]);
 	}
@@ -311,7 +311,7 @@ void svr_dropbear_exit(int exitcode, const char* format, va_list param) {
 }
 
 /* priority is priority as with syslog() */
-void svr_dropbear_log(int priority, const char* format, va_list param) {
+void svr_sillybear_log(int priority, const char* format, va_list param) {
 
 	char printbuf[1024];
 	char datestr[20];
@@ -356,19 +356,19 @@ static void svr_remoteclosed() {
 	}
 	ses.sock_in = -1;
 	ses.sock_out = -1;
-	dropbear_close("Exited normally");
+	sillybear_close("Exited normally");
 
 }
 
 static void svr_algos_initialise(void) {
 	algo_type *algo;
 	for (algo = sshkex; algo->name; algo++) {
-#if DROPBEAR_DH_GROUP1 && DROPBEAR_DH_GROUP1_CLIENTONLY
+#if SILLYBEAR_DH_GROUP1 && SILLYBEAR_DH_GROUP1_CLIENTONLY
 		if (strcmp(algo->name, "diffie-hellman-group1-sha1") == 0) {
 			algo->usable = 0;
 		}
 #endif
-#if DROPBEAR_EXT_INFO
+#if SILLYBEAR_EXT_INFO
 		if (strcmp(algo->name, SSH_EXT_INFO_C) == 0) {
 			algo->usable = 0;
 		}

@@ -1,6 +1,6 @@
 #include "includes.h"
 
-#if DROPBEAR_SK_ED25519
+#if SILLYBEAR_SK_ED25519
 
 #include "dbutil.h"
 #include "buffer.h"
@@ -8,11 +8,11 @@
 #include "ed25519.h"
 #include "ssh.h"
 
-int buf_sk_ed25519_verify(buffer *buf, const dropbear_ed25519_key *key, const buffer *data_buf,
+int buf_sk_ed25519_verify(buffer *buf, const sillybear_ed25519_key *key, const buffer *data_buf,
 			const char* app, unsigned int applen,
 			unsigned char sk_flags_mask) {
 
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 	unsigned char *s;
 	unsigned long slen;
 	hash_state hs;
@@ -22,7 +22,7 @@ int buf_sk_ed25519_verify(buffer *buf, const dropbear_ed25519_key *key, const bu
 	unsigned int counter;
 
 	TRACE(("enter buf_sk_ed25519_verify"))
-	dropbear_assert(key != NULL);
+	sillybear_assert(key != NULL);
 
 	slen = buf_getint(buf);
 	if (slen != 64 || buf->len - buf->pos < slen) {
@@ -47,24 +47,24 @@ int buf_sk_ed25519_verify(buffer *buf, const dropbear_ed25519_key *key, const bu
 	sha256_done (&hs, hash);
 	buf_putbytes (sk_buffer, hash, sizeof (hash));
 
-	if (dropbear_ed25519_verify(sk_buffer->data, sk_buffer->len,
+	if (sillybear_ed25519_verify(sk_buffer->data, sk_buffer->len,
 				    s, slen, key->pub) == 0) {
 		/* signature is valid */
 		TRACE(("leave buf_sk_ed25519_verify: success!"))
-		ret = DROPBEAR_SUCCESS;
+		ret = SILLYBEAR_SUCCESS;
 	}
 
 	if (~flags & sk_flags_mask & SSH_SK_USER_PRESENCE_REQD) {
-		if (ret == DROPBEAR_SUCCESS) {
-			dropbear_log(LOG_WARNING, "Rejecting, user-presence not set");
+		if (ret == SILLYBEAR_SUCCESS) {
+			sillybear_log(LOG_WARNING, "Rejecting, user-presence not set");
 		}
-		ret = DROPBEAR_FAILURE;
+		ret = SILLYBEAR_FAILURE;
 	}
 	if (~flags & sk_flags_mask & SSH_SK_USER_VERIFICATION_REQD) {
-		if (ret == DROPBEAR_SUCCESS) {
-			dropbear_log(LOG_WARNING, "Rejecting, user-verification not set");
+		if (ret == SILLYBEAR_SUCCESS) {
+			sillybear_log(LOG_WARNING, "Rejecting, user-verification not set");
 		}
-		ret = DROPBEAR_FAILURE;
+		ret = SILLYBEAR_FAILURE;
 	}
 out:
 	buf_free(sk_buffer);
@@ -72,4 +72,4 @@ out:
 	return ret;
 }
 
-#endif /* DROPBEAR_SK_ED25519 */
+#endif /* SILLYBEAR_SK_ED25519 */

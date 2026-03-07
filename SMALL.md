@@ -3,16 +3,16 @@
 If you only want server functionality, compile with
 
 ```
-make PROGRAMS=dropbear
+make PROGRAMS=sillybear
 ```
 
 rather than just
 
 ```
-make dropbear
+make sillybear
 ```
 
-so that client functionality in shared portions of Dropbear won't be included.
+so that client functionality in shared portions of Sillybear won't be included.
 The same applies for `PROGRAMS=dbclient`.
 
 ---

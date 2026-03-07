@@ -4,7 +4,7 @@
 
 void * m_calloc(size_t nmemb, size_t size) {
     if (SIZE_T_MAX / nmemb < size) {
-        dropbear_exit("m_calloc failed");
+        sillybear_exit("m_calloc failed");
     }
     return m_malloc(nmemb*size);
 }
@@ -16,13 +16,13 @@ void * m_strdup(const char * str) {
 
     ret = m_malloc(len+1);
     if (ret == NULL) {
-        dropbear_exit("m_strdup failed");
+        sillybear_exit("m_strdup failed");
     }
     memcpy(ret, str, len+1);
     return ret;
 }
 
-#if !DROPBEAR_TRACKING_MALLOC
+#if !SILLYBEAR_TRACKING_MALLOC
 
 /* Simple wrappers around malloc etc */
 void * m_malloc(size_t size) {
@@ -30,11 +30,11 @@ void * m_malloc(size_t size) {
 	void* ret;
 
 	if (size == 0) {
-		dropbear_exit("m_malloc failed");
+		sillybear_exit("m_malloc failed");
 	}
 	ret = calloc(1, size);
 	if (ret == NULL) {
-		dropbear_exit("m_malloc failed");
+		sillybear_exit("m_malloc failed");
 	}
 	return ret;
 
@@ -45,11 +45,11 @@ void * m_realloc(void* ptr, size_t size) {
 	void *ret;
 
 	if (size == 0) {
-		dropbear_exit("m_realloc failed");
+		sillybear_exit("m_realloc failed");
 	}
 	ret = realloc(ptr, size);
 	if (ret == NULL) {
-		dropbear_exit("m_realloc failed");
+		sillybear_exit("m_realloc failed");
 	}
 	return ret;
 }
@@ -133,14 +133,14 @@ void * m_malloc(size_t size) {
     struct dbmalloc_header* header = NULL;
 
     if (size == 0 || size > 1e9) {
-        dropbear_exit("m_malloc failed");
+        sillybear_exit("m_malloc failed");
     }
 
     size = size + sizeof(struct dbmalloc_header);
 
     mem = calloc(1, size);
     if (mem == NULL) {
-        dropbear_exit("m_malloc failed");
+        sillybear_exit("m_malloc failed");
     }
     header = (struct dbmalloc_header*)mem;
     put_alloc(header);
@@ -152,7 +152,7 @@ void * m_realloc(void* ptr, size_t size) {
     char* mem = NULL;
     struct dbmalloc_header* header = NULL;
     if (size == 0 || size > 1e9) {
-        dropbear_exit("m_realloc failed");
+        sillybear_exit("m_realloc failed");
     }
 
     header = get_header(ptr);
@@ -161,7 +161,7 @@ void * m_realloc(void* ptr, size_t size) {
     size = size + sizeof(struct dbmalloc_header);
     mem = realloc(header, size);
     if (mem == NULL) {
-        dropbear_exit("m_realloc failed");
+        sillybear_exit("m_realloc failed");
     }
 
     header = (struct dbmalloc_header*)mem;
@@ -179,7 +179,7 @@ void m_free_direct(void* ptr) {
     free(header);
 }
 
-#endif /* DROPBEAR_TRACKING_MALLOC */
+#endif /* SILLYBEAR_TRACKING_MALLOC */
 
 void * m_realloc_ltm(void* ptr, size_t oldsize, size_t newsize) {
    (void)oldsize;

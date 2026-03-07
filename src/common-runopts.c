@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  *
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -38,42 +38,42 @@ runopts opts; /* GLOBAL */
 int readhostkey(const char * filename, sign_key * hostkey,
 	enum signkey_type *type) {
 
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 	buffer *buf;
 
 	buf = buf_new(MAX_PRIVKEY_SIZE);
 
-	if (buf_readfile(buf, filename) == DROPBEAR_FAILURE) {
+	if (buf_readfile(buf, filename) == SILLYBEAR_FAILURE) {
 		goto out;
 	}
 	buf_setpos(buf, 0);
 
 	addrandom(buf_getptr(buf, buf->len), buf->len);
 
-	if (buf_get_priv_key(buf, hostkey, type) == DROPBEAR_FAILURE) {
+	if (buf_get_priv_key(buf, hostkey, type) == SILLYBEAR_FAILURE) {
 		goto out;
 	}
 
-	ret = DROPBEAR_SUCCESS;
+	ret = SILLYBEAR_SUCCESS;
 out:
 
 	buf_burn_free(buf);
 	return ret;
 }
 
-#if DROPBEAR_USER_ALGO_LIST
+#if SILLYBEAR_USER_ALGO_LIST
 void
 parse_ciphers_macs() {
 	int printed_help = 0;
 	if (opts.cipher_list) {
 		if (strcmp(opts.cipher_list, "help") == 0) {
 			char *ciphers = algolist_string(sshciphers);
-			dropbear_log(LOG_INFO, "Available ciphers: %s", ciphers);
+			sillybear_log(LOG_INFO, "Available ciphers: %s", ciphers);
 			m_free(ciphers);
 			printed_help = 1;
 		} else {
 			if (check_user_algos(opts.cipher_list, sshciphers, "cipher") == 0) {
-				dropbear_exit("No valid ciphers specified for '-c'");
+				sillybear_exit("No valid ciphers specified for '-c'");
 			}
 		}
 	}
@@ -81,23 +81,23 @@ parse_ciphers_macs() {
 	if (opts.mac_list) {
 		if (strcmp(opts.mac_list, "help") == 0) {
 			char *macs = algolist_string(sshhashes);
-			dropbear_log(LOG_INFO, "Available MACs: %s", macs);
+			sillybear_log(LOG_INFO, "Available MACs: %s", macs);
 			m_free(macs);
 			printed_help = 1;
 		} else {
 			if (check_user_algos(opts.mac_list, sshhashes, "MAC") == 0) {
-				dropbear_exit("No valid MACs specified for '-m'");
+				sillybear_exit("No valid MACs specified for '-m'");
 			}
 		}
 	}
 	if (printed_help) {
-		dropbear_exit(".");
+		sillybear_exit(".");
 	}
 }
 #endif
 
 void print_version() {
-	fprintf(stderr, "Dropbear v%s\n", DROPBEAR_VERSION);
+	fprintf(stderr, "Sillybear v%s\n", SILLYBEAR_VERSION);
 }
 
 void parse_recv_window(const char* recv_window_arg) {
@@ -105,11 +105,11 @@ void parse_recv_window(const char* recv_window_arg) {
 	unsigned int rw;
 
 	ret = m_str_to_uint(recv_window_arg, &rw);
-	if (ret == DROPBEAR_FAILURE || rw == 0 || rw > MAX_RECV_WINDOW) {
+	if (ret == SILLYBEAR_FAILURE || rw == 0 || rw > MAX_RECV_WINDOW) {
 		if (rw > MAX_RECV_WINDOW) {
 			opts.recv_window = MAX_RECV_WINDOW;
 		}
-		dropbear_log(LOG_WARNING, "Bad recv window '%s', using %d",
+		sillybear_log(LOG_WARNING, "Bad recv window '%s', using %d",
 			recv_window_arg, opts.recv_window);
 	} else {
 		opts.recv_window = rw;
@@ -124,10 +124,10 @@ void parse_recv_window(const char* recv_window_arg) {
    port  ->   (port, NULL)
    addr:port  (addr, port)
    addr: ->   (addr, "")
-   Returns DROPBEAR_SUCCESS/DROPBEAR_FAILURE */
+   Returns SILLYBEAR_SUCCESS/SILLYBEAR_FAILURE */
 int split_address_port(const char* spec, char **first, char ** second) {
 	char *spec_copy = NULL, *addr = NULL, *colon = NULL;
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 
 	*first = NULL;
 	*second = NULL;
@@ -138,7 +138,7 @@ int split_address_port(const char* spec, char **first, char ** second) {
 		addr++;
 		colon = strchr(addr, ']');
 		if (!colon) {
-			dropbear_log(LOG_WARNING, "Bad address '%s'", spec);
+			sillybear_log(LOG_WARNING, "Bad address '%s'", spec);
 			goto out;
 		}
 		*colon = '\0';
@@ -147,7 +147,7 @@ int split_address_port(const char* spec, char **first, char ** second) {
 			/* No port part */
 			colon = NULL;
 		} else if (*colon != ':') {
-			dropbear_log(LOG_WARNING, "Bad address '%s'", spec);
+			sillybear_log(LOG_WARNING, "Bad address '%s'", spec);
 			goto out;
 		}
 	} else {
@@ -165,7 +165,7 @@ int split_address_port(const char* spec, char **first, char ** second) {
 	if (strlen(addr)) {
 		*first = m_strdup(addr);
 	}
-	ret = DROPBEAR_SUCCESS;
+	ret = SILLYBEAR_SUCCESS;
 
 out:
 	m_free(spec_copy);

@@ -1,4 +1,4 @@
-## Basic Dropbear Build Instructions
+## Basic Sillybear Build Instructions
 
 ### Build Options
 
@@ -21,7 +21,7 @@ You'll need to first run `autoconf; autoheader` if you edit `configure.ac`.
 ### Compile:
 
 ```
-make PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp"
+make PROGRAMS="sillybear dbclient sillybearkey sillybearconvert scp"
 ```
 
 Optionally install, or copy the binaries another way:
@@ -34,7 +34,7 @@ make install
 or
 
 ```
-make PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp" install
+make PROGRAMS="sillybear dbclient sillybearkey sillybearconvert scp" install
 ```
 
 To test the installation targeting a temporary forder set `DESTDIR`:
@@ -54,7 +54,7 @@ If you want to compile statically use
 ./configure --enable-static
 ```
 
-By default Dropbear adds various build flags that improve robustness against programming bugs (good for security).
+By default Sillybear adds various build flags that improve robustness against programming bugs (good for security).
 If these cause problems they can be disabled with `./configure --disable-harden`.
 
 Binaries can be stripped with `make strip`.

@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-/* This program converts to/from Dropbear and OpenSSH private-key formats */
+/* This program converts to/from Sillybear and OpenSSH private-key formats */
 #include "includes.h"
 #include "signkey.h"
 #include "buffer.h"
@@ -46,16 +46,16 @@ static void printhelp(char * progname) {
 					"\n"
 					"The input and output types are one of:\n"
 					"openssh\n"
-					"dropbear\n"
+					"sillybear\n"
 					"\n"
 					"Example:\n"
-					"dropbearconvert openssh dropbear /etc/ssh/ssh_host_rsa_key /etc/dropbear_rsa_host_key\n",
+					"sillybearconvert openssh sillybear /etc/ssh/ssh_host_rsa_key /etc/sillybear_rsa_host_key\n",
 					progname);
 }
 
-#if defined(DBMULTI_dropbearconvert) || !DROPBEAR_MULTI
-#if defined(DBMULTI_dropbearconvert) && DROPBEAR_MULTI
-int dropbearconvert_main(int argc, char ** argv) {
+#if defined(DBMULTI_sillybearconvert) || !SILLYBEAR_MULTI
+#if defined(DBMULTI_sillybearconvert) && SILLYBEAR_MULTI
+int sillybearconvert_main(int argc, char ** argv) {
 #else 
 int main(int argc, char ** argv) {
 #endif
@@ -69,7 +69,7 @@ int main(int argc, char ** argv) {
 
 #if DEBUG_TRACE
 	/* It's hard for it to get in the way _too_ much */
-	debug_trace = DROPBEAR_VERBOSE_LEVEL;
+	debug_trace = SILLYBEAR_VERBOSE_LEVEL;
 #endif
 
 	/* get the commandline options */
@@ -80,7 +80,7 @@ int main(int argc, char ** argv) {
 
 	/* input type */
 	if (argv[1][0] == 'd') {
-		intype = KEYFILE_DROPBEAR;
+		intype = KEYFILE_SILLYBEAR;
 	} else if (argv[1][0] == 'o') {
 		intype = KEYFILE_OPENSSH;
 	} else {
@@ -90,7 +90,7 @@ int main(int argc, char ** argv) {
 
 	/* output type */
 	if (argv[2][0] == 'd') {
-		outtype = KEYFILE_DROPBEAR;
+		outtype = KEYFILE_SILLYBEAR;
 	} else if (argv[2][0] == 'o') {
 		outtype = KEYFILE_OPENSSH;
 	} else {

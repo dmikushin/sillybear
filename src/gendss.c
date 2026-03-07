@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -35,20 +35,20 @@
 
 /* This is just a test */
 
-#if DROPBEAR_DSS
+#if SILLYBEAR_DSS
 
-static void getq(const dropbear_dss_key *key);
-static void getp(const dropbear_dss_key *key, unsigned int size);
-static void getg(const dropbear_dss_key *key);
-static void getx(const dropbear_dss_key *key);
-static void gety(const dropbear_dss_key *key);
+static void getq(const sillybear_dss_key *key);
+static void getp(const sillybear_dss_key *key, unsigned int size);
+static void getg(const sillybear_dss_key *key);
+static void getx(const sillybear_dss_key *key);
+static void gety(const sillybear_dss_key *key);
 
-dropbear_dss_key * gen_dss_priv_key(unsigned int size) {
+sillybear_dss_key * gen_dss_priv_key(unsigned int size) {
 
-	dropbear_dss_key *key;
+	sillybear_dss_key *key;
 
 	if (size != 1024) {
-		dropbear_exit("DSS keys have a fixed size of 1024 bits");
+		sillybear_exit("DSS keys have a fixed size of 1024 bits");
 	}
 
 	key = m_malloc(sizeof(*key));
@@ -65,7 +65,7 @@ dropbear_dss_key * gen_dss_priv_key(unsigned int size) {
 	
 }
 
-static void getq(const dropbear_dss_key *key) {
+static void getq(const sillybear_dss_key *key) {
 
 	unsigned char buf[QSIZE];
 	int trials;
@@ -85,7 +85,7 @@ static void getq(const dropbear_dss_key *key) {
 	}
 }
 
-static void getp(const dropbear_dss_key *key, unsigned int size) {
+static void getp(const sillybear_dss_key *key, unsigned int size) {
 
 	DEF_MP_INT(tempX);
 	DEF_MP_INT(tempC);
@@ -145,7 +145,7 @@ static void getp(const dropbear_dss_key *key, unsigned int size) {
 	m_free(buf);
 }
 
-static void getg(const dropbear_dss_key * key) {
+static void getg(const sillybear_dss_key * key) {
 
 	DEF_MP_INT(div);
 	DEF_MP_INT(h);
@@ -182,12 +182,12 @@ static void getg(const dropbear_dss_key * key) {
 	mp_clear_multi(&div, &h, &val, NULL);
 }
 
-static void getx(const dropbear_dss_key *key) {
+static void getx(const sillybear_dss_key *key) {
 
 	gen_random_mpint(key->q, key->x);
 }
 
-static void gety(const dropbear_dss_key *key) {
+static void gety(const sillybear_dss_key *key) {
 
 	if (mp_exptmod(key->g, key->x, key->p, key->y) != MP_OKAY) {
 		fprintf(stderr, "DSS key generation failed\n");
@@ -195,4 +195,4 @@ static void gety(const dropbear_dss_key *key) {
 	}
 }
 
-#endif /* DROPBEAR_DSS */
+#endif /* SILLYBEAR_DSS */

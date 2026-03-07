@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002-2004 Matt Johnston
  * Portions Copyright (c) 2004 by Mihnea Stoenescu
@@ -120,7 +120,7 @@ void send_msg_kexinit() {
 static void switch_keys() {
 	TRACE2(("enter switch_keys"))
 	if (!(ses.kexstate.sentkexinit && ses.kexstate.recvkexinit)) {
-		dropbear_exit("Unexpected newkeys message");
+		sillybear_exit("Unexpected newkeys message");
 	}
 
 	if (!ses.keys) {
@@ -214,10 +214,10 @@ static void kex_setup_compress(void) {
 		return;
 	}
 
-	if (IS_DROPBEAR_CLIENT) {
+	if (IS_SILLYBEAR_CLIENT) {
 		/* TODO: should c2s in dbclient be disabled?
-		 * Current Dropbear server disables it. Disabling it also
-		 * lets DROPBEAR_CLI_IMMEDIATE_AUTH work (see comment there) */
+		 * Current Sillybear server disables it. Disabling it also
+		 * lets SILLYBEAR_CLI_IMMEDIATE_AUTH work (see comment there) */
 		ses.compress_algos_c2s = ssh_compress;
 		ses.compress_algos_s2c = ssh_compress;
 	} else {
@@ -328,7 +328,7 @@ static void gen_new_keys() {
 	buf_burn_free(ses.hash);
 	ses.hash = NULL;
 
-	if (IS_DROPBEAR_CLIENT) {
+	if (IS_SILLYBEAR_CLIENT) {
 		trans_IV	= C2S_IV;
 		recv_IV		= S2C_IV;
 		trans_key	= C2S_key;
@@ -354,14 +354,14 @@ static void gen_new_keys() {
 		if (ses.newkeys->recv.algo_crypt->cipherdesc->name != NULL) {
 			recv_cipher = find_cipher(ses.newkeys->recv.algo_crypt->cipherdesc->name);
 			if (recv_cipher < 0) {
-				dropbear_exit("Crypto error");
+				sillybear_exit("Crypto error");
 			}
 		}
 		if (ses.newkeys->recv.crypt_mode->start(recv_cipher, 
 				recv_IV, recv_key, 
 				ses.newkeys->recv.algo_crypt->keysize, 0, 
 				&ses.newkeys->recv.cipher_state) != CRYPT_OK) {
-			dropbear_exit("Crypto error");
+			sillybear_exit("Crypto error");
 		}
 	}
 
@@ -370,14 +370,14 @@ static void gen_new_keys() {
 		if (ses.newkeys->trans.algo_crypt->cipherdesc->name != NULL) {
 			trans_cipher = find_cipher(ses.newkeys->trans.algo_crypt->cipherdesc->name);
 			if (trans_cipher < 0) {
-				dropbear_exit("Crypto error");
+				sillybear_exit("Crypto error");
 			}
 		}
 		if (ses.newkeys->trans.crypt_mode->start(trans_cipher, 
 				trans_IV, trans_key, 
 				ses.newkeys->trans.algo_crypt->keysize, 0, 
 				&ses.newkeys->trans.cipher_state) != CRYPT_OK) {
-			dropbear_exit("Crypto error");
+			sillybear_exit("Crypto error");
 		}
 	}
 
@@ -409,22 +409,22 @@ static void gen_new_keys() {
 #ifndef DISABLE_ZLIB
 
 int is_compress_trans() {
-	return ses.keys->trans.algo_comp == DROPBEAR_COMP_ZLIB
+	return ses.keys->trans.algo_comp == SILLYBEAR_COMP_ZLIB
 		|| (ses.authstate.authdone
-			&& ses.keys->trans.algo_comp == DROPBEAR_COMP_ZLIB_DELAY);
+			&& ses.keys->trans.algo_comp == SILLYBEAR_COMP_ZLIB_DELAY);
 }
 
 int is_compress_recv() {
-	return ses.keys->recv.algo_comp == DROPBEAR_COMP_ZLIB
+	return ses.keys->recv.algo_comp == SILLYBEAR_COMP_ZLIB
 		|| (ses.authstate.authdone
-			&& ses.keys->recv.algo_comp == DROPBEAR_COMP_ZLIB_DELAY);
+			&& ses.keys->recv.algo_comp == SILLYBEAR_COMP_ZLIB_DELAY);
 }
 
-static void* dropbear_zalloc(void* UNUSED(opaque), uInt items, uInt size) {
+static void* sillybear_zalloc(void* UNUSED(opaque), uInt items, uInt size) {
 	return m_calloc(items, size);
 }
 
-static void dropbear_zfree(void* UNUSED(opaque), void* ptr) {
+static void sillybear_zfree(void* UNUSED(opaque), void* ptr) {
 	m_free(ptr);
 }
 
@@ -433,14 +433,14 @@ static void dropbear_zfree(void* UNUSED(opaque), void* ptr) {
 static void gen_new_zstream_recv() {
 
 	/* create new zstreams */
-	if (ses.newkeys->recv.algo_comp == DROPBEAR_COMP_ZLIB
-			|| ses.newkeys->recv.algo_comp == DROPBEAR_COMP_ZLIB_DELAY) {
+	if (ses.newkeys->recv.algo_comp == SILLYBEAR_COMP_ZLIB
+			|| ses.newkeys->recv.algo_comp == SILLYBEAR_COMP_ZLIB_DELAY) {
 		ses.newkeys->recv.zstream = (z_streamp)m_malloc(sizeof(z_stream));
-		ses.newkeys->recv.zstream->zalloc = dropbear_zalloc;
-		ses.newkeys->recv.zstream->zfree = dropbear_zfree;
+		ses.newkeys->recv.zstream->zalloc = sillybear_zalloc;
+		ses.newkeys->recv.zstream->zfree = sillybear_zfree;
 		
 		if (inflateInit(ses.newkeys->recv.zstream) != Z_OK) {
-			dropbear_exit("zlib error");
+			sillybear_exit("zlib error");
 		}
 	} else {
 		ses.newkeys->recv.zstream = NULL;
@@ -449,7 +449,7 @@ static void gen_new_zstream_recv() {
 	if (ses.keys->recv.zstream != NULL) {
 		if (inflateEnd(ses.keys->recv.zstream) == Z_STREAM_ERROR) {
 			/* Z_DATA_ERROR is ok, just means that stream isn't ended */
-			dropbear_exit("Crypto error");
+			sillybear_exit("Crypto error");
 		}
 		m_free(ses.keys->recv.zstream);
 	}
@@ -457,17 +457,17 @@ static void gen_new_zstream_recv() {
 
 static void gen_new_zstream_trans() {
 
-	if (ses.newkeys->trans.algo_comp == DROPBEAR_COMP_ZLIB
-			|| ses.newkeys->trans.algo_comp == DROPBEAR_COMP_ZLIB_DELAY) {
+	if (ses.newkeys->trans.algo_comp == SILLYBEAR_COMP_ZLIB
+			|| ses.newkeys->trans.algo_comp == SILLYBEAR_COMP_ZLIB_DELAY) {
 		ses.newkeys->trans.zstream = (z_streamp)m_malloc(sizeof(z_stream));
-		ses.newkeys->trans.zstream->zalloc = dropbear_zalloc;
-		ses.newkeys->trans.zstream->zfree = dropbear_zfree;
+		ses.newkeys->trans.zstream->zalloc = sillybear_zalloc;
+		ses.newkeys->trans.zstream->zfree = sillybear_zfree;
 	
 		if (deflateInit2(ses.newkeys->trans.zstream, Z_DEFAULT_COMPRESSION,
-					Z_DEFLATED, DROPBEAR_ZLIB_WINDOW_BITS, 
-					DROPBEAR_ZLIB_MEM_LEVEL, Z_DEFAULT_STRATEGY)
+					Z_DEFLATED, SILLYBEAR_ZLIB_WINDOW_BITS, 
+					SILLYBEAR_ZLIB_MEM_LEVEL, Z_DEFAULT_STRATEGY)
 				!= Z_OK) {
-			dropbear_exit("zlib error");
+			sillybear_exit("zlib error");
 		}
 	} else {
 		ses.newkeys->trans.zstream = NULL;
@@ -476,7 +476,7 @@ static void gen_new_zstream_trans() {
 	if (ses.keys->trans.zstream != NULL) {
 		if (deflateEnd(ses.keys->trans.zstream) == Z_STREAM_ERROR) {
 			/* Z_DATA_ERROR is ok, just means that stream isn't ended */
-			dropbear_exit("Crypto error");
+			sillybear_exit("Crypto error");
 		}
 		m_free(ses.keys->trans.zstream);
 	}
@@ -508,7 +508,7 @@ void recv_msg_kexinit() {
 	/* "Once a party has sent a SSH_MSG_KEXINIT message ...
 	further SSH_MSG_KEXINIT messages MUST NOT be sent" */
 	if (ses.kexstate.recvkexinit) {
-		dropbear_exit("Unexpected KEXINIT");
+		sillybear_exit("Unexpected KEXINIT");
 	}
 
 	/* start the kex hash */
@@ -521,7 +521,7 @@ void recv_msg_kexinit() {
 
 	ses.kexhashbuf = buf_new(kexhashbuf_len);
 
-	if (IS_DROPBEAR_CLIENT) {
+	if (IS_SILLYBEAR_CLIENT) {
 
 		/* read the peer's choice of algos */
 		read_kex_algos();
@@ -570,7 +570,7 @@ void recv_msg_kexinit() {
 	ses.kexstate.recvkexinit = 1;
 
 	if (ses.kexstate.strict_kex && !ses.kexstate.donefirstkex && ses.recvseq != 1) {
-		dropbear_exit("First packet wasn't kexinit");
+		sillybear_exit("First packet wasn't kexinit");
 	}
 
 	TRACE(("leave recv_msg_kexinit"))
@@ -634,19 +634,19 @@ static void read_kex_algos() {
 	memset(ses.newkeys, 0x0, sizeof(*ses.newkeys));
 
 	/* kex_algorithms */
-#if DROPBEAR_KEXGUESS2
-	if (buf_has_algo(ses.payload, KEXGUESS2_ALGO_NAME) == DROPBEAR_SUCCESS) {
+#if SILLYBEAR_KEXGUESS2
+	if (buf_has_algo(ses.payload, KEXGUESS2_ALGO_NAME) == SILLYBEAR_SUCCESS) {
 		kexguess2 = 1;
 	}
 #endif
 
-#if DROPBEAR_EXT_INFO
+#if SILLYBEAR_EXT_INFO
 	/* Determine if SSH_MSG_EXT_INFO messages should be sent.
 	Should be done for the first key exchange. Only required on server side
     for server-sig-algs */
-	if (IS_DROPBEAR_SERVER) {
+	if (IS_SILLYBEAR_SERVER) {
 		if (!ses.kexstate.donefirstkex) {
-			if (buf_has_algo(ses.payload, SSH_EXT_INFO_C) == DROPBEAR_SUCCESS) {
+			if (buf_has_algo(ses.payload, SSH_EXT_INFO_C) == SILLYBEAR_SUCCESS) {
 				ses.allow_ext_info = 1;
 			}
 		}
@@ -655,12 +655,12 @@ static void read_kex_algos() {
 
 	if (!ses.kexstate.donefirstkex) {
 		const char* strict_name;
-		if (IS_DROPBEAR_CLIENT) {
+		if (IS_SILLYBEAR_CLIENT) {
 			strict_name = SSH_STRICT_KEX_S;
 		} else {
 			strict_name = SSH_STRICT_KEX_C;
 		}
-		if (buf_has_algo(ses.payload, strict_name) == DROPBEAR_SUCCESS) {
+		if (buf_has_algo(ses.payload, strict_name) == SILLYBEAR_SUCCESS) {
 			ses.kexstate.strict_kex = 1;
 		}
 	}
@@ -705,8 +705,8 @@ static void read_kex_algos() {
 
 	/* mac_algorithms_client_to_server */
 	c2s_hash_algo = buf_match_algo(ses.payload, sshhashes, 0, NULL);
-#if DROPBEAR_AEAD_MODE
-	if (((struct dropbear_cipher_mode*)c2s_cipher_algo->mode)->aead_crypt != NULL) {
+#if SILLYBEAR_AEAD_MODE
+	if (((struct sillybear_cipher_mode*)c2s_cipher_algo->mode)->aead_crypt != NULL) {
 		c2s_hash_algo = NULL;
 	} else
 #endif
@@ -718,8 +718,8 @@ static void read_kex_algos() {
 
 	/* mac_algorithms_server_to_client */
 	s2c_hash_algo = buf_match_algo(ses.payload, sshhashes, 0, NULL);
-#if DROPBEAR_AEAD_MODE
-	if (((struct dropbear_cipher_mode*)s2c_cipher_algo->mode)->aead_crypt != NULL) {
+#if SILLYBEAR_AEAD_MODE
+	if (((struct sillybear_cipher_mode*)s2c_cipher_algo->mode)->aead_crypt != NULL) {
 		s2c_hash_algo = NULL;
 	} else
 #endif
@@ -762,52 +762,52 @@ static void read_kex_algos() {
 	}
 
 	/* Handle the asymmetry */
-	if (IS_DROPBEAR_CLIENT) {
+	if (IS_SILLYBEAR_CLIENT) {
 		ses.newkeys->recv.algo_crypt = 
-			(struct dropbear_cipher*)s2c_cipher_algo->data;
+			(struct sillybear_cipher*)s2c_cipher_algo->data;
 		ses.newkeys->trans.algo_crypt = 
-			(struct dropbear_cipher*)c2s_cipher_algo->data;
+			(struct sillybear_cipher*)c2s_cipher_algo->data;
 		ses.newkeys->recv.crypt_mode = 
-			(struct dropbear_cipher_mode*)s2c_cipher_algo->mode;
+			(struct sillybear_cipher_mode*)s2c_cipher_algo->mode;
 		ses.newkeys->trans.crypt_mode =
-			(struct dropbear_cipher_mode*)c2s_cipher_algo->mode;
+			(struct sillybear_cipher_mode*)c2s_cipher_algo->mode;
 		ses.newkeys->recv.algo_mac = 
-#if DROPBEAR_AEAD_MODE
+#if SILLYBEAR_AEAD_MODE
 			s2c_hash_algo == NULL ? ses.newkeys->recv.crypt_mode->aead_mac :
 #endif
-			(struct dropbear_hash*)s2c_hash_algo->data;
+			(struct sillybear_hash*)s2c_hash_algo->data;
 		ses.newkeys->trans.algo_mac = 
-#if DROPBEAR_AEAD_MODE
+#if SILLYBEAR_AEAD_MODE
 			c2s_hash_algo == NULL ? ses.newkeys->trans.crypt_mode->aead_mac :
 #endif
-			(struct dropbear_hash*)c2s_hash_algo->data;
+			(struct sillybear_hash*)c2s_hash_algo->data;
 		ses.newkeys->recv.algo_comp = s2c_comp_algo->val;
 		ses.newkeys->trans.algo_comp = c2s_comp_algo->val;
 	} else {
 		/* SERVER */
 		ses.newkeys->recv.algo_crypt = 
-			(struct dropbear_cipher*)c2s_cipher_algo->data;
+			(struct sillybear_cipher*)c2s_cipher_algo->data;
 		ses.newkeys->trans.algo_crypt = 
-			(struct dropbear_cipher*)s2c_cipher_algo->data;
+			(struct sillybear_cipher*)s2c_cipher_algo->data;
 		ses.newkeys->recv.crypt_mode =
-			(struct dropbear_cipher_mode*)c2s_cipher_algo->mode;
+			(struct sillybear_cipher_mode*)c2s_cipher_algo->mode;
 		ses.newkeys->trans.crypt_mode =
-			(struct dropbear_cipher_mode*)s2c_cipher_algo->mode;
+			(struct sillybear_cipher_mode*)s2c_cipher_algo->mode;
 		ses.newkeys->recv.algo_mac = 
-#if DROPBEAR_AEAD_MODE
+#if SILLYBEAR_AEAD_MODE
 			c2s_hash_algo == NULL ? ses.newkeys->recv.crypt_mode->aead_mac :
 #endif
-			(struct dropbear_hash*)c2s_hash_algo->data;
+			(struct sillybear_hash*)c2s_hash_algo->data;
 		ses.newkeys->trans.algo_mac = 
-#if DROPBEAR_AEAD_MODE
+#if SILLYBEAR_AEAD_MODE
 			s2c_hash_algo == NULL ? ses.newkeys->trans.crypt_mode->aead_mac :
 #endif
-			(struct dropbear_hash*)s2c_hash_algo->data;
+			(struct sillybear_hash*)s2c_hash_algo->data;
 		ses.newkeys->recv.algo_comp = c2s_comp_algo->val;
 		ses.newkeys->trans.algo_comp = s2c_comp_algo->val;
 	}
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (fuzz.fuzzing) {
 		fuzz_kex_fakealgos();
 	}
@@ -823,5 +823,5 @@ static void read_kex_algos() {
 	return;
 
 error:
-	dropbear_exit("No matching algo %s", erralgo);
+	sillybear_exit("No matching algo %s", erralgo);
 }

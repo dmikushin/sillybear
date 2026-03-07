@@ -36,14 +36,14 @@ if test -z "$ORIGCFLAGS" && test "$GCC" = "yes"; then
 fi
 
 # LTM_CFLAGS is given to ./configure by the user, 
-# DROPBEAR_LTM_CFLAGS is substituted in the LTM Makefile.in
-DROPBEAR_LTM_CFLAGS="$LTM_CFLAGS"
-if test -z "$DROPBEAR_LTM_CFLAGS"; then
-	DROPBEAR_LTM_CFLAGS="-O3 -funroll-loops -fomit-frame-pointer"
+# SILLYBEAR_LTM_CFLAGS is substituted in the LTM Makefile.in
+SILLYBEAR_LTM_CFLAGS="$LTM_CFLAGS"
+if test -z "$SILLYBEAR_LTM_CFLAGS"; then
+	SILLYBEAR_LTM_CFLAGS="-O3 -funroll-loops -fomit-frame-pointer"
 fi
-AC_MSG_NOTICE(Setting LTM_CFLAGS to $DROPBEAR_LTM_CFLAGS)
+AC_MSG_NOTICE(Setting LTM_CFLAGS to $SILLYBEAR_LTM_CFLAGS)
 AC_ARG_VAR(LTM_CFLAGS, CFLAGS for bundled libtommath. Default -O3 -funroll-loops -fomit-frame-pointer)
-AC_SUBST(DROPBEAR_LTM_CFLAGS)
+AC_SUBST(SILLYBEAR_LTM_CFLAGS)
 
 AC_MSG_NOTICE([Checking if compiler '$CC' supports -Wno-pointer-sign])
 DB_TRYADDCFLAGS([-Wno-pointer-sign])
@@ -204,7 +204,7 @@ AC_CHECK_DECL(__UCLIBC__,
 	],,)
 
 dnl We test for crypt() specially. On Linux (and others?) it resides in libcrypt
-dnl but we don't want link all binaries to -lcrypt, just dropbear server.
+dnl but we don't want link all binaries to -lcrypt, just sillybear server.
 dnl OS X doesn't need -lcrypt
 AC_CHECK_FUNC(crypt, found_crypt_func=here)
 AC_CHECK_LIB(crypt, crypt,
@@ -298,16 +298,16 @@ AC_ARG_ENABLE(openpty,
 			AC_MSG_NOTICE(Not using openpty)
 		else
 			AC_MSG_NOTICE(Using openpty if available)
-			AC_SEARCH_LIBS(openpty, util, [dropbear_cv_func_have_openpty=yes])
+			AC_SEARCH_LIBS(openpty, util, [sillybear_cv_func_have_openpty=yes])
 		fi
 	],
 	[
 		AC_MSG_NOTICE(Using openpty if available)
-		AC_SEARCH_LIBS(openpty, util, [dropbear_cv_func_have_openpty=yes])
+		AC_SEARCH_LIBS(openpty, util, [sillybear_cv_func_have_openpty=yes])
 	]
 )
 
-if test "x$dropbear_cv_func_have_openpty" = "xyes"; then
+if test "x$sillybear_cv_func_have_openpty" = "xyes"; then
 	AC_DEFINE(HAVE_OPENPTY,,Have openpty() function)
 	no_ptc_check=yes
 	no_ptmx_check=yes
@@ -347,42 +347,42 @@ AC_ARG_ENABLE(shadow,
 AC_ARG_ENABLE(plugin,
 	[AS_HELP_STRING([--enable-plugin], [Enable support for External Public Key Authentication plug-in])],
 	[
-		AC_DEFINE(DROPBEAR_PLUGIN, 1, External Public Key Authentication)
+		AC_DEFINE(SILLYBEAR_PLUGIN, 1, External Public Key Authentication)
 		AC_MSG_NOTICE(Enabling support for External Public Key Authentication)
-		DROPBEAR_PLUGIN=1
+		SILLYBEAR_PLUGIN=1
 	],
 	[
-		AC_DEFINE(DROPBEAR_PLUGIN, 0, External Public Key Authentication)
-		DROPBEAR_PLUGIN=0
+		AC_DEFINE(SILLYBEAR_PLUGIN, 0, External Public Key Authentication)
+		SILLYBEAR_PLUGIN=0
 	]
 
 )
-AC_SUBST(DROPBEAR_PLUGIN)
+AC_SUBST(SILLYBEAR_PLUGIN)
 
 AC_ARG_ENABLE(fuzz,
 	[AS_HELP_STRING([--enable-fuzz], [Build fuzzing. Not recommended for deployment.])],
 	[
 		if test "x$enableval" = "xyes"; then
-            AC_DEFINE(DROPBEAR_FUZZ, 1, Fuzzing)
+            AC_DEFINE(SILLYBEAR_FUZZ, 1, Fuzzing)
             AC_MSG_NOTICE(Enabling fuzzing)
-            DROPBEAR_FUZZ=1
+            SILLYBEAR_FUZZ=1
             # libfuzzer needs linking with c++ libraries
             AC_PROG_CXX
 			mkdir -pv fuzz
         else
-            AC_DEFINE(DROPBEAR_FUZZ, 0, Fuzzing)
+            AC_DEFINE(SILLYBEAR_FUZZ, 0, Fuzzing)
             AC_MSG_NOTICE(Disabling fuzzing)
-            DROPBEAR_FUZZ=0
+            SILLYBEAR_FUZZ=0
         fi
 	],
 	[
-		AC_DEFINE(DROPBEAR_FUZZ, 0, Fuzzing)
+		AC_DEFINE(SILLYBEAR_FUZZ, 0, Fuzzing)
 		AC_MSG_NOTICE(Disabling fuzzing)
-		DROPBEAR_FUZZ=0
+		SILLYBEAR_FUZZ=0
 	]
 
 )
-AC_SUBST(DROPBEAR_FUZZ)
+AC_SUBST(SILLYBEAR_FUZZ)
 AC_SUBST(CXX)
 
 # Checks for header files.
@@ -571,7 +571,7 @@ AC_ARG_ENABLE(bundled-libtom,
 		[Force using bundled libtomcrypt/libtommath even if a system version exists.
 		Use --disable-bundled-libtom to force not using bundled even if system version doesn't exist.
 		Default is to use system if available, otherwise bundled.
-		Dropbear requires system libtommath >= 1.2.0 and libtomcrypt >= 1.18.0.])],
+		Sillybear requires system libtommath >= 1.2.0 and libtomcrypt >= 1.18.0.])],
 	[
 		if test "x$enableval" = "xyes"; then
 			BUNDLED_LIBTOM=1
@@ -947,7 +947,7 @@ fi
 
 if test "t$found_crypt_func" != there; then
 AC_MSG_NOTICE()
-AC_MSG_NOTICE([crypt() not available, dropbear server will not have password authentication])
+AC_MSG_NOTICE([crypt() not available, sillybear server will not have password authentication])
 fi
 
 AC_MSG_NOTICE()

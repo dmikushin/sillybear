@@ -49,7 +49,7 @@ static const unsigned char OSSH_PKEY_BLOB[] =
 	"\0\0\0\0"				/* kdf */
 	"\0\0\0\1";				/* key num */
 #define OSSH_PKEY_BLOBLEN (sizeof(OSSH_PKEY_BLOB) - 1)
-#if DROPBEAR_ECDSA
+#if SILLYBEAR_ECDSA
 static const unsigned char OID_SEC256R1_BLOB[] = {0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07};
 static const unsigned char OID_SEC384R1_BLOB[] = {0x2b, 0x81, 0x04, 0x00, 0x22};
 static const unsigned char OID_SEC521R1_BLOB[] = {0x2b, 0x81, 0x04, 0x00, 0x23};
@@ -72,8 +72,8 @@ static sign_key *openssh_read(const char *filename, const char *passphrase);
 static int openssh_write(const char *filename, sign_key *key,
 				  const char *passphrase);
 
-static int dropbear_write(const char*filename, sign_key * key);
-static sign_key *dropbear_read(const char* filename);
+static int sillybear_write(const char*filename, sign_key * key);
+static sign_key *sillybear_read(const char* filename);
 
 static int toint(unsigned u);
 
@@ -100,8 +100,8 @@ sign_key *import_read(const char *filename, const char *passphrase, int filetype
 
 	if (filetype == KEYFILE_OPENSSH) {
 		return openssh_read(filename, passphrase);
-	} else if (filetype == KEYFILE_DROPBEAR) {
-		return dropbear_read(filename);
+	} else if (filetype == KEYFILE_SILLYBEAR) {
+		return sillybear_read(filename);
 #if 0
 	} else if (filetype == KEYFILE_SSHCOM) {
 		return sshcom_read(filename, passphrase);
@@ -115,8 +115,8 @@ int import_write(const char *filename, sign_key *key, const char *passphrase,
 
 	if (filetype == KEYFILE_OPENSSH) {
 		return openssh_write(filename, key, passphrase);
-	} else if (filetype == KEYFILE_DROPBEAR) {
-		return dropbear_write(filename, key);
+	} else if (filetype == KEYFILE_SILLYBEAR) {
+		return sillybear_write(filename, key);
 #if 0
 	} else if (filetype == KEYFILE_SSHCOM) {
 		return sshcom_write(filename, key, passphrase);
@@ -125,22 +125,22 @@ int import_write(const char *filename, sign_key *key, const char *passphrase,
 	return 0;
 }
 
-static sign_key *dropbear_read(const char* filename) {
+static sign_key *sillybear_read(const char* filename) {
 
 	buffer * buf = NULL;
 	sign_key *ret = NULL;
 	enum signkey_type type;
 
 	buf = buf_new(MAX_PRIVKEY_SIZE);
-	if (buf_readfile(buf, filename) == DROPBEAR_FAILURE) {
+	if (buf_readfile(buf, filename) == SILLYBEAR_FAILURE) {
 		goto error;
 	}
 
 	buf_setpos(buf, 0);
 	ret = new_sign_key();
 
-	type = DROPBEAR_SIGNKEY_ANY;
-	if (buf_get_priv_key(buf, ret, &type) == DROPBEAR_FAILURE){
+	type = SILLYBEAR_SIGNKEY_ANY;
+	if (buf_get_priv_key(buf, ret, &type) == SILLYBEAR_FAILURE){
 		goto error;
 	}
 	buf_free(buf);
@@ -160,7 +160,7 @@ error:
 }
 
 /* returns 0 on fail, 1 on success */
-static int dropbear_write(const char*filename, sign_key * key) {
+static int sillybear_write(const char*filename, sign_key * key) {
 
 	buffer * buf;
 	FILE*fp;
@@ -215,7 +215,7 @@ static void base64_encode_fp(FILE * fp, const unsigned char *data,
 	unsigned long outlen;
 	int rawcpl;
 	rawcpl = cpl * 3 / 4;
-	dropbear_assert((unsigned int)cpl < sizeof(out));
+	sillybear_assert((unsigned int)cpl < sizeof(out));
 
 	while (datalen > 0) {
 		n = (datalen < rawcpl ? datalen : rawcpl);
@@ -302,7 +302,7 @@ static int ber_read_id_len(void *source, int sourcelen,
  * Will avoid writing anything if dest is NULL, but still return
  * amount of space required.
  */
-#if DROPBEAR_DSS
+#if SILLYBEAR_DSS
 static int ber_write_id_len(void *dest, int id, int length, int flags)
 {
 	unsigned char *d = (unsigned char *)dest;
@@ -357,7 +357,7 @@ static int ber_write_id_len(void *dest, int id, int length, int flags)
 
 	return len;
 }
-#endif /* DROPBEAR_DSS */
+#endif /* SILLYBEAR_DSS */
 
 
 /* Simple structure to point to an mp-int within a blob. */
@@ -585,9 +585,9 @@ static sign_key *openssh_read(const char *filename, const char * UNUSED(passphra
 		/* limit length of public key blob */
 		len = buf_getint(blobbuf);
 
-		type = DROPBEAR_SIGNKEY_ANY;
+		type = SILLYBEAR_SIGNKEY_ANY;
 		if (buf_get_pub_key(blobbuf, retkey, &type)
-				!= DROPBEAR_SUCCESS) {
+				!= SILLYBEAR_SUCCESS) {
 			errmsg = "Error parsing OpenSSH key";
 			goto ossh_error;
 		}
@@ -605,27 +605,27 @@ static sign_key *openssh_read(const char *filename, const char * UNUSED(passphra
 
 		errmsg = "Unsupported OpenSSH key type";
 		retkey->type = type;
-		ret = DROPBEAR_FAILURE;
+		ret = SILLYBEAR_FAILURE;
 		/* Parse private key part */
-#if DROPBEAR_RSA
-		if (type == DROPBEAR_SIGNKEY_RSA) {
+#if SILLYBEAR_RSA
+		if (type == SILLYBEAR_SIGNKEY_RSA) {
 			errmsg = "Error parsing OpenSSH RSA key";
 			ret = buf_get_rsa_priv_ossh(blobbuf, retkey);
 		}
 #endif
-#if DROPBEAR_ED25519
-		if (type == DROPBEAR_SIGNKEY_ED25519) {
+#if SILLYBEAR_ED25519
+		if (type == SILLYBEAR_SIGNKEY_ED25519) {
 			errmsg = "Error parsing OpenSSH ed25519 key";
 			ret = buf_get_ed25519_priv_ossh(blobbuf, retkey);
 		}
 #endif
-#if DROPBEAR_ECDSA
+#if SILLYBEAR_ECDSA
 		if (signkey_is_ecdsa(type)) {
 			errmsg = "Error parsing OpenSSH ecdsa key";
 			ret = buf_get_ecdsa_priv_ossh(blobbuf, retkey);
 		}
 #endif
-		if (ret == DROPBEAR_SUCCESS) {
+		if (ret == SILLYBEAR_SUCCESS) {
 				errmsg = NULL;
 				retval = retkey;
 				goto error;
@@ -679,16 +679,16 @@ ossh_error:
 	 */
 	blobbuf = buf_new(3000);
 
-#if DROPBEAR_DSS
+#if SILLYBEAR_DSS
 	if (key->type == OSSH_DSA) {
 		buf_putstring(blobbuf, "ssh-dss", 7);
-		retkey->type = DROPBEAR_SIGNKEY_DSS;
+		retkey->type = SILLYBEAR_SIGNKEY_DSS;
 	} 
 #endif
-#if DROPBEAR_RSA
+#if SILLYBEAR_RSA
 	if (key->type == OSSH_RSA) {
 		buf_putstring(blobbuf, "ssh-rsa", 7);
-		retkey->type = DROPBEAR_SIGNKEY_RSA;
+		retkey->type = SILLYBEAR_SIGNKEY_RSA;
 	}
 #endif
 
@@ -745,14 +745,14 @@ ossh_error:
 		p += len;
 	}
 
-#if DROPBEAR_ECDSA
+#if SILLYBEAR_ECDSA
 	if (key->type == OSSH_EC) {
 		unsigned char* private_key_bytes = NULL;
 		int private_key_len = 0;
 		unsigned char* public_key_bytes = NULL;
 		int public_key_len = 0;
 		ecc_key *ecc = NULL;
-		const struct dropbear_ecc_curve *curve = NULL;
+		const struct sillybear_ecc_curve *curve = NULL;
 
 		/* See SEC1 v2, Appendix C.4 */
 		/* OpenSSL (so OpenSSH) seems to include the optional parts. */
@@ -792,24 +792,24 @@ ossh_error:
 		}
 
 		if (0) {}
-#if DROPBEAR_ECC_256
+#if SILLYBEAR_ECC_256
 		else if (len == sizeof(OID_SEC256R1_BLOB) 
 			&& memcmp(p, OID_SEC256R1_BLOB, len) == 0) {
-			retkey->type = DROPBEAR_SIGNKEY_ECDSA_NISTP256;
+			retkey->type = SILLYBEAR_SIGNKEY_ECDSA_NISTP256;
 			curve = &ecc_curve_nistp256;
 		} 
 #endif
-#if DROPBEAR_ECC_384
+#if SILLYBEAR_ECC_384
 		else if (len == sizeof(OID_SEC384R1_BLOB)
 			&& memcmp(p, OID_SEC384R1_BLOB, len) == 0) {
-			retkey->type = DROPBEAR_SIGNKEY_ECDSA_NISTP384;
+			retkey->type = SILLYBEAR_SIGNKEY_ECDSA_NISTP384;
 			curve = &ecc_curve_nistp384;
 		} 
 #endif
-#if DROPBEAR_ECC_521
+#if SILLYBEAR_ECC_521
 		else if (len == sizeof(OID_SEC521R1_BLOB)
 			&& memcmp(p, OID_SEC521R1_BLOB, len) == 0) {
-			retkey->type = DROPBEAR_SIGNKEY_ECDSA_NISTP521;
+			retkey->type = SILLYBEAR_SIGNKEY_ECDSA_NISTP521;
 			curve = &ecc_curve_nistp521;
 		} 
 #endif
@@ -857,7 +857,7 @@ ossh_error:
 
 		*signkey_key_ptr(retkey, retkey->type) = ecc;
 	}
-#endif /* DROPBEAR_ECDSA */
+#endif /* SILLYBEAR_ECDSA */
 
 	/*
 	 * Now put together the actual key. Simplest way to do this is
@@ -867,9 +867,9 @@ ossh_error:
 	 */
 	if (key->type == OSSH_RSA || key->type == OSSH_DSA) {
 		buf_setpos(blobbuf, 0);
-		type = DROPBEAR_SIGNKEY_ANY;
+		type = SILLYBEAR_SIGNKEY_ANY;
 		if (buf_get_priv_key(blobbuf, retkey, &type)
-				!= DROPBEAR_SUCCESS) {
+				!= SILLYBEAR_SUCCESS) {
 			errmsg = "unable to create key structure";
 			sign_key_free(retkey);
 			retkey = NULL;
@@ -906,8 +906,8 @@ static int openssh_write(const char *filename, sign_key *key,
 	int ret = 0;
 	FILE *fp;
 
-#if DROPBEAR_DSS
-	if (key->type == DROPBEAR_SIGNKEY_DSS) {
+#if SILLYBEAR_DSS
+	if (key->type == SILLYBEAR_SIGNKEY_DSS) {
 		char zero[1];
 		struct mpint_pos numbers[9];
 		int nnumbers = -1, seqlen;
@@ -927,7 +927,7 @@ static int openssh_write(const char *filename, sign_key *key,
 		 */
 		numbers[0].start = zero; numbers[0].bytes = 1; zero[0] = '\0';
 
-		if (key->type == DROPBEAR_SIGNKEY_DSS) {
+		if (key->type == SILLYBEAR_SIGNKEY_DSS) {
 
 			/* p */
 			numbers[1].bytes = buf_getint(keyblob);
@@ -993,16 +993,16 @@ static int openssh_write(const char *filename, sign_key *key,
 			pos += numbers[i].bytes;
 		}
 	} /* end DSS handling */
-#endif /* DROPBEAR_DSS */
+#endif /* SILLYBEAR_DSS */
 
 	if (0
-#if DROPBEAR_RSA
-		|| key->type == DROPBEAR_SIGNKEY_RSA
+#if SILLYBEAR_RSA
+		|| key->type == SILLYBEAR_SIGNKEY_RSA
 #endif
-#if DROPBEAR_ED25519
-		|| key->type == DROPBEAR_SIGNKEY_ED25519
+#if SILLYBEAR_ED25519
+		|| key->type == SILLYBEAR_SIGNKEY_ED25519
 #endif
-#if DROPBEAR_ECDSA
+#if SILLYBEAR_ECDSA
 		|| signkey_is_ecdsa(key->type)
 #endif
 		) {
@@ -1011,17 +1011,17 @@ static int openssh_write(const char *filename, sign_key *key,
 		extrablob = buf_new(3100);
 
 		/* private key blob w/o header */
-#if DROPBEAR_RSA
-		if (key->type == DROPBEAR_SIGNKEY_RSA) {
+#if SILLYBEAR_RSA
+		if (key->type == SILLYBEAR_SIGNKEY_RSA) {
 			buf_put_rsa_priv_ossh(keyblob, key);
 		}
 #endif
-#if DROPBEAR_ED25519
-		if (key->type == DROPBEAR_SIGNKEY_ED25519) {
+#if SILLYBEAR_ED25519
+		if (key->type == SILLYBEAR_SIGNKEY_ED25519) {
 			buf_put_ed25519_priv_ossh(keyblob, key);
 		}
 #endif
-#if DROPBEAR_ECDSA
+#if SILLYBEAR_ECDSA
 		if (signkey_is_ecdsa(key->type)) {
 			buf_put_ecdsa_priv_ossh(keyblob, key);
 		}
@@ -1076,7 +1076,7 @@ static int openssh_write(const char *filename, sign_key *key,
 	 * with the same value. Those are all removed and the rest is
 	 * returned.
 	 */
-	dropbear_assert(pos == len);
+	sillybear_assert(pos == len);
 	while (pos < outlen) {
 		outblob[pos++] = outlen - len;
 	}

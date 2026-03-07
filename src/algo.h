@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,16 +22,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_ALGO_H_
+#ifndef SILLYBEAR_ALGO_H_
 
-#define DROPBEAR_ALGO_H_
+#define SILLYBEAR_ALGO_H_
 
 #include "includes.h"
 #include "buffer.h"
 
-#define DROPBEAR_MODE_UNUSED 0
-#define DROPBEAR_MODE_CBC 1
-#define DROPBEAR_MODE_CTR 2
+#define SILLYBEAR_MODE_UNUSED 0
+#define SILLYBEAR_MODE_CBC 1
+#define SILLYBEAR_MODE_CTR 2
 
 struct Algo_Type {
 
@@ -40,7 +40,7 @@ struct Algo_Type {
 	const void *data; /* algorithm specific data */
 	char usable; /* whether we can use this algorithm */
 	const void *mode; /* the mode, currently only used for ciphers,
-						 points to a 'struct dropbear_cipher_mode' */
+						 points to a 'struct sillybear_cipher_mode' */
 };
 
 typedef struct Algo_Type algo_type;
@@ -54,17 +54,17 @@ extern algo_type ssh_compress[];
 extern algo_type ssh_delaycompress[];
 extern algo_type ssh_nocompress[];
 
-extern const struct dropbear_cipher dropbear_nocipher;
-extern const struct dropbear_cipher_mode dropbear_mode_none;
-extern const struct dropbear_hash dropbear_nohash;
+extern const struct sillybear_cipher sillybear_nocipher;
+extern const struct sillybear_cipher_mode sillybear_mode_none;
+extern const struct sillybear_hash sillybear_nohash;
 
-struct dropbear_cipher {
+struct sillybear_cipher {
 	const struct ltc_cipher_descriptor *cipherdesc;
 	const unsigned long keysize;
 	const unsigned char blocksize;
 };
 
-struct dropbear_cipher_mode {
+struct sillybear_cipher_mode {
 	int (*start)(int cipher, const unsigned char *IV, 
 			const unsigned char *key, 
 			int keylen, int num_rounds, void *cipher_state);
@@ -79,10 +79,10 @@ struct dropbear_cipher_mode {
 	int (*aead_getlength)(unsigned int seq,
 			const unsigned char *in, unsigned int *outlen,
 			unsigned long len, void *cipher_state);
-	const struct dropbear_hash *aead_mac;
+	const struct sillybear_hash *aead_mac;
 };
 
-struct dropbear_hash {
+struct sillybear_hash {
 	const struct ltc_hash_descriptor *hash_desc;
 	const unsigned long keysize;
 	/* hashsize may be truncated from the size returned by hash_desc,
@@ -90,23 +90,23 @@ struct dropbear_hash {
 	const unsigned char hashsize;
 };
 
-enum dropbear_kex_mode {
-#if DROPBEAR_NORMAL_DH
-	DROPBEAR_KEX_NORMAL_DH,
+enum sillybear_kex_mode {
+#if SILLYBEAR_NORMAL_DH
+	SILLYBEAR_KEX_NORMAL_DH,
 #endif
-#if DROPBEAR_ECDH
-	DROPBEAR_KEX_ECDH,
+#if SILLYBEAR_ECDH
+	SILLYBEAR_KEX_ECDH,
 #endif
-#if DROPBEAR_CURVE25519
-	DROPBEAR_KEX_CURVE25519,
+#if SILLYBEAR_CURVE25519
+	SILLYBEAR_KEX_CURVE25519,
 #endif
-#if DROPBEAR_PQHYBRID
-	DROPBEAR_KEX_PQHYBRID,
+#if SILLYBEAR_PQHYBRID
+	SILLYBEAR_KEX_PQHYBRID,
 #endif
 };
 
-struct dropbear_kex {
-	enum dropbear_kex_mode mode;
+struct sillybear_kex {
+	enum sillybear_kex_mode mode;
 	
 	/* "normal" DH KEX */
 	const unsigned char *dh_p_bytes;
@@ -119,7 +119,7 @@ struct dropbear_kex {
 	const struct ltc_hash_descriptor *hash_desc;
 };
 
-struct dropbear_kem_desc {
+struct sillybear_kem_desc {
 	unsigned int public_len;
 	unsigned int secret_len;
 	unsigned int ciphertext_len;
@@ -141,16 +141,16 @@ algo_type * first_usable_algo(algo_type algos[]);
 algo_type * buf_match_algo(buffer* buf, algo_type localalgos[],
 		int kexguess2, int *goodguess);
 
-#if DROPBEAR_USER_ALGO_LIST
+#if SILLYBEAR_USER_ALGO_LIST
 int check_user_algos(const char* user_algo_list, algo_type * algos, 
 		const char *algo_desc);
 char * algolist_string(const algo_type algos[]);
 #endif
 
 enum {
-	DROPBEAR_COMP_NONE,
-	DROPBEAR_COMP_ZLIB,
-	DROPBEAR_COMP_ZLIB_DELAY,
+	SILLYBEAR_COMP_NONE,
+	SILLYBEAR_COMP_ZLIB,
+	SILLYBEAR_COMP_ZLIB_DELAY,
 };
 
-#endif /* DROPBEAR_ALGO_H_ */
+#endif /* SILLYBEAR_ALGO_H_ */

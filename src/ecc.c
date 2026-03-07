@@ -3,27 +3,27 @@
 #include "dbutil.h"
 #include "bignum.h"
 
-#if DROPBEAR_ECC
+#if SILLYBEAR_ECC
 
-/* .dp members are filled out by dropbear_ecc_fill_dp() at startup */
-#if DROPBEAR_ECC_256
-struct dropbear_ecc_curve ecc_curve_nistp256 = {
+/* .dp members are filled out by sillybear_ecc_fill_dp() at startup */
+#if SILLYBEAR_ECC_256
+struct sillybear_ecc_curve ecc_curve_nistp256 = {
 	32,		/* .ltc_size	*/
 	NULL,		/* .dp		*/
 	&sha256_desc,	/* .hash_desc	*/
 	"nistp256"	/* .name	*/
 };
 #endif
-#if DROPBEAR_ECC_384
-struct dropbear_ecc_curve ecc_curve_nistp384 = {
+#if SILLYBEAR_ECC_384
+struct sillybear_ecc_curve ecc_curve_nistp384 = {
 	48,		/* .ltc_size	*/
 	NULL,		/* .dp		*/
 	&sha384_desc,	/* .hash_desc	*/
 	"nistp384"	/* .name	*/
 };
 #endif
-#if DROPBEAR_ECC_521
-struct dropbear_ecc_curve ecc_curve_nistp521 = {
+#if SILLYBEAR_ECC_521
+struct sillybear_ecc_curve ecc_curve_nistp521 = {
 	66,		/* .ltc_size	*/
 	NULL,		/* .dp		*/
 	&sha512_desc,	/* .hash_desc	*/
@@ -31,24 +31,24 @@ struct dropbear_ecc_curve ecc_curve_nistp521 = {
 };
 #endif
 
-struct dropbear_ecc_curve *dropbear_ecc_curves[] = {
-#if DROPBEAR_ECC_256
+struct sillybear_ecc_curve *sillybear_ecc_curves[] = {
+#if SILLYBEAR_ECC_256
 	&ecc_curve_nistp256,
 #endif
-#if DROPBEAR_ECC_384
+#if SILLYBEAR_ECC_384
 	&ecc_curve_nistp384,
 #endif
-#if DROPBEAR_ECC_521
+#if SILLYBEAR_ECC_521
 	&ecc_curve_nistp521,
 #endif
 	NULL
 };
 
-void dropbear_ecc_fill_dp() {
-	struct dropbear_ecc_curve **curve;
+void sillybear_ecc_fill_dp() {
+	struct sillybear_ecc_curve **curve;
 	/* libtomcrypt guarantees they're ordered by size */
 	const ltc_ecc_set_type *dp = ltc_ecc_sets;
-	for (curve = dropbear_ecc_curves; *curve; curve++) {
+	for (curve = sillybear_ecc_curves; *curve; curve++) {
 		for (;dp->size > 0; dp++) {
 			if (dp->size == (*curve)->ltc_size) {
 				(*curve)->dp = dp;
@@ -56,14 +56,14 @@ void dropbear_ecc_fill_dp() {
 			}
 		}
 		if (!(*curve)->dp) {
-			dropbear_exit("Missing ECC params %s", (*curve)->name);
+			sillybear_exit("Missing ECC params %s", (*curve)->name);
 		}
 	}
 }
 
-struct dropbear_ecc_curve* curve_for_dp(const ltc_ecc_set_type *dp) {
-	struct dropbear_ecc_curve **curve = NULL;
-	for (curve = dropbear_ecc_curves; *curve; curve++) {
+struct sillybear_ecc_curve* curve_for_dp(const ltc_ecc_set_type *dp) {
+	struct sillybear_ecc_curve **curve = NULL;
+	for (curve = sillybear_ecc_curves; *curve; curve++) {
 		if ((*curve)->dp == dp) {
 			break;
 		}
@@ -138,15 +138,15 @@ void buf_put_ecc_raw_pubkey_string(buffer *buf, ecc_key *key) {
 	buf_putint(buf, len);
 	err = ecc_ansi_x963_export(key, buf_getwriteptr(buf, len), &len);
 	if (err != CRYPT_OK) {
-		dropbear_exit("ECC error");
+		sillybear_exit("ECC error");
 	}
 	buf_incrwritepos(buf, len);
 }
 
 /* For the "ephemeral public key octet string" in ECDH (rfc5656 section 4) */
-ecc_key * buf_get_ecc_raw_pubkey(buffer *buf, const struct dropbear_ecc_curve *curve) {
+ecc_key * buf_get_ecc_raw_pubkey(buffer *buf, const struct sillybear_ecc_curve *curve) {
 	ecc_key *key = NULL;
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 	const unsigned int size = curve->dp->size;
 	unsigned char first;
 
@@ -155,7 +155,7 @@ ecc_key * buf_get_ecc_raw_pubkey(buffer *buf, const struct dropbear_ecc_curve *c
 	buf_setpos(buf, 0);
 	first = buf_getbyte(buf);
 	if (first == 2 || first == 3) {
-		dropbear_log(LOG_WARNING, "Dropbear doesn't support ECC point compression");
+		sillybear_log(LOG_WARNING, "Sillybear doesn't support ECC point compression");
 		return NULL;
 	}
 	if (first != 4 || buf->len != 1+2*size) {
@@ -195,10 +195,10 @@ ecc_key * buf_get_ecc_raw_pubkey(buffer *buf, const struct dropbear_ecc_curve *c
 		goto out;
 	}
 
-	ret = DROPBEAR_SUCCESS;
+	ret = SILLYBEAR_SUCCESS;
 
 	out:
-	if (ret == DROPBEAR_FAILURE) {
+	if (ret == SILLYBEAR_FAILURE) {
 		if (key) {
 			ecc_free(key);
 			m_free(key);
@@ -212,11 +212,11 @@ ecc_key * buf_get_ecc_raw_pubkey(buffer *buf, const struct dropbear_ecc_curve *c
 
 /* a modified version of libtomcrypt's "ecc_shared_secret" to output
    a mp_int instead. */
-mp_int * dropbear_ecc_shared_secret(ecc_key *public_key, const ecc_key *private_key)
+mp_int * sillybear_ecc_shared_secret(ecc_key *public_key, const ecc_key *private_key)
 {
 	ecc_point *result = NULL;
 	mp_int *prime = NULL, *shared_secret = NULL;
-	int err = DROPBEAR_FAILURE;
+	int err = SILLYBEAR_FAILURE;
 
    /* type valid? */
 	if (private_key->type != PK_PRIVATE) {
@@ -253,10 +253,10 @@ mp_int * dropbear_ecc_shared_secret(ecc_key *public_key, const ecc_key *private_
 	m_free(prime);
 	ltc_ecc_del_point(result);
 
-	err = DROPBEAR_SUCCESS;
+	err = SILLYBEAR_SUCCESS;
 	out:
-	if (err == DROPBEAR_FAILURE) {
-		dropbear_exit("ECC error");
+	if (err == SILLYBEAR_FAILURE) {
+		sillybear_exit("ECC error");
 	}
 	return shared_secret;
 }

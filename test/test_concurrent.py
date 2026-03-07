@@ -1,7 +1,7 @@
 """
 Tests opening and closing several (up to 4) channels concurrently.
 """
-from test_dropbear import *
+from test_sillybear import *
 
 import asyncssh
 import asyncio
@@ -26,7 +26,7 @@ async def run(addr, port):
                 print(f" del {i}/{l}")
                 del chans[i]
 
-def test_concurrent(request, dropbear):
+def test_concurrent(request, sillybear):
     opt = request.config.option
     host = opt.remote or LOCALADDR
     port = int(opt.port)

@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002-2004 Matt Johnston
  * All rights reserved.
@@ -58,7 +58,7 @@ void process_packet() {
 
 	if (type == SSH_MSG_DISCONNECT) {
 		/* Allowed at any time */
-		dropbear_close("Disconnect received");
+		sillybear_close("Disconnect received");
 	}
 
 	/* These packets may be received at any time,
@@ -111,7 +111,7 @@ void process_packet() {
 			else
 			{
 				TRACE(("disallowed packet during kexinit"))
-				dropbear_exit("Unexpected packet type %d, expected %d", type,
+				sillybear_exit("Unexpected packet type %d, expected %d", type,
 						ses.requirenext);
 			}
 		}
@@ -137,7 +137,7 @@ void process_packet() {
 	 * NOTE: if the protocol changes and new types are added, revisit this 
 	 * assumption */
 	if ( !ses.authstate.authdone && type > MAX_UNAUTH_PACKET_TYPE ) {
-		dropbear_exit("Received message %d before userauth", type);
+		sillybear_exit("Received message %d before userauth", type);
 	}
 
 	for (i = 0; ; i++) {

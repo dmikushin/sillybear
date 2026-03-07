@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -69,15 +69,15 @@
 
 #define MAX_FMT 100
 
-static void generic_dropbear_exit(int exitcode, const char* format, 
+static void generic_sillybear_exit(int exitcode, const char* format, 
 		va_list param) ATTRIB_NORETURN;
-static void generic_dropbear_log(int priority, const char* format, 
+static void generic_sillybear_log(int priority, const char* format, 
 		va_list param);
 
-void (*_dropbear_exit)(int exitcode, const char* format, va_list param) ATTRIB_NORETURN
-						= generic_dropbear_exit;
-void (*_dropbear_log)(int priority, const char* format, va_list param)
-						= generic_dropbear_log;
+void (*_sillybear_exit)(int exitcode, const char* format, va_list param) ATTRIB_NORETURN
+						= generic_sillybear_exit;
+void (*_sillybear_log)(int priority, const char* format, va_list param)
+						= generic_sillybear_log;
 
 #if DEBUG_TRACE
 int debug_trace = 0;
@@ -92,35 +92,35 @@ void startsyslog(const char *ident) {
 #endif /* DISABLE_SYSLOG */
 
 /* the "format" string must be <= 100 characters */
-void dropbear_close(const char* format, ...) {
+void sillybear_close(const char* format, ...) {
 
 	va_list param;
 
 	va_start(param, format);
-	_dropbear_exit(EXIT_SUCCESS, format, param);
+	_sillybear_exit(EXIT_SUCCESS, format, param);
 	va_end(param);
 
 }
 
-void dropbear_exit(const char* format, ...) {
+void sillybear_exit(const char* format, ...) {
 
 	va_list param;
 
 	va_start(param, format);
-	_dropbear_exit(EXIT_FAILURE, format, param);
+	_sillybear_exit(EXIT_FAILURE, format, param);
 	va_end(param);
 }
 
-static void generic_dropbear_exit(int exitcode, const char* format, 
+static void generic_sillybear_exit(int exitcode, const char* format, 
 		va_list param) {
 
 	char fmtbuf[300];
 
 	snprintf(fmtbuf, sizeof(fmtbuf), "Exited: %s", format);
 
-	_dropbear_log(LOG_INFO, fmtbuf, param);
+	_sillybear_log(LOG_INFO, fmtbuf, param);
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
     if (fuzz.do_jmp) {
         longjmp(fuzz.jmp, 1);
     }
@@ -130,10 +130,10 @@ static void generic_dropbear_exit(int exitcode, const char* format,
 }
 
 void fail_assert(const char* expr, const char* file, int line) {
-	dropbear_exit("Failed assertion (%s:%d): `%s'", file, line, expr);
+	sillybear_exit("Failed assertion (%s:%d): `%s'", file, line, expr);
 }
 
-static void generic_dropbear_log(int UNUSED(priority), const char* format, 
+static void generic_sillybear_log(int UNUSED(priority), const char* format, 
 		va_list param) {
 
 	char printbuf[1024];
@@ -145,12 +145,12 @@ static void generic_dropbear_log(int UNUSED(priority), const char* format,
 }
 
 /* this is what can be called to write arbitrary log messages */
-void dropbear_log(int priority, const char* format, ...) {
+void sillybear_log(int priority, const char* format, ...) {
 
 	va_list param;
 
 	va_start(param, format);
-	_dropbear_log(priority, format, param);
+	_sillybear_log(priority, format, param);
 	va_end(param);
 }
 
@@ -161,13 +161,13 @@ static double debug_start_time = -1;
 
 void debug_start_net()
 {
-	if (getenv("DROPBEAR_DEBUG_NET_TIMESTAMP"))
+	if (getenv("SILLYBEAR_DEBUG_NET_TIMESTAMP"))
 	{
 		/* Timestamps start from first network activity */
 		struct timeval tv;
 		gettimeofday(&tv, NULL);
 		debug_start_time = tv.tv_sec + (tv.tv_usec / 1000000.0);
-		TRACE(("Resetting Dropbear TRACE timestamps"))
+		TRACE(("Resetting Sillybear TRACE timestamps"))
 	}
 }
 
@@ -185,7 +185,7 @@ static double time_since_start()
 	return nowf - debug_start_time;
 }
 
-static void dropbear_tracelevel(int level, const char *format, va_list param)
+static void sillybear_tracelevel(int level, const char *format, va_list param)
 {
 	if (debug_trace == 0 || debug_trace < level) {
 		return;
@@ -196,47 +196,47 @@ static void dropbear_tracelevel(int level, const char *format, va_list param)
 	fprintf(stderr, "\n");
 }
 #if (DEBUG_TRACE>=1)
-void dropbear_trace1(const char* format, ...) {
+void sillybear_trace1(const char* format, ...) {
 	va_list param;
 
 	va_start(param, format);
-	dropbear_tracelevel(1, format, param);
+	sillybear_tracelevel(1, format, param);
 	va_end(param);
 }
 #endif
 #if (DEBUG_TRACE>=2)
-void dropbear_trace2(const char* format, ...) {
+void sillybear_trace2(const char* format, ...) {
 	va_list param;
 
 	va_start(param, format);
-	dropbear_tracelevel(2, format, param);
+	sillybear_tracelevel(2, format, param);
 	va_end(param);
 }
 #endif
 #if (DEBUG_TRACE>=3)
-void dropbear_trace3(const char* format, ...) {
+void sillybear_trace3(const char* format, ...) {
 	va_list param;
 
 	va_start(param, format);
-	dropbear_tracelevel(3, format, param);
+	sillybear_tracelevel(3, format, param);
 	va_end(param);
 }
 #endif
 #if (DEBUG_TRACE>=4)
-void dropbear_trace4(const char* format, ...) {
+void sillybear_trace4(const char* format, ...) {
 	va_list param;
 
 	va_start(param, format);
-	dropbear_tracelevel(4, format, param);
+	sillybear_tracelevel(4, format, param);
 	va_end(param);
 }
 #endif
 #if (DEBUG_TRACE>=5)
-void dropbear_trace5(const char* format, ...) {
+void sillybear_trace5(const char* format, ...) {
 	va_list param;
 
 	va_start(param, format);
-	dropbear_tracelevel(5, format, param);
+	sillybear_tracelevel(5, format, param);
 	va_end(param);
 }
 #endif
@@ -281,7 +281,7 @@ int spawn_command(void(*exec_fn)(const void *user_data), const void *exec_data,
 	const int FDIN = 0;
 	const int FDOUT = 1;
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (fuzz.fuzzing) {
 		return fuzz_spawn_command(ret_writefd, ret_readfd, ret_errfd, ret_pid);
 	}
@@ -289,23 +289,23 @@ int spawn_command(void(*exec_fn)(const void *user_data), const void *exec_data,
 
 	/* redirect stdin/stdout/stderr */
 	if (pipe(infds) != 0) {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 	if (pipe(outfds) != 0) {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 	if (ret_errfd && pipe(errfds) != 0) {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
-#if DROPBEAR_VFORK
+#if SILLYBEAR_VFORK
 	pid = vfork();
 #else
 	pid = fork();
 #endif
 
 	if (pid < 0) {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	if (!pid) {
@@ -314,7 +314,7 @@ int spawn_command(void(*exec_fn)(const void *user_data), const void *exec_data,
 		TRACE(("back to normal sigchld"))
 		/* Revert to normal sigchld handling */
 		if (signal(SIGCHLD, SIG_DFL) == SIG_ERR) {
-			dropbear_exit("signal() error");
+			sillybear_exit("signal() error");
 		}
 
 		/* redirect stdin/stdout */
@@ -323,7 +323,7 @@ int spawn_command(void(*exec_fn)(const void *user_data), const void *exec_data,
 			(dup2(outfds[FDOUT], STDOUT_FILENO) < 0) ||
 			(ret_errfd && dup2(errfds[FDOUT], STDERR_FILENO) < 0)) {
 			TRACE(("leave noptycommand: error redirecting FDs"))
-			dropbear_exit("Child dup2() failure");
+			sillybear_exit("Child dup2() failure");
 		}
 
 		close(infds[FDOUT]);
@@ -338,7 +338,7 @@ int spawn_command(void(*exec_fn)(const void *user_data), const void *exec_data,
 
 		exec_fn(exec_data);
 		/* not reached */
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	} else {
 		/* parent */
 		close(infds[FDIN]);
@@ -361,7 +361,7 @@ int spawn_command(void(*exec_fn)(const void *user_data), const void *exec_data,
 		if (ret_errfd) {
 			*ret_errfd = errfds[FDIN];
 		}
-		return DROPBEAR_SUCCESS;
+		return SILLYBEAR_SUCCESS;
 	}
 }
 
@@ -400,7 +400,7 @@ void run_command(const char* argv0, char** args, unsigned int maxfd) {
 
 	/* Re-enable SIGPIPE for the executed process */
 	if (signal(SIGPIPE, SIG_DFL) == SIG_ERR) {
-		dropbear_exit("signal() error");
+		sillybear_exit("signal() error");
 	}
 
 	/* close file descriptors except stdin/stdout/stderr
@@ -485,13 +485,13 @@ char * stripcontrol(const char * text) {
 
 /* reads the contents of filename into the buffer buf, from the current
  * position, either to the end of the file, or the buffer being full.
- * Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+ * Returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 int buf_readfile(buffer* buf, const char* filename) {
 
 	int fd = -1;
 	int len;
 	int maxlen;
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 
 	fd = open(filename, O_RDONLY);
 
@@ -511,7 +511,7 @@ int buf_readfile(buffer* buf, const char* filename) {
 		buf_incrwritepos(buf, len);
 	} while (len < maxlen && len > 0);
 
-	ret = DROPBEAR_SUCCESS;
+	ret = SILLYBEAR_SUCCESS;
 
 out:
 	if (fd >= 0) {
@@ -522,9 +522,9 @@ out:
 
 /* get a line from the file into buffer in the style expected for an
  * authkeys file.
- * Will return DROPBEAR_SUCCESS if data is read, or DROPBEAR_FAILURE on EOF.*/
+ * Will return SILLYBEAR_SUCCESS if data is read, or SILLYBEAR_FAILURE on EOF.*/
 /* Only used for ~/.ssh/known_hosts and ~/.ssh/authorized_keys */
-#if DROPBEAR_CLIENT || DROPBEAR_SVR_PUBKEY_AUTH
+#if SILLYBEAR_CLIENT || SILLYBEAR_SVR_PUBKEY_AUTH
 int buf_getline(buffer * line, FILE * authfile) {
 
 	int c = EOF;
@@ -552,10 +552,10 @@ out:
 
 	/* if we didn't read anything before EOF or error, exit */
 	if (c == EOF && line->pos == 0) {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	} else {
 		buf_setpos(line, 0);
-		return DROPBEAR_SUCCESS;
+		return SILLYBEAR_SUCCESS;
 	}
 
 }	
@@ -575,7 +575,7 @@ void m_close(int fd) {
 
 	if (val < 0 && errno != EBADF) {
 		/* Linux says EIO can happen */
-		dropbear_exit("Error closing fd %d, %s", fd, strerror(errno));
+		sillybear_exit("Error closing fd %d, %s", fd, strerror(errno));
 	}
 }
 
@@ -584,7 +584,7 @@ void setnonblocking(int fd) {
 	int fl = 0;
 	TRACE(("setnonblocking: %d", fd))
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (fuzz.fuzzing) {
 		return;
 	}
@@ -592,7 +592,7 @@ void setnonblocking(int fd) {
 	fl = fcntl(fd, F_GETFL, 0);
 	if (fl == -1) {
 		/* F_GETFL shouldn't fail */
-		dropbear_exit("Couldn't set nonblocking");
+		sillybear_exit("Couldn't set nonblocking");
 	}
 
 	if (fcntl(fd, F_SETFL, fl | O_NONBLOCK) == -1) {
@@ -601,7 +601,7 @@ void setnonblocking(int fd) {
 			 * can't be set to non-blocking */
 			TRACE(("ignoring ENODEV for setnonblocking"))
 		} else {
-			dropbear_exit("Couldn't set nonblocking");
+			sillybear_exit("Couldn't set nonblocking");
 		}
 	}
 	TRACE(("leave setnonblocking"))
@@ -618,7 +618,7 @@ void disallow_core() {
 	}
 }
 
-/* Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE, with the result in *val */
+/* Returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE, with the result in *val */
 int m_str_to_uint(const char* str, unsigned int *val) {
 	unsigned long l;
 	char *endp;
@@ -627,7 +627,7 @@ int m_str_to_uint(const char* str, unsigned int *val) {
 
 	if (endp == str || *endp != '\0') {
 		/* parse error */
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	/* The c99 spec doesn't actually seem to define EINVAL, but most platforms
@@ -635,10 +635,10 @@ int m_str_to_uint(const char* str, unsigned int *val) {
 	if ((l == 0 && errno == EINVAL)
 		|| (l == ULONG_MAX && errno == ERANGE)
 		|| (l > UINT_MAX)) {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	} else {
 		*val = l;
-		return DROPBEAR_SUCCESS;
+		return SILLYBEAR_SUCCESS;
 	}
 }
 
@@ -685,7 +685,7 @@ int constant_time_memcmp(const void* a, const void *b, size_t n)
 /* higher-resolution monotonic timestamp, falls back to gettimeofday */
 void gettime_wrapper(struct timespec *now) {
 	struct timeval tv;
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (fuzz.fuzzing) {
 		/* time stands still when fuzzing */
 		now->tv_sec = 5;
@@ -768,7 +768,7 @@ int fd_read_pending(int fd) {
 	fd_set fds;
 	struct timeval timeout;
 
-	DROPBEAR_FD_ZERO(&fds);
+	SILLYBEAR_FD_ZERO(&fds);
 	FD_SET(fd, &fds);
 	while (1) {
 		timeout.tv_sec = 0;
@@ -791,7 +791,7 @@ int m_snprintf(char *str, size_t size, const char *format, ...) {
 	ret = vsnprintf(str, size, format, param);
 	va_end(param);
 	if (ret < 0) {
-		dropbear_exit("snprintf failed");
+		sillybear_exit("snprintf failed");
 	}
 	return ret;
 }

@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-#if DROPBEAR_X11FWD
+#if SILLYBEAR_X11FWD
 #include "x11fwd.h"
 #include "session.h"
 #include "ssh.h"
@@ -43,7 +43,7 @@ static int bindport(int fd);
 static int send_msg_channel_open_x11(int fd, const struct sockaddr_in* addr);
 
 /* Check untrusted xauth strings for metacharacters */
-/* Returns DROPBEAR_SUCCESS/DROPBEAR_FAILURE */
+/* Returns SILLYBEAR_SUCCESS/SILLYBEAR_FAILURE */
 static int
 xauth_valid_string(const char *s)
 {
@@ -53,26 +53,26 @@ xauth_valid_string(const char *s)
 		if (!isalnum(s[i]) &&
 		    s[i] != '.' && s[i] != ':' && s[i] != '/' &&
 		    s[i] != '-' && s[i] != '_') {
-			return DROPBEAR_FAILURE;
+			return SILLYBEAR_FAILURE;
 		}
 	}
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 }
 
 
 /* called as a request for a session channel, sets up listening X11 */
-/* returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+/* returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 int x11req(struct ChanSess * chansess) {
 
 	int fd = -1;
 
 	if (!svr_pubkey_allows_x11fwd()) {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	/* we already have an x11 connection */
 	if (chansess->x11listener != NULL) {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	chansess->x11singleconn = buf_getbool(ses.payload);
@@ -80,9 +80,9 @@ int x11req(struct ChanSess * chansess) {
 	chansess->x11authcookie = buf_getstring(ses.payload, NULL);
 	chansess->x11screennum = buf_getint(ses.payload);
 
-	if (xauth_valid_string(chansess->x11authprot) == DROPBEAR_FAILURE ||
-		xauth_valid_string(chansess->x11authcookie) == DROPBEAR_FAILURE) {
-		dropbear_log(LOG_WARNING, "Bad xauth request");
+	if (xauth_valid_string(chansess->x11authprot) == SILLYBEAR_FAILURE ||
+		xauth_valid_string(chansess->x11authcookie) == SILLYBEAR_FAILURE) {
+		sillybear_log(LOG_WARNING, "Bad xauth request");
 		goto fail;
 	}
 	/* create listening socket */
@@ -113,7 +113,7 @@ int x11req(struct ChanSess * chansess) {
 		goto fail;
 	}
 
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 
 fail:
 	/* cleanup */
@@ -121,11 +121,11 @@ fail:
 	m_free(chansess->x11authcookie);
 	m_close(fd);
 
-	return DROPBEAR_FAILURE;
+	return SILLYBEAR_FAILURE;
 }
 
 /* accepts a new X11 socket */
-/* returns DROPBEAR_FAILURE or DROPBEAR_SUCCESS */
+/* returns SILLYBEAR_FAILURE or SILLYBEAR_SUCCESS */
 static void x11accept(const struct Listener* listener, int sock) {
 
 	int fd;
@@ -147,7 +147,7 @@ static void x11accept(const struct Listener* listener, int sock) {
 	}
 
 	ret = send_msg_channel_open_x11(fd, &addr);
-	if (ret == DROPBEAR_FAILURE) {
+	if (ret == SILLYBEAR_FAILURE) {
 		close(fd);
 	}
 }
@@ -206,7 +206,7 @@ void x11cleanup(struct ChanSess *chansess) {
 }
 
 static int x11_inithandler(struct Channel *channel) {
-	channel->prio = DROPBEAR_PRIO_LOWDELAY;
+	channel->prio = SILLYBEAR_PRIO_LOWDELAY;
 	return 0;
 }
 
@@ -224,15 +224,15 @@ static int send_msg_channel_open_x11(int fd, const struct sockaddr_in* addr) {
 
 	char* ipstring = NULL;
 
-	if (send_msg_channel_open_init(fd, &chan_x11) == DROPBEAR_SUCCESS) {
+	if (send_msg_channel_open_init(fd, &chan_x11) == SILLYBEAR_SUCCESS) {
 		ipstring = inet_ntoa(addr->sin_addr);
 		buf_putstring(ses.writepayload, ipstring, strlen(ipstring));
 		buf_putint(ses.writepayload, addr->sin_port);
 
 		encrypt_packet();
-		return DROPBEAR_SUCCESS;
+		return SILLYBEAR_SUCCESS;
 	} else {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 }
@@ -261,9 +261,9 @@ static int bindport(int fd) {
 			continue;
 		}
 		/* otherwise it was an error we don't know about */
-		dropbear_log(LOG_DEBUG, "Failed to bind x11 socket");
+		sillybear_log(LOG_DEBUG, "Failed to bind x11 socket");
 		break;
 	}
 	return -1;
 }
-#endif /* DROPBEAR_X11FWD */
+#endif /* SILLYBEAR_X11FWD */

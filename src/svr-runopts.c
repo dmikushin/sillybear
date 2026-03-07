@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -42,29 +42,29 @@ static void load_banner();
 
 static void printhelp(const char * progname) {
 
-	fprintf(stderr, "Dropbear server v%s https://matt.ucc.asn.au/dropbear/dropbear.html\n"
+	fprintf(stderr, "Sillybear server v%s https://matt.ucc.asn.au/sillybear/sillybear.html\n"
 					"Usage: %s [options]\n"
 					"-b bannerfile	Display the contents of bannerfile"
 					" before user login\n"
 					"		(default: none)\n"
 					"-r keyfile      Specify hostkeys (repeatable)\n"
 					"		defaults: \n"
-#if DROPBEAR_DSS
+#if SILLYBEAR_DSS
 					"		- dss %s\n"
 #endif
-#if DROPBEAR_RSA
+#if SILLYBEAR_RSA
 					"		- rsa %s\n"
 #endif
-#if DROPBEAR_ECDSA
+#if SILLYBEAR_ECDSA
 					"		- ecdsa %s\n"
 #endif
-#if DROPBEAR_ED25519
+#if SILLYBEAR_ED25519
 					"		- ed25519 %s\n"
 #endif
-#if DROPBEAR_SVR_PUBKEY_AUTH
+#if SILLYBEAR_SVR_PUBKEY_AUTH
 					"-D		Directory containing authorized_keys file\n"
 #endif
-#if DROPBEAR_DELAY_HOSTKEY
+#if SILLYBEAR_DELAY_HOSTKEY
 					"-R		Create hostkeys as required\n" 
 #endif
 					"-F		Don't fork into background\n"
@@ -81,17 +81,17 @@ static void printhelp(const char * progname) {
 #ifdef HAVE_GETGROUPLIST
 					"-G		Restrict logins to members of specified group\n"
 #endif
-#if DROPBEAR_SVR_PASSWORD_AUTH || DROPBEAR_SVR_PAM_AUTH
+#if SILLYBEAR_SVR_PASSWORD_AUTH || SILLYBEAR_SVR_PAM_AUTH
 					"-s		Disable password logins\n"
 					"-g		Disable password logins for root\n"
 					"-B		Allow blank password logins\n"
 					"-t		Enable two-factor authentication (both password and public key required)\n"
 #endif
 					"-T		Maximum authentication tries (default %d)\n"
-#if DROPBEAR_SVR_LOCALANYFWD
+#if SILLYBEAR_SVR_LOCALANYFWD
 					"-j		Disable local port forwarding\n"
 #endif
-#if DROPBEAR_SVR_REMOTETCPFWD
+#if SILLYBEAR_SVR_REMOTETCPFWD
 					"-k		Disable remote port forwarding\n"
 					"-a		Allow connections to forwarded ports from any host\n"
 					"-c command	Force executed command\n"
@@ -113,7 +113,7 @@ static void printhelp(const char * progname) {
 					"-K <keepalive>  (0 is never, default %d, in seconds)\n"
 					"-I <idle_timeout>  (0 is never, default %d, in seconds)\n"
 					"-z    disable QoS\n"
-#if DROPBEAR_PLUGIN
+#if SILLYBEAR_PLUGIN
                                         "-A <authplugin>[,<options>]\n"
                                         "               Enable external public key auth through <authplugin>\n"
 #endif
@@ -121,21 +121,21 @@ static void printhelp(const char * progname) {
 #if DEBUG_TRACE
 					"-v    verbose (repeat for more verbose)\n"
 #endif
-					,DROPBEAR_VERSION, progname,
-#if DROPBEAR_DSS
+					,SILLYBEAR_VERSION, progname,
+#if SILLYBEAR_DSS
 					DSS_PRIV_FILENAME,
 #endif
-#if DROPBEAR_RSA
+#if SILLYBEAR_RSA
 					RSA_PRIV_FILENAME,
 #endif
-#if DROPBEAR_ECDSA
+#if SILLYBEAR_ECDSA
 					ECDSA_PRIV_FILENAME,
 #endif
-#if DROPBEAR_ED25519
+#if SILLYBEAR_ED25519
 					ED25519_PRIV_FILENAME,
 #endif
 					MAX_AUTH_TRIES,
-					DROPBEAR_MAX_PORTS, DROPBEAR_DEFPORT, DROPBEAR_PIDFILE,
+					SILLYBEAR_MAX_PORTS, SILLYBEAR_DEFPORT, SILLYBEAR_PIDFILE,
 					DEFAULT_RECV_WINDOW, DEFAULT_KEEPALIVE, DEFAULT_IDLE_TIMEOUT);
 }
 
@@ -151,7 +151,7 @@ void svr_getopts(int argc, char ** argv) {
 	char* reexec_fd_arg = NULL;
 	char* keyfile = NULL;
 	char c;
-#if DROPBEAR_PLUGIN
+#if SILLYBEAR_PLUGIN
         char* pubkey_plugin = NULL;
 #endif
 
@@ -175,15 +175,15 @@ void svr_getopts(int argc, char ** argv) {
 	svr_opts.portcount = 0;
 	svr_opts.hostkey = NULL;
 	svr_opts.delay_hostkey = 0;
-	svr_opts.pidfile = expand_homedir_path(DROPBEAR_PIDFILE);
+	svr_opts.pidfile = expand_homedir_path(SILLYBEAR_PIDFILE);
 	svr_opts.authorized_keys_dir = "~/.ssh";
-#if DROPBEAR_SVR_LOCALANYFWD
+#if SILLYBEAR_SVR_LOCALANYFWD
 	svr_opts.nolocaltcp = 0;
 #endif
-#if DROPBEAR_SVR_REMOTETCPFWD
+#if SILLYBEAR_SVR_REMOTETCPFWD
 	svr_opts.noremotetcp = 0;
 #endif
-#if DROPBEAR_PLUGIN
+#if SILLYBEAR_PLUGIN
         svr_opts.pubkey_plugin = NULL;
         svr_opts.pubkey_plugin_options = NULL;
 #endif
@@ -208,14 +208,14 @@ void svr_getopts(int argc, char ** argv) {
 	opts.keepalive_secs = DEFAULT_KEEPALIVE;
 	opts.idle_timeout_secs = DEFAULT_IDLE_TIMEOUT;
 	
-#if DROPBEAR_SVR_REMOTETCPFWD
+#if SILLYBEAR_SVR_REMOTETCPFWD
 	opts.listen_fwd_all = 0;
 #endif
 	opts.disable_ip_tos = 0;
 
 	for (i = 1; i < (unsigned int)argc; i++) {
 		if (argv[i][0] != '-' || argv[i][1] == '\0')
-			dropbear_exit("Invalid argument: %s", argv[i]);
+			sillybear_exit("Invalid argument: %s", argv[i]);
 
 		for (j = 1; (c = argv[i][j]) != '\0' && !next && !nextisport; j++) {
 			switch (c) {
@@ -229,7 +229,7 @@ void svr_getopts(int argc, char ** argv) {
 				case 'r':
 					next = &keyfile;
 					break;
-#if DROPBEAR_SVR_PUBKEY_AUTH
+#if SILLYBEAR_SVR_PUBKEY_AUTH
 				case 'D':
 					next = &svr_opts.authorized_keys_dir;
 					break;
@@ -249,7 +249,7 @@ void svr_getopts(int argc, char ** argv) {
 					svr_opts.pass_on_env = 1;
 					break;
 
-#if DROPBEAR_SVR_LOCALANYFWD
+#if SILLYBEAR_SVR_LOCALANYFWD
 				case 'j':
 					svr_opts.nolocaltcp = 1;
 					break;
@@ -257,7 +257,7 @@ void svr_getopts(int argc, char ** argv) {
 				case 'j':
 					break;
 #endif
-#if DROPBEAR_SVR_REMOTETCPFWD
+#if SILLYBEAR_SVR_REMOTETCPFWD
 				case 'k':
 					svr_opts.noremotetcp = 1;
 					break;
@@ -273,7 +273,7 @@ void svr_getopts(int argc, char ** argv) {
 					svr_opts.inetdmode = 1;
 					break;
 #endif
-#if DROPBEAR_DO_REEXEC && NON_INETD_MODE
+#if SILLYBEAR_DO_REEXEC && NON_INETD_MODE
 				/* For internal use by re-exec */
 				case '2':
 					next = &reexec_fd_arg;
@@ -319,7 +319,7 @@ void svr_getopts(int argc, char ** argv) {
 				case 'T':
 					next = &maxauthtries_arg;
 					break;
-#if DROPBEAR_SVR_PASSWORD_AUTH || DROPBEAR_SVR_PAM_AUTH
+#if SILLYBEAR_SVR_PASSWORD_AUTH || SILLYBEAR_SVR_PAM_AUTH
 				case 's':
 					svr_opts.noauthpass = 1;
 					break;
@@ -344,7 +344,7 @@ void svr_getopts(int argc, char ** argv) {
 				case 'u':
 					/* backwards compatibility with old urandom option */
 					break;
-#if DROPBEAR_PLUGIN
+#if SILLYBEAR_PLUGIN
                                 case 'A':
                                         next = &pubkey_plugin;
                                         break;
@@ -376,7 +376,7 @@ void svr_getopts(int argc, char ** argv) {
 			i++;
 			j = 0;
 			if (!argv[i]) {
-				dropbear_exit("Missing argument");
+				sillybear_exit("Missing argument");
 			}
 		}
 
@@ -386,7 +386,7 @@ void svr_getopts(int argc, char ** argv) {
 		} else if (next) {
 			*next = &argv[i][j];
 			if (*next == NULL) {
-				dropbear_exit("Invalid null argument");
+				sillybear_exit("Invalid null argument");
 			}
 			next = NULL;
 
@@ -399,8 +399,8 @@ void svr_getopts(int argc, char ** argv) {
 
 	/* Set up listening ports */
 	if (svr_opts.portcount == 0) {
-		svr_opts.ports[0] = m_strdup(DROPBEAR_DEFPORT);
-		svr_opts.addresses[0] = m_strdup(DROPBEAR_DEFADDRESS);
+		svr_opts.ports[0] = m_strdup(SILLYBEAR_DEFPORT);
+		svr_opts.addresses[0] = m_strdup(SILLYBEAR_DEFADDRESS);
 		svr_opts.portcount = 1;
 	}
 
@@ -415,7 +415,7 @@ void svr_getopts(int argc, char ** argv) {
 		if (restrictedgroup){
 			svr_opts.restrict_group_gid = restrictedgroup->gr_gid;
 		} else {
-			dropbear_exit("Cannot restrict logins to group '%s' as the group does not exist", svr_opts.restrict_group);
+			sillybear_exit("Cannot restrict logins to group '%s' as the group does not exist", svr_opts.restrict_group);
 		}
 	}
 #endif
@@ -426,8 +426,8 @@ void svr_getopts(int argc, char ** argv) {
 
 	if (maxauthtries_arg) {
 		unsigned int val = 0;
-		if (m_str_to_uint(maxauthtries_arg, &val) == DROPBEAR_FAILURE) {
-			dropbear_exit("Bad maxauthtries '%s'", maxauthtries_arg);
+		if (m_str_to_uint(maxauthtries_arg, &val) == SILLYBEAR_FAILURE) {
+			sillybear_exit("Bad maxauthtries '%s'", maxauthtries_arg);
 		}
 		svr_opts.maxauthtries = val;
 	}
@@ -435,44 +435,44 @@ void svr_getopts(int argc, char ** argv) {
 
 	if (keepalive_arg) {
 		unsigned int val;
-		if (m_str_to_uint(keepalive_arg, &val) == DROPBEAR_FAILURE) {
-			dropbear_exit("Bad keepalive '%s'", keepalive_arg);
+		if (m_str_to_uint(keepalive_arg, &val) == SILLYBEAR_FAILURE) {
+			sillybear_exit("Bad keepalive '%s'", keepalive_arg);
 		}
 		opts.keepalive_secs = val;
 	}
 
 	if (idle_timeout_arg) {
 		unsigned int val;
-		if (m_str_to_uint(idle_timeout_arg, &val) == DROPBEAR_FAILURE) {
-			dropbear_exit("Bad idle_timeout '%s'", idle_timeout_arg);
+		if (m_str_to_uint(idle_timeout_arg, &val) == SILLYBEAR_FAILURE) {
+			sillybear_exit("Bad idle_timeout '%s'", idle_timeout_arg);
 		}
 		opts.idle_timeout_secs = val;
 	}
 
 	if (svr_opts.forced_command) {
-		dropbear_log(LOG_INFO, "Forced command set to '%s'", svr_opts.forced_command);
+		sillybear_log(LOG_INFO, "Forced command set to '%s'", svr_opts.forced_command);
 	}
 
 	if (svr_opts.interface) {
-		dropbear_log(LOG_INFO, "Binding to interface '%s'", svr_opts.interface);
+		sillybear_log(LOG_INFO, "Binding to interface '%s'", svr_opts.interface);
 	}
 
 	if (reexec_fd_arg) {
-		if (m_str_to_uint(reexec_fd_arg, &svr_opts.reexec_childpipe) == DROPBEAR_FAILURE
+		if (m_str_to_uint(reexec_fd_arg, &svr_opts.reexec_childpipe) == SILLYBEAR_FAILURE
 			|| svr_opts.reexec_childpipe < 0) {
-			dropbear_exit("Bad -2");
+			sillybear_exit("Bad -2");
 		}
 	}
 
 	if (svr_opts.multiauthmethod && svr_opts.noauthpass) {
-		dropbear_exit("-t and -s are incompatible");
+		sillybear_exit("-t and -s are incompatible");
 	}
 
 	if (strlen(svr_opts.authorized_keys_dir) == 0) {
-		dropbear_exit("Bad -D");
+		sillybear_exit("Bad -D");
 	}
 
-#if DROPBEAR_PLUGIN
+#if SILLYBEAR_PLUGIN
 	if (pubkey_plugin) {
 		svr_opts.pubkey_plugin = m_strdup(pubkey_plugin);
 		char *args = strchr(svr_opts.pubkey_plugin, ',');
@@ -488,12 +488,12 @@ void svr_getopts(int argc, char ** argv) {
 static void addportandaddress(const char* spec) {
 	char *port = NULL, *address = NULL;
 
-	if (svr_opts.portcount >= DROPBEAR_MAX_PORTS) {
+	if (svr_opts.portcount >= SILLYBEAR_MAX_PORTS) {
 		return;
 	}
 
-	if (split_address_port(spec, &address, &port) == DROPBEAR_FAILURE) {
-		dropbear_exit("Bad -p argument");
+	if (split_address_port(spec, &address, &port) == SILLYBEAR_FAILURE) {
+		sillybear_exit("Bad -p argument");
 	}
 
 	/* A bare port */
@@ -504,12 +504,12 @@ static void addportandaddress(const char* spec) {
 
 	if (!address) {
 		/* no address given -> fill in the default address */
-		address = m_strdup(DROPBEAR_DEFADDRESS);
+		address = m_strdup(SILLYBEAR_DEFADDRESS);
 	}
 
 	if (port[0] == '\0') {
 		/* empty port -> exit */
-		dropbear_exit("Bad port");
+		sillybear_exit("Bad port");
 	}
 	svr_opts.ports[svr_opts.portcount] = port;
 	svr_opts.addresses[svr_opts.portcount] = address;
@@ -541,7 +541,7 @@ void disable_sig_except(enum signature_type allow_type) {
 static void loadhostkey_helper(const char *name, void** src, void** dst, int fatal_duplicate) {
 	if (*dst) {
 		if (fatal_duplicate) {
-			dropbear_exit("Only one %s key can be specified", name);
+			sillybear_exit("Only one %s key can be specified", name);
 		}
 	} else {
 		*dst = *src;
@@ -554,46 +554,46 @@ static void loadhostkey_helper(const char *name, void** src, void** dst, int fat
 static void loadhostkey(const char *keyfile, int fatal_duplicate) {
 	sign_key * read_key = new_sign_key();
 	char *expand_path = expand_homedir_path(keyfile);
-	enum signkey_type type = DROPBEAR_SIGNKEY_ANY;
-	if (readhostkey(expand_path, read_key, &type) == DROPBEAR_FAILURE) {
+	enum signkey_type type = SILLYBEAR_SIGNKEY_ANY;
+	if (readhostkey(expand_path, read_key, &type) == SILLYBEAR_FAILURE) {
 		if (!svr_opts.delay_hostkey) {
-			dropbear_log(LOG_WARNING, "Failed loading %s", expand_path);
+			sillybear_log(LOG_WARNING, "Failed loading %s", expand_path);
 		}
 	}
 	m_free(expand_path);
 
-#if DROPBEAR_RSA
-	if (type == DROPBEAR_SIGNKEY_RSA) {
+#if SILLYBEAR_RSA
+	if (type == SILLYBEAR_SIGNKEY_RSA) {
 		loadhostkey_helper("RSA", (void**)&read_key->rsakey, (void**)&svr_opts.hostkey->rsakey, fatal_duplicate);
 	}
 #endif
 
-#if DROPBEAR_DSS
-	if (type == DROPBEAR_SIGNKEY_DSS) {
+#if SILLYBEAR_DSS
+	if (type == SILLYBEAR_SIGNKEY_DSS) {
 		loadhostkey_helper("DSS", (void**)&read_key->dsskey, (void**)&svr_opts.hostkey->dsskey, fatal_duplicate);
 	}
 #endif
 
-#if DROPBEAR_ECDSA
-#if DROPBEAR_ECC_256
-	if (type == DROPBEAR_SIGNKEY_ECDSA_NISTP256) {
+#if SILLYBEAR_ECDSA
+#if SILLYBEAR_ECC_256
+	if (type == SILLYBEAR_SIGNKEY_ECDSA_NISTP256) {
 		loadhostkey_helper("ECDSA256", (void**)&read_key->ecckey256, (void**)&svr_opts.hostkey->ecckey256, fatal_duplicate);
 	}
 #endif
-#if DROPBEAR_ECC_384
-	if (type == DROPBEAR_SIGNKEY_ECDSA_NISTP384) {
+#if SILLYBEAR_ECC_384
+	if (type == SILLYBEAR_SIGNKEY_ECDSA_NISTP384) {
 		loadhostkey_helper("ECDSA384", (void**)&read_key->ecckey384, (void**)&svr_opts.hostkey->ecckey384, fatal_duplicate);
 	}
 #endif
-#if DROPBEAR_ECC_521
-	if (type == DROPBEAR_SIGNKEY_ECDSA_NISTP521) {
+#if SILLYBEAR_ECC_521
+	if (type == SILLYBEAR_SIGNKEY_ECDSA_NISTP521) {
 		loadhostkey_helper("ECDSA521", (void**)&read_key->ecckey521, (void**)&svr_opts.hostkey->ecckey521, fatal_duplicate);
 	}
 #endif
-#endif /* DROPBEAR_ECDSA */
+#endif /* SILLYBEAR_ECDSA */
 
-#if DROPBEAR_ED25519
-	if (type == DROPBEAR_SIGNKEY_ED25519) {
+#if SILLYBEAR_ED25519
+	if (type == SILLYBEAR_SIGNKEY_ED25519) {
 		loadhostkey_helper("ed25519", (void**)&read_key->ed25519key, (void**)&svr_opts.hostkey->ed25519key, fatal_duplicate);
 	}
 #endif
@@ -604,7 +604,7 @@ static void loadhostkey(const char *keyfile, int fatal_duplicate) {
 
 static void addhostkey(const char *keyfile) {
 	if (svr_opts.num_hostkey_files >= MAX_HOSTKEYS) {
-		dropbear_exit("Too many hostkeys");
+		sillybear_exit("Too many hostkeys");
 	}
 	svr_opts.hostkey_files[svr_opts.num_hostkey_files] = m_strdup(keyfile);
 	svr_opts.num_hostkey_files++;
@@ -614,7 +614,7 @@ static void addhostkey(const char *keyfile) {
 void load_all_hostkeys() {
 	int i;
 	int any_keys = 0;
-#if DROPBEAR_ECDSA
+#if SILLYBEAR_ECDSA
 	int loaded_any_ecdsa = 0;
 #endif
 
@@ -628,44 +628,44 @@ void load_all_hostkeys() {
 
 	/* Only load default host keys if a host key is not specified by the user */
 	if (svr_opts.num_hostkey_files == 0) {
-#if DROPBEAR_RSA
+#if SILLYBEAR_RSA
 		loadhostkey(RSA_PRIV_FILENAME, 0);
 #endif
 
-#if DROPBEAR_DSS
+#if SILLYBEAR_DSS
 		loadhostkey(DSS_PRIV_FILENAME, 0);
 #endif
 
-#if DROPBEAR_ECDSA
+#if SILLYBEAR_ECDSA
 		loadhostkey(ECDSA_PRIV_FILENAME, 0);
 #endif
-#if DROPBEAR_ED25519
+#if SILLYBEAR_ED25519
 		loadhostkey(ED25519_PRIV_FILENAME, 0);
 #endif
 	}
 
-#if DROPBEAR_RSA
+#if SILLYBEAR_RSA
 	if (!svr_opts.delay_hostkey && !svr_opts.hostkey->rsakey) {
-#if DROPBEAR_RSA_SHA256
-		disablekey(DROPBEAR_SIGNATURE_RSA_SHA256);
+#if SILLYBEAR_RSA_SHA256
+		disablekey(SILLYBEAR_SIGNATURE_RSA_SHA256);
 #endif
-#if DROPBEAR_RSA_SHA1
-		disablekey(DROPBEAR_SIGNATURE_RSA_SHA1);
+#if SILLYBEAR_RSA_SHA1
+		disablekey(SILLYBEAR_SIGNATURE_RSA_SHA1);
 #endif
 	} else {
 		any_keys = 1;
 	}
 #endif
 
-#if DROPBEAR_DSS
+#if SILLYBEAR_DSS
 	if (!svr_opts.delay_hostkey && !svr_opts.hostkey->dsskey) {
-		disablekey(DROPBEAR_SIGNATURE_DSS);
+		disablekey(SILLYBEAR_SIGNATURE_DSS);
 	} else {
 		any_keys = 1;
 	}
 #endif
 
-#if DROPBEAR_ECDSA
+#if SILLYBEAR_ECDSA
 	/* We want to advertise a single ecdsa algorithm size.
 	- If there is a ecdsa hostkey at startup we choose that that size.
 	- If we generate at runtime we choose the default ecdsa size.
@@ -674,13 +674,13 @@ void load_all_hostkeys() {
 	/* check if any keys were loaded at startup */
 	loaded_any_ecdsa = 
 		0
-#if DROPBEAR_ECC_256
+#if SILLYBEAR_ECC_256
 		|| svr_opts.hostkey->ecckey256
 #endif
-#if DROPBEAR_ECC_384
+#if SILLYBEAR_ECC_384
 		|| svr_opts.hostkey->ecckey384
 #endif
-#if DROPBEAR_ECC_521
+#if SILLYBEAR_ECC_521
 		|| svr_opts.hostkey->ecckey521
 #endif
 		;
@@ -690,62 +690,62 @@ void load_all_hostkeys() {
 	any_keys |= svr_opts.delay_hostkey;
 
 	/* At most one ecdsa key size will be left enabled */
-#if DROPBEAR_ECC_256
+#if SILLYBEAR_ECC_256
 	if (!svr_opts.hostkey->ecckey256
 		&& (!svr_opts.delay_hostkey || loaded_any_ecdsa || ECDSA_DEFAULT_SIZE != 256 )) {
-		disablekey(DROPBEAR_SIGNATURE_ECDSA_NISTP256);
+		disablekey(SILLYBEAR_SIGNATURE_ECDSA_NISTP256);
 	}
 #endif
-#if DROPBEAR_ECC_384
+#if SILLYBEAR_ECC_384
 	if (!svr_opts.hostkey->ecckey384
 		&& (!svr_opts.delay_hostkey || loaded_any_ecdsa || ECDSA_DEFAULT_SIZE != 384 )) {
-		disablekey(DROPBEAR_SIGNATURE_ECDSA_NISTP384);
+		disablekey(SILLYBEAR_SIGNATURE_ECDSA_NISTP384);
 	}
 #endif
-#if DROPBEAR_ECC_521
+#if SILLYBEAR_ECC_521
 	if (!svr_opts.hostkey->ecckey521
 		&& (!svr_opts.delay_hostkey || loaded_any_ecdsa || ECDSA_DEFAULT_SIZE != 521 )) {
-		disablekey(DROPBEAR_SIGNATURE_ECDSA_NISTP521);
+		disablekey(SILLYBEAR_SIGNATURE_ECDSA_NISTP521);
 	}
 #endif
-#endif /* DROPBEAR_ECDSA */
+#endif /* SILLYBEAR_ECDSA */
 
-#if DROPBEAR_ED25519
+#if SILLYBEAR_ED25519
 	if (!svr_opts.delay_hostkey && !svr_opts.hostkey->ed25519key) {
-		disablekey(DROPBEAR_SIGNATURE_ED25519);
+		disablekey(SILLYBEAR_SIGNATURE_ED25519);
 	} else {
 		any_keys = 1;
 	}
 #endif
-#if DROPBEAR_SK_ECDSA
-	disablekey(DROPBEAR_SIGNATURE_SK_ECDSA_NISTP256);
+#if SILLYBEAR_SK_ECDSA
+	disablekey(SILLYBEAR_SIGNATURE_SK_ECDSA_NISTP256);
 #endif 
-#if DROPBEAR_SK_ED25519
-	disablekey(DROPBEAR_SIGNATURE_SK_ED25519);
+#if SILLYBEAR_SK_ED25519
+	disablekey(SILLYBEAR_SIGNATURE_SK_ED25519);
 #endif
 
 	if (!any_keys) {
-		dropbear_exit("No hostkeys available. 'dropbear -R' may be useful or run dropbearkey.");
+		sillybear_exit("No hostkeys available. 'sillybear -R' may be useful or run sillybearkey.");
 	}
 }
 
 static void load_banner() {
 	struct stat buf;
 	if (stat(svr_opts.bannerfile, &buf) != 0) {
-		dropbear_log(LOG_WARNING, "Error opening banner file '%s'",
+		sillybear_log(LOG_WARNING, "Error opening banner file '%s'",
 				svr_opts.bannerfile);
 		return;
 	}
 
 	if (buf.st_size > MAX_BANNER_SIZE) {
-		dropbear_log(LOG_WARNING, "Banner file too large, max is %d bytes",
+		sillybear_log(LOG_WARNING, "Banner file too large, max is %d bytes",
 				MAX_BANNER_SIZE);
 		return;
 	}
 
 	svr_opts.banner = buf_new(buf.st_size);
-	if (buf_readfile(svr_opts.banner, svr_opts.bannerfile) != DROPBEAR_SUCCESS) {
-		dropbear_log(LOG_WARNING, "Error reading banner file '%s'",
+	if (buf_readfile(svr_opts.banner, svr_opts.bannerfile) != SILLYBEAR_SUCCESS) {
+		sillybear_log(LOG_WARNING, "Error reading banner file '%s'",
 				svr_opts.bannerfile);
 		buf_free(svr_opts.banner);
 		svr_opts.banner = NULL;

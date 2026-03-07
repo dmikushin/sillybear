@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,8 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_CHANSESSION_H_
-#define DROPBEAR_CHANSESSION_H_
+#ifndef SILLYBEAR_CHANSESSION_H_
+#define SILLYBEAR_CHANSESSION_H_
 
 #include "loginrec.h"
 #include "channel.h"
@@ -42,7 +42,7 @@ struct ChanSess {
 	char * cmd; /* command to exec */
 	pid_t pid; /* child process pid */
 	/* command that was sent by the client, if authorized_keys command= or
-	dropbear -c was used */
+	sillybear -c was used */
 	char *original_command;
 
 	/* pty details */
@@ -61,7 +61,7 @@ struct ChanSess {
 	/* Used to set $SSH_CLIENT in the child session. */
 	char *client_string;
 	
-#if DROPBEAR_X11FWD
+#if SILLYBEAR_X11FWD
 	struct Listener * x11listener;
 	int x11port;
 	char * x11authprot;
@@ -70,7 +70,7 @@ struct ChanSess {
 	unsigned char x11singleconn;
 #endif
 
-#if DROPBEAR_SVR_AGENTFWD
+#if SILLYBEAR_SVR_AGENTFWD
 	struct Listener * agentlistener;
 	char * agentfile;
 	char * agentdir;
@@ -88,7 +88,7 @@ void addnewvar(const char* param, const char* var);
 void cli_send_chansess_request(void);
 void cli_tty_cleanup(void);
 void cli_chansess_winchange(void);
-#if DROPBEAR_CLI_NETCAT
+#if SILLYBEAR_CLI_NETCAT
 void cli_send_netcat_request(void);
 #endif
 
@@ -103,4 +103,4 @@ struct SigMap {
 
 extern const struct SigMap signames[];
 
-#endif /* DROPBEAR_CHANSESSION_H_ */
+#endif /* SILLYBEAR_CHANSESSION_H_ */

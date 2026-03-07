@@ -1,6 +1,6 @@
 #include "includes.h"
 
-#if DROPBEAR_SK_ECDSA
+#if SILLYBEAR_SK_ECDSA
 
 #include "dbutil.h"
 #include "ecc.h"
@@ -44,20 +44,20 @@ int buf_sk_ecdsa_verify(buffer *buf, const ecc_key *key, const buffer *data_buf,
 	buf_free(sig_buffer);
 
 	if (~flags & sk_flags_mask & SSH_SK_USER_PRESENCE_REQD) {
-		if (ret == DROPBEAR_SUCCESS) {
-			dropbear_log(LOG_WARNING, "Rejecting, user-presence not set");
+		if (ret == SILLYBEAR_SUCCESS) {
+			sillybear_log(LOG_WARNING, "Rejecting, user-presence not set");
 		}
-		ret = DROPBEAR_FAILURE;
+		ret = SILLYBEAR_FAILURE;
 	}
 	if (~flags & sk_flags_mask & SSH_SK_USER_VERIFICATION_REQD) {
-		if (ret == DROPBEAR_SUCCESS) {
-			dropbear_log(LOG_WARNING, "Rejecting, user-verification not set");
+		if (ret == SILLYBEAR_SUCCESS) {
+			sillybear_log(LOG_WARNING, "Rejecting, user-verification not set");
 		}
-		ret = DROPBEAR_FAILURE;
+		ret = SILLYBEAR_FAILURE;
 	}
 
 	TRACE(("leave buf_sk_ecdsa_verify, ret=%d", ret))
 	return ret;
 }
 
-#endif /* DROPBEAR_SK_ECDSA */
+#endif /* SILLYBEAR_SK_ECDSA */

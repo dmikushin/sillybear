@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -57,7 +57,7 @@ void recv_msg_service_request() {
 	if (len == SSH_SERVICE_CONNECTION_LEN &&
 			(strncmp(SSH_SERVICE_CONNECTION, name, len) == 0)) {
 		if (ses.authstate.authdone != 1) {
-			dropbear_exit("Request for connection before auth");
+			sillybear_exit("Request for connection before auth");
 		}
 
 		send_msg_service_accept(name, len);
@@ -68,7 +68,7 @@ void recv_msg_service_request() {
 
 	m_free(name);
 	/* TODO this should be a MSG_DISCONNECT */
-	dropbear_exit("Unrecognised SSH_MSG_SERVICE_REQUEST");
+	sillybear_exit("Unrecognised SSH_MSG_SERVICE_REQUEST");
 
 
 }

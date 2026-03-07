@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2008 Frederic Moulins
  * All rights reserved.
@@ -48,7 +48,7 @@
 #include "auth.h"
 #include "runopts.h"
 
-#if DROPBEAR_SVR_PUBKEY_OPTIONS_BUILT
+#if SILLYBEAR_SVR_PUBKEY_OPTIONS_BUILT
 
 /* Returns 1 if pubkey allows agent forwarding,
  * 0 otherwise */
@@ -132,7 +132,7 @@ void svr_pubkey_set_forced_command(struct ChanSess *chansess) {
 		}
 		chansess->cmd = m_strdup(ses.authstate.pubkey_options->forced_command);
 #if LOG_COMMANDS
-		dropbear_log(LOG_INFO, "Command forced to '%s'", chansess->original_command);
+		sillybear_log(LOG_INFO, "Command forced to '%s'", chansess->original_command);
 #endif
 	}
 }
@@ -160,24 +160,24 @@ void svr_pubkey_options_cleanup() {
 	}
 }
 
-/* helper for svr_add_pubkey_options. returns DROPBEAR_SUCCESS if the option is matched,
+/* helper for svr_add_pubkey_options. returns SILLYBEAR_SUCCESS if the option is matched,
    and increments the options_buf */
 static int match_option(buffer *options_buf, const char *opt_name) {
 	const unsigned int len = strlen(opt_name);
 	if (options_buf->len - options_buf->pos < len) {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 	if (strncasecmp((const char *) buf_getptr(options_buf, len), opt_name, len) == 0) {
 		buf_incrpos(options_buf, len);
-		return DROPBEAR_SUCCESS;
+		return SILLYBEAR_SUCCESS;
 	}
-	return DROPBEAR_FAILURE;
+	return SILLYBEAR_FAILURE;
 }
 
 /* Parse pubkey options and set ses.authstate.pubkey_options accordingly.
- * Returns DROPBEAR_SUCCESS if key is ok for auth, DROPBEAR_FAILURE otherwise */
+ * Returns SILLYBEAR_SUCCESS if key is ok for auth, SILLYBEAR_FAILURE otherwise */
 int svr_add_pubkey_options(buffer *options_buf, int line_num, const char* filename) {
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 
 	TRACE(("enter addpubkeyoptions"))
 
@@ -185,43 +185,43 @@ int svr_add_pubkey_options(buffer *options_buf, int line_num, const char* filena
 
 	buf_setpos(options_buf, 0);
 	while (options_buf->pos < options_buf->len) {
-		if (match_option(options_buf, "no-port-forwarding") == DROPBEAR_SUCCESS) {
-			dropbear_log(LOG_WARNING, "Port forwarding disabled.");
+		if (match_option(options_buf, "no-port-forwarding") == SILLYBEAR_SUCCESS) {
+			sillybear_log(LOG_WARNING, "Port forwarding disabled.");
 			ses.authstate.pubkey_options->no_port_forwarding_flag = 1;
 			goto next_option;
 		}
-		if (match_option(options_buf, "no-agent-forwarding") == DROPBEAR_SUCCESS) {
-#if DROPBEAR_SVR_AGENTFWD
-			dropbear_log(LOG_WARNING, "Agent forwarding disabled.");
+		if (match_option(options_buf, "no-agent-forwarding") == SILLYBEAR_SUCCESS) {
+#if SILLYBEAR_SVR_AGENTFWD
+			sillybear_log(LOG_WARNING, "Agent forwarding disabled.");
 			ses.authstate.pubkey_options->no_agent_forwarding_flag = 1;
 #endif
 			goto next_option;
 		}
-		if (match_option(options_buf, "no-X11-forwarding") == DROPBEAR_SUCCESS) {
-#if DROPBEAR_X11FWD
-			dropbear_log(LOG_WARNING, "X11 forwarding disabled.");
+		if (match_option(options_buf, "no-X11-forwarding") == SILLYBEAR_SUCCESS) {
+#if SILLYBEAR_X11FWD
+			sillybear_log(LOG_WARNING, "X11 forwarding disabled.");
 			ses.authstate.pubkey_options->no_x11_forwarding_flag = 1;
 #endif
 			goto next_option;
 		}
-		if (match_option(options_buf, "no-pty") == DROPBEAR_SUCCESS) {
-			dropbear_log(LOG_WARNING, "Pty allocation disabled.");
+		if (match_option(options_buf, "no-pty") == SILLYBEAR_SUCCESS) {
+			sillybear_log(LOG_WARNING, "Pty allocation disabled.");
 			ses.authstate.pubkey_options->no_pty_flag = 1;
 			goto next_option;
 		}
-		if (match_option(options_buf, "restrict") == DROPBEAR_SUCCESS) {
-			dropbear_log(LOG_WARNING, "Restrict option set");
+		if (match_option(options_buf, "restrict") == SILLYBEAR_SUCCESS) {
+			sillybear_log(LOG_WARNING, "Restrict option set");
 			ses.authstate.pubkey_options->no_port_forwarding_flag = 1;
-#if DROPBEAR_SVR_AGENTFWD
+#if SILLYBEAR_SVR_AGENTFWD
 			ses.authstate.pubkey_options->no_agent_forwarding_flag = 1;
 #endif
-#if DROPBEAR_X11FWD
+#if SILLYBEAR_X11FWD
 			ses.authstate.pubkey_options->no_x11_forwarding_flag = 1;
 #endif
 			ses.authstate.pubkey_options->no_pty_flag = 1;
 			goto next_option;
 		}
-		if (match_option(options_buf, "command=\"") == DROPBEAR_SUCCESS) {
+		if (match_option(options_buf, "command=\"") == SILLYBEAR_SUCCESS) {
 			int escaped = 0;
 			const unsigned char* command_start = buf_getptr(options_buf, 0);
 
@@ -242,11 +242,11 @@ int svr_add_pubkey_options(buffer *options_buf, int line_num, const char* filena
 				}
 				escaped = (!escaped && c == '\\');
 			}
-			dropbear_log(LOG_WARNING, "Badly formatted command= authorized_keys option");
+			sillybear_log(LOG_WARNING, "Badly formatted command= authorized_keys option");
 			goto bad_option;
 		}
 
-		if (match_option(options_buf, "permitopen=\"") == DROPBEAR_SUCCESS) {
+		if (match_option(options_buf, "permitopen=\"") == SILLYBEAR_SUCCESS) {
 			int valid_option = 0;
 			const unsigned char* permitopen_start = buf_getptr(options_buf, 0);
 
@@ -267,13 +267,13 @@ int svr_add_pubkey_options(buffer *options_buf, int line_num, const char* filena
 					spec = m_malloc(permitopen_len);
 					memcpy(spec, permitopen_start, permitopen_len - 1);
 					spec[permitopen_len - 1] = '\0';
-					if ((split_address_port(spec, &entry->host, &portstring) == DROPBEAR_SUCCESS)
+					if ((split_address_port(spec, &entry->host, &portstring) == SILLYBEAR_SUCCESS)
 						&& entry->host && portstring) {
 						if (strcmp(portstring, "*") == 0) {
 							valid_option = 1;
 							entry->port = PUBKEY_OPTIONS_ANY_PORT;
 							TRACE(("local port forwarding allowed to host '%s'", entry->host));
-						} else if (m_str_to_uint(portstring, &entry->port) == DROPBEAR_SUCCESS) {
+						} else if (m_str_to_uint(portstring, &entry->port) == SILLYBEAR_SUCCESS) {
 							valid_option = 1;
 							TRACE(("local port forwarding allowed to host '%s' and port '%u'",
 									entry->host, entry->port));
@@ -289,21 +289,21 @@ int svr_add_pubkey_options(buffer *options_buf, int line_num, const char* filena
 			if (valid_option) {
 				goto next_option;
 			} else {
-				dropbear_log(LOG_WARNING, "Badly formatted permitopen= authorized_keys option");
+				sillybear_log(LOG_WARNING, "Badly formatted permitopen= authorized_keys option");
 				goto bad_option;
 			}
 		}
 
-		if (match_option(options_buf, "no-touch-required") == DROPBEAR_SUCCESS) {
-#if DROPBEAR_SK_ECDSA || DROPBEAR_SK_ED25519
-			dropbear_log(LOG_WARNING, "No user presence check required for U2F/FIDO key.");
+		if (match_option(options_buf, "no-touch-required") == SILLYBEAR_SUCCESS) {
+#if SILLYBEAR_SK_ECDSA || SILLYBEAR_SK_ED25519
+			sillybear_log(LOG_WARNING, "No user presence check required for U2F/FIDO key.");
 			ses.authstate.pubkey_options->no_touch_required_flag = 1;
 #endif
 			goto next_option;
 		}
-		if (match_option(options_buf, "verify-required") == DROPBEAR_SUCCESS) {
-#if DROPBEAR_SK_ECDSA || DROPBEAR_SK_ED25519
-			dropbear_log(LOG_WARNING, "User verification required for U2F/FIDO key.");
+		if (match_option(options_buf, "verify-required") == SILLYBEAR_SUCCESS) {
+#if SILLYBEAR_SK_ECDSA || SILLYBEAR_SK_ED25519
+			sillybear_log(LOG_WARNING, "User verification required for U2F/FIDO key.");
 			ses.authstate.pubkey_options->verify_required_flag = 1;
 #endif
 			goto next_option;
@@ -321,13 +321,13 @@ next_option:
 		/* Process the next option. */
 	}
 	/* parsed all options with no problem */
-	ret = DROPBEAR_SUCCESS;
+	ret = SILLYBEAR_SUCCESS;
 	goto end;
 
 bad_option:
-	ret = DROPBEAR_FAILURE;
+	ret = SILLYBEAR_FAILURE;
 	svr_pubkey_options_cleanup();
-	dropbear_log(LOG_WARNING, "Bad public key options at %s:%d", filename, line_num);
+	sillybear_log(LOG_WARNING, "Bad public key options at %s:%d", filename, line_num);
 
 end:
 	TRACE(("leave addpubkeyoptions"))

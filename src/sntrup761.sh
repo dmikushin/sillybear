@@ -22,7 +22,7 @@ echo
 echo '#include <string.h>'
 echo '#include "sntrup761_compat.h"'
 echo
-echo '#if DROPBEAR_SNTRUP761'
+echo '#if SILLYBEAR_SNTRUP761'
 echo
 echo '#define crypto_declassify(x, y) do {} while (0)'
 echo
@@ -101,4 +101,4 @@ for i in $FILES; do
 	esac
 	echo
 done
-echo '#endif /* DROPBEAR_SNTRUP761 */'
+echo '#endif /* SILLYBEAR_SNTRUP761 */'

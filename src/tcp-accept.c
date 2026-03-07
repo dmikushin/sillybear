@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -33,7 +33,7 @@
 #include "listener.h"
 #include "runopts.h"
 
-#if DROPBEAR_TCP_ACCEPT
+#if SILLYBEAR_TCP_ACCEPT
 
 static void cleanup_tcp(const struct Listener *listener) {
 
@@ -67,7 +67,7 @@ static void tcp_acceptor(const struct Listener *listener, int sock) {
 		return;
 	}
 
-	if (send_msg_channel_open_init(fd, tcpinfo->chantype) == DROPBEAR_SUCCESS) {
+	if (send_msg_channel_open_init(fd, tcpinfo->chantype) == SILLYBEAR_SUCCESS) {
 		char* addr = NULL;
 		unsigned int port = 0;
 
@@ -77,7 +77,7 @@ static void tcp_acceptor(const struct Listener *listener, int sock) {
 			addr = tcpinfo->sendaddr;
 			port = tcpinfo->sendport;
 		} else {
-			dropbear_assert(tcpinfo->tcp_type == forwarded);
+			sillybear_assert(tcpinfo->tcp_type == forwarded);
 			/* "forwarded-tcpip" */
 			/* address that was connected, port that was connected */
 			addr = tcpinfo->request_listenaddr;
@@ -106,7 +106,7 @@ static void tcp_acceptor(const struct Listener *listener, int sock) {
 int listen_tcpfwd(struct TCPListener* tcpinfo, struct Listener **ret_listener) {
 
 	char portstring[NI_MAXSERV];
-	int socks[DROPBEAR_MAX_SOCKS];
+	int socks[SILLYBEAR_MAX_SOCKS];
 	int nsocks;
 	struct Listener *listener;
 	char* errstring = NULL;
@@ -116,13 +116,13 @@ int listen_tcpfwd(struct TCPListener* tcpinfo, struct Listener **ret_listener) {
 	/* first we try to bind, so don't need to do so much cleanup on failure */
 	snprintf(portstring, sizeof(portstring), "%u", tcpinfo->listenport);
 
-	nsocks = dropbear_listen(tcpinfo->listenaddr, portstring, socks, 
-			DROPBEAR_MAX_SOCKS, &errstring, &ses.maxfd, tcpinfo->interface);
+	nsocks = sillybear_listen(tcpinfo->listenaddr, portstring, socks, 
+			SILLYBEAR_MAX_SOCKS, &errstring, &ses.maxfd, tcpinfo->interface);
 	if (nsocks < 0) {
-		dropbear_log(LOG_INFO, "TCP forward failed: %s", errstring);
+		sillybear_log(LOG_INFO, "TCP forward failed: %s", errstring);
 		m_free(errstring);
-		TRACE(("leave listen_tcpfwd: dropbear_listen failed"))
-		return DROPBEAR_FAILURE;
+		TRACE(("leave listen_tcpfwd: sillybear_listen failed"))
+		return SILLYBEAR_FAILURE;
 	}
 	m_free(errstring);
 	
@@ -132,7 +132,7 @@ int listen_tcpfwd(struct TCPListener* tcpinfo, struct Listener **ret_listener) {
 
 	if (listener == NULL) {
 		TRACE(("leave listen_tcpfwd: listener failed"))
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	if (ret_listener) {
@@ -140,7 +140,7 @@ int listen_tcpfwd(struct TCPListener* tcpinfo, struct Listener **ret_listener) {
 	}
 
 	TRACE(("leave listen_tcpfwd: success"))
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 }
 
-#endif /* DROPBEAR_TCP_ACCEPT */
+#endif /* SILLYBEAR_TCP_ACCEPT */

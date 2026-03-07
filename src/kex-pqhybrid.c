@@ -8,15 +8,15 @@
 #include "curve25519.h"
 #include "kex.h"
 
-#if DROPBEAR_PQHYBRID
+#if SILLYBEAR_PQHYBRID
 
 struct kex_pqhybrid_param *gen_kexpqhybrid_param() {
     struct kex_pqhybrid_param *param = m_malloc(sizeof(*param));
-    const struct dropbear_kem_desc *kem = ses.newkeys->algo_kex->details;
+    const struct sillybear_kem_desc *kem = ses.newkeys->algo_kex->details;
 
     param->curve25519 = gen_kexcurve25519_param();
 
-    if (IS_DROPBEAR_CLIENT) {
+    if (IS_SILLYBEAR_CLIENT) {
         param->kem_cli_secret = buf_new(kem->secret_len);
         param->concat_public = buf_new(kem->public_len + CURVE25519_LEN);
         kem->kem_gen(
@@ -45,7 +45,7 @@ void free_kexpqhybrid_param(struct kex_pqhybrid_param *param) {
 void kexpqhybrid_comb_key(struct kex_pqhybrid_param *param,
     buffer *buf_pub, sign_key *hostkey) {
 
-    const struct dropbear_kem_desc *kem = ses.newkeys->algo_kex->details;
+    const struct sillybear_kem_desc *kem = ses.newkeys->algo_kex->details;
     const struct ltc_hash_descriptor *hash_desc
         = ses.newkeys->algo_kex->hash_desc;
 
@@ -59,7 +59,7 @@ void kexpqhybrid_comb_key(struct kex_pqhybrid_param *param,
     const buffer * Q_S = NULL;
 
     /* Extract input parts from the remote peer */
-    if (IS_DROPBEAR_CLIENT) {
+    if (IS_SILLYBEAR_CLIENT) {
         /* S_REPLY = S_CT2 || S_PK1 */
         remote_len = kem->ciphertext_len;
     } else {
@@ -72,14 +72,14 @@ void kexpqhybrid_comb_key(struct kex_pqhybrid_param *param,
     buf_incrpos(buf_pub, CURVE25519_LEN);
     /* Check all is consumed */
     if (buf_pub->pos != buf_pub->len) {
-        dropbear_exit("Bad sntrup");
+        sillybear_exit("Bad sntrup");
     }
 
     /* k_out = K_PQ || K_CL */
     k_out = buf_new(kem->output_len + CURVE25519_LEN);
 
     /* Derive pq kem part (K_PQ) */
-    if (IS_DROPBEAR_CLIENT) {
+    if (IS_SILLYBEAR_CLIENT) {
         kem->kem_dec(
             buf_getwriteptr(k_out, kem->output_len),
             remote_pub_kem,
@@ -117,7 +117,7 @@ void kexpqhybrid_comb_key(struct kex_pqhybrid_param *param,
     buf_incrwritepos(ses.dh_K_bytes, hash_desc->hashsize);
 
     /* Create the remainder of the hash buffer */
-    if (IS_DROPBEAR_CLIENT) {
+    if (IS_SILLYBEAR_CLIENT) {
         Q_C = param->concat_public;
         Q_S = buf_pub;
     } else {
@@ -139,4 +139,4 @@ void kexpqhybrid_comb_key(struct kex_pqhybrid_param *param,
     buf_free(pub_25519);
 }
 
-#endif /* DROPBEAR_PQHYBRID */
+#endif /* SILLYBEAR_PQHYBRID */

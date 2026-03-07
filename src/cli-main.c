@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * SSH client implementation
  * 
  * Copyright (c) 2002,2003 Matt Johnston
@@ -33,24 +33,24 @@
 #include "netio.h"
 #include "fuzz.h"
 
-#if DROPBEAR_CLI_PROXYCMD
+#if SILLYBEAR_CLI_PROXYCMD
 static void cli_proxy_cmd(int *sock_in, int *sock_out, pid_t *pid_out);
 static void kill_proxy_sighandler(int signo);
 #endif
 
-#if defined(DBMULTI_dbclient) || !DROPBEAR_MULTI
-#if defined(DBMULTI_dbclient) && DROPBEAR_MULTI
+#if defined(DBMULTI_dbclient) || !SILLYBEAR_MULTI
+#if defined(DBMULTI_dbclient) && SILLYBEAR_MULTI
 int cli_main(int argc, char ** argv) {
 #else
 int main(int argc, char ** argv) {
 #endif
 
 	int sock_in, sock_out;
-	struct dropbear_progress_connection *progress = NULL;
+	struct sillybear_progress_connection *progress = NULL;
 	pid_t proxy_cmd_pid = 0;
 
-	_dropbear_exit = cli_dropbear_exit;
-	_dropbear_log = cli_dropbear_log;
+	_sillybear_exit = cli_sillybear_exit;
+	_sillybear_log = cli_sillybear_log;
 
 	disallow_core();
 
@@ -73,12 +73,12 @@ int main(int argc, char ** argv) {
 	}
 
 	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-		dropbear_exit("signal() error");
+		sillybear_exit("signal() error");
 	}
 
-#if DROPBEAR_CLI_PROXYCMD
+#if SILLYBEAR_CLI_PROXYCMD
 	if (cli_opts.proxycmd
-#if DROPBEAR_CLI_MULTIHOP
+#if SILLYBEAR_CLI_MULTIHOP
 		|| cli_opts.proxyexec
 #endif
 	) {
@@ -86,14 +86,14 @@ int main(int argc, char ** argv) {
 		if (signal(SIGINT, kill_proxy_sighandler) == SIG_ERR ||
 			signal(SIGTERM, kill_proxy_sighandler) == SIG_ERR ||
 			signal(SIGHUP, kill_proxy_sighandler) == SIG_ERR) {
-			dropbear_exit("signal() error");
+			sillybear_exit("signal() error");
 		}
 	} else
 #endif
 	{
 		progress = connect_remote(cli_opts.remotehost, cli_opts.remoteport,
 			cli_connected, &ses, cli_opts.bind_address, cli_opts.bind_port,
-			DROPBEAR_PRIO_LOWDELAY);
+			SILLYBEAR_PRIO_LOWDELAY);
 		sock_in = sock_out = -1;
 	}
 
@@ -104,21 +104,21 @@ int main(int argc, char ** argv) {
 }
 #endif /* DBMULTI stuff */
 
-#if DROPBEAR_CLI_PROXYCMD
+#if SILLYBEAR_CLI_PROXYCMD
 static void shell_proxy_cmd(const void *user_data_cmd) {
 	const char *cmd = user_data_cmd;
 	char *usershell;
 
 	usershell = m_strdup(get_user_shell());
 	run_shell_command(cmd, ses.maxfd, usershell);
-	dropbear_exit("Failed to run '%s'\n", cmd);
+	sillybear_exit("Failed to run '%s'\n", cmd);
 }
 
-#if DROPBEAR_CLI_MULTIHOP
+#if SILLYBEAR_CLI_MULTIHOP
 static void exec_proxy_cmd(const void *unused) {
 	(void)unused;
 	run_command(cli_opts.proxyexec[0], cli_opts.proxyexec, ses.maxfd);
-	dropbear_exit("Failed to run '%s'\n", cli_opts.proxyexec[0]);
+	sillybear_exit("Failed to run '%s'\n", cli_opts.proxyexec[0]);
 }
 #endif
 
@@ -151,7 +151,7 @@ static void cli_proxy_cmd(int *sock_in, int *sock_out, pid_t *pid_out) {
 		cmd_arg = m_malloc(shell_cmdlen);
 		snprintf(cmd_arg, shell_cmdlen, "exec %s", cli_opts.proxycmd);
 		exec_fn = shell_proxy_cmd;
-#if DROPBEAR_CLI_MULTIHOP
+#if SILLYBEAR_CLI_MULTIHOP
 	} else {
 		/* No shell */
 		exec_fn = exec_proxy_cmd;
@@ -159,15 +159,15 @@ static void cli_proxy_cmd(int *sock_in, int *sock_out, pid_t *pid_out) {
 	}
 
 	ret = spawn_command(exec_fn, cmd_arg, sock_out, sock_in, NULL, pid_out);
-	if (ret == DROPBEAR_FAILURE) {
-		dropbear_exit("Failed running proxy command");
+	if (ret == SILLYBEAR_FAILURE) {
+		sillybear_exit("Failed running proxy command");
 		*sock_in = *sock_out = -1;
 	}
 
 cleanup:
 	m_free(cli_opts.proxycmd);
 	m_free(cmd_arg);
-#if DROPBEAR_CLI_MULTIHOP
+#if SILLYBEAR_CLI_MULTIHOP
 	if (cli_opts.proxyexec) {
 		char **a = NULL;
 		for (a = cli_opts.proxyexec; *a; a++) {
@@ -183,4 +183,4 @@ static void kill_proxy_sighandler(int UNUSED(signo)) {
 	_exit(1);
 }
 
-#endif /* DROPBEAR_CLI_PROXYCMD */
+#endif /* SILLYBEAR_CLI_PROXYCMD */

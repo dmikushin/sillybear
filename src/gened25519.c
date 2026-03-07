@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -28,20 +28,20 @@
 #include "curve25519.h"
 #include "gened25519.h"
 
-#if DROPBEAR_ED25519
+#if SILLYBEAR_ED25519
 
-dropbear_ed25519_key * gen_ed25519_priv_key(unsigned int size) {
+sillybear_ed25519_key * gen_ed25519_priv_key(unsigned int size) {
 
-	dropbear_ed25519_key *key;
+	sillybear_ed25519_key *key;
 
 	if (size != 256) {
-		dropbear_exit("Ed25519 keys have a fixed size of 256 bits");
+		sillybear_exit("Ed25519 keys have a fixed size of 256 bits");
 	}
 
 	key = m_malloc(sizeof(*key));
-	dropbear_ed25519_make_key(key->pub, key->priv);
+	sillybear_ed25519_make_key(key->pub, key->priv);
 
 	return key;
 }
 
-#endif /* DROPBEAR_ED25519 */
+#endif /* SILLYBEAR_ED25519 */

@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,8 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_KEX_H_
-#define DROPBEAR_KEX_H_
+#ifndef SILLYBEAR_KEX_H_
+#define SILLYBEAR_KEX_H_
 
 #include "includes.h"
 #include "algo.h"
@@ -36,32 +36,32 @@ void recv_msg_newkeys(void);
 void kexfirstinitialise(void);
 void finish_kexhashbuf(void);
 
-#if DROPBEAR_NORMAL_DH
+#if SILLYBEAR_NORMAL_DH
 struct kex_dh_param *gen_kexdh_param(void);
 void free_kexdh_param(struct kex_dh_param *param);
 void kexdh_comb_key(struct kex_dh_param *param, mp_int *dh_pub_them,
 		sign_key *hostkey);
 #endif
 
-#if DROPBEAR_ECDH
+#if SILLYBEAR_ECDH
 struct kex_ecdh_param *gen_kexecdh_param(void);
 void free_kexecdh_param(struct kex_ecdh_param *param);
 void kexecdh_comb_key(struct kex_ecdh_param *param, buffer *pub_them,
 		sign_key *hostkey);
 #endif
 
-#if DROPBEAR_CURVE25519_DEP
+#if SILLYBEAR_CURVE25519_DEP
 struct kex_curve25519_param *gen_kexcurve25519_param(void);
 void free_kexcurve25519_param(struct kex_curve25519_param *param);
 void kexcurve25519_derive(const struct kex_curve25519_param *param, const buffer *buf_pub_them,
     unsigned char *out);
 #endif
-#if DROPBEAR_CURVE25519
+#if SILLYBEAR_CURVE25519
 void kexcurve25519_comb_key(const struct kex_curve25519_param *param, const buffer *pub_them,
 		sign_key *hostkey);
 #endif
 
-#if DROPBEAR_PQHYBRID
+#if SILLYBEAR_PQHYBRID
 struct kex_pqhybrid_param *gen_kexpqhybrid_param(void);
 void free_kexpqhybrid_param(struct kex_pqhybrid_param *param);
 void kexpqhybrid_comb_key(struct kex_pqhybrid_param *param,
@@ -105,20 +105,20 @@ struct KEXState {
 
 };
 
-#if DROPBEAR_NORMAL_DH
+#if SILLYBEAR_NORMAL_DH
 struct kex_dh_param {
 	mp_int pub; /* e */
 	mp_int priv; /* x */
 };
 #endif
 
-#if DROPBEAR_ECDH
+#if SILLYBEAR_ECDH
 struct kex_ecdh_param {
 	ecc_key key;
 };
 #endif
 
-#if DROPBEAR_CURVE25519_DEP
+#if SILLYBEAR_CURVE25519_DEP
 #define CURVE25519_LEN 32
 struct kex_curve25519_param {
 	unsigned char priv[CURVE25519_LEN];
@@ -126,7 +126,7 @@ struct kex_curve25519_param {
 };
 #endif
 
-#if DROPBEAR_PQHYBRID
+#if SILLYBEAR_PQHYBRID
 struct kex_pqhybrid_param {
 	struct kex_curve25519_param *curve25519;
 
@@ -142,4 +142,4 @@ struct kex_pqhybrid_param {
 };
 #endif
 
-#endif /* DROPBEAR_KEX_H_ */
+#endif /* SILLYBEAR_KEX_H_ */

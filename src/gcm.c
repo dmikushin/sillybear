@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * Copyright (c) 2020 by Vladislav Grishenko
@@ -28,37 +28,37 @@
 #include "dbutil.h"
 #include "gcm.h"
 
-#if DROPBEAR_ENABLE_GCM_MODE
+#if SILLYBEAR_ENABLE_GCM_MODE
 
 #define GHASH_LEN 16
 
-static const struct dropbear_hash dropbear_ghash =
+static const struct sillybear_hash sillybear_ghash =
 	{NULL, 0, GHASH_LEN};
 
-static int dropbear_gcm_start(int cipher, const unsigned char *IV,
+static int sillybear_gcm_start(int cipher, const unsigned char *IV,
 			const unsigned char *key, int keylen,
-			int UNUSED(num_rounds), dropbear_gcm_state *state) {
+			int UNUSED(num_rounds), sillybear_gcm_state *state) {
 	int err;
 
-	TRACE2(("enter dropbear_gcm_start"))
+	TRACE2(("enter sillybear_gcm_start"))
 
 	if ((err = gcm_init(&state->gcm, cipher, key, keylen)) != CRYPT_OK) {
 		return err;
 	}
 	memcpy(state->iv, IV, GCM_NONCE_LEN);
 
-	TRACE2(("leave dropbear_gcm_start"))
+	TRACE2(("leave sillybear_gcm_start"))
 	return CRYPT_OK;
 }
 
-static int dropbear_gcm_crypt(unsigned int UNUSED(seq),
+static int sillybear_gcm_crypt(unsigned int UNUSED(seq),
 			const unsigned char *in, unsigned char *out,
 			unsigned long len, unsigned long taglen,
-			dropbear_gcm_state *state, int direction) {
+			sillybear_gcm_state *state, int direction) {
 	unsigned char *iv, tag[GHASH_LEN];
 	int i, err;
 
-	TRACE2(("enter dropbear_gcm_crypt"))
+	TRACE2(("enter sillybear_gcm_crypt"))
 
 	if (len < 4 || taglen != GHASH_LEN) {
 		return CRYPT_ERROR;
@@ -93,14 +93,14 @@ static int dropbear_gcm_crypt(unsigned int UNUSED(seq),
 	iv = state->iv + GCM_IVFIX_LEN;
 	for (i = GCM_IVCTR_LEN - 1; i >= 0 && ++iv[i] == 0; i--);
 
-	TRACE2(("leave dropbear_gcm_crypt"))
+	TRACE2(("leave sillybear_gcm_crypt"))
 	return CRYPT_OK;
 }
 
-static int dropbear_gcm_getlength(unsigned int UNUSED(seq),
+static int sillybear_gcm_getlength(unsigned int UNUSED(seq),
 			const unsigned char *in, unsigned int *outlen,
-			unsigned long len, dropbear_gcm_state* UNUSED(state)) {
-	TRACE2(("enter dropbear_gcm_getlength"))
+			unsigned long len, sillybear_gcm_state* UNUSED(state)) {
+	TRACE2(("enter sillybear_gcm_getlength"))
 
 	if (len < 4) {
 		return CRYPT_ERROR;
@@ -108,13 +108,13 @@ static int dropbear_gcm_getlength(unsigned int UNUSED(seq),
 
 	LOAD32H(*outlen, in);
 
-	TRACE2(("leave dropbear_gcm_getlength"))
+	TRACE2(("leave sillybear_gcm_getlength"))
 	return CRYPT_OK;
 }
 
-const struct dropbear_cipher_mode dropbear_mode_gcm =
-	{(void *)dropbear_gcm_start, NULL, NULL,
-	 (void *)dropbear_gcm_crypt,
-	 (void *)dropbear_gcm_getlength, &dropbear_ghash};
+const struct sillybear_cipher_mode sillybear_mode_gcm =
+	{(void *)sillybear_gcm_start, NULL, NULL,
+	 (void *)sillybear_gcm_crypt,
+	 (void *)sillybear_gcm_getlength, &sillybear_ghash};
 
-#endif /* DROPBEAR_ENABLE_GCM_MODE */
+#endif /* SILLYBEAR_ENABLE_GCM_MODE */

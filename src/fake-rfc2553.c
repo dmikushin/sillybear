@@ -1,4 +1,4 @@
-/* Taken for Dropbear from OpenSSH 5.5p1 */
+/* Taken for Sillybear from OpenSSH 5.5p1 */
 
 /*
  * Copyright (C) 2000-2003 Damien Miller.  All rights reserved.

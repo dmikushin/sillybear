@@ -8,9 +8,9 @@
 #include "signkey.h"
 #include "dbrandom.h"
 
-/* Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+/* Returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 static int buf_writefile(buffer * buf, const char * filename, int skip_exist) {
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 	int fd = -1;
 
 	fd = open(filename, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
@@ -18,9 +18,9 @@ static int buf_writefile(buffer * buf, const char * filename, int skip_exist) {
 		/* If generating keys on connection (skip_exist) it's OK to get EEXIST
 		- we probably just lost a race with another connection to generate the key */
 		if (skip_exist && errno == EEXIST) {
-			ret = DROPBEAR_SUCCESS;
+			ret = SILLYBEAR_SUCCESS;
 		} else {
-			dropbear_log(LOG_ERR, "Couldn't create new file %s: %s",
+			sillybear_log(LOG_ERR, "Couldn't create new file %s: %s",
 				filename, strerror(errno));
 		}
 
@@ -35,19 +35,19 @@ static int buf_writefile(buffer * buf, const char * filename, int skip_exist) {
 			continue;
 		}
 		if (len <= 0) {
-			dropbear_log(LOG_ERR, "Failed writing file %s: %s",
+			sillybear_log(LOG_ERR, "Failed writing file %s: %s",
 				filename, strerror(errno));
 			goto out;
 		}
 		buf_incrpos(buf, len);
 	}
 
-	ret = DROPBEAR_SUCCESS;
+	ret = SILLYBEAR_SUCCESS;
 
 out:
 	if (fd >= 0) {
 		if (fsync(fd) != 0) {
-			dropbear_log(LOG_ERR, "fsync of %s failed: %s", filename, strerror(errno));
+			sillybear_log(LOG_ERR, "fsync of %s failed: %s", filename, strerror(errno));
 		}
 		m_close(fd);
 	}
@@ -58,27 +58,27 @@ out:
 static int get_default_bits(enum signkey_type keytype)
 {
 	switch (keytype) {
-#if DROPBEAR_RSA
-		case DROPBEAR_SIGNKEY_RSA:
-			return DROPBEAR_DEFAULT_RSA_SIZE;
+#if SILLYBEAR_RSA
+		case SILLYBEAR_SIGNKEY_RSA:
+			return SILLYBEAR_DEFAULT_RSA_SIZE;
 #endif
-#if DROPBEAR_DSS
-		case DROPBEAR_SIGNKEY_DSS:
+#if SILLYBEAR_DSS
+		case SILLYBEAR_SIGNKEY_DSS:
 			/* DSS for SSH only defines 1024 bits */
 			return 1024;
 #endif
-#if DROPBEAR_ECDSA
-		case DROPBEAR_SIGNKEY_ECDSA_KEYGEN:
+#if SILLYBEAR_ECDSA
+		case SILLYBEAR_SIGNKEY_ECDSA_KEYGEN:
 			return ECDSA_DEFAULT_SIZE;
-		case DROPBEAR_SIGNKEY_ECDSA_NISTP521:
+		case SILLYBEAR_SIGNKEY_ECDSA_NISTP521:
 			return 521;
-		case DROPBEAR_SIGNKEY_ECDSA_NISTP384:
+		case SILLYBEAR_SIGNKEY_ECDSA_NISTP384:
 			return 384;
-		case DROPBEAR_SIGNKEY_ECDSA_NISTP256:
+		case SILLYBEAR_SIGNKEY_ECDSA_NISTP256:
 			return 256;
 #endif
-#if DROPBEAR_ED25519
-		case DROPBEAR_SIGNKEY_ED25519:
+#if SILLYBEAR_ED25519
+		case SILLYBEAR_SIGNKEY_ED25519:
 			return 256;
 #endif
 		default:
@@ -100,7 +100,7 @@ int signkey_generate(enum signkey_type keytype, int bits, const char* filename, 
 	sign_key * key = NULL;
 	buffer *buf = NULL;
 	char *fn_temp = NULL;
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 	bits = signkey_generate_get_bits(keytype, bits);
 
 	/* now we can generate the key */
@@ -109,21 +109,21 @@ int signkey_generate(enum signkey_type keytype, int bits, const char* filename, 
 	seedrandom();
 
 	switch(keytype) {
-#if DROPBEAR_RSA
-		case DROPBEAR_SIGNKEY_RSA:
+#if SILLYBEAR_RSA
+		case SILLYBEAR_SIGNKEY_RSA:
 			key->rsakey = gen_rsa_priv_key(bits);
 			break;
 #endif
-#if DROPBEAR_DSS
-		case DROPBEAR_SIGNKEY_DSS:
+#if SILLYBEAR_DSS
+		case SILLYBEAR_SIGNKEY_DSS:
 			key->dsskey = gen_dss_priv_key(bits);
 			break;
 #endif
-#if DROPBEAR_ECDSA
-		case DROPBEAR_SIGNKEY_ECDSA_KEYGEN:
-		case DROPBEAR_SIGNKEY_ECDSA_NISTP521:
-		case DROPBEAR_SIGNKEY_ECDSA_NISTP384:
-		case DROPBEAR_SIGNKEY_ECDSA_NISTP256:
+#if SILLYBEAR_ECDSA
+		case SILLYBEAR_SIGNKEY_ECDSA_KEYGEN:
+		case SILLYBEAR_SIGNKEY_ECDSA_NISTP521:
+		case SILLYBEAR_SIGNKEY_ECDSA_NISTP384:
+		case SILLYBEAR_SIGNKEY_ECDSA_NISTP256:
 			{
 				ecc_key *ecckey = gen_ecdsa_priv_key(bits);
 				keytype = ecdsa_signkey_type(ecckey);
@@ -131,13 +131,13 @@ int signkey_generate(enum signkey_type keytype, int bits, const char* filename, 
 			}
 			break;
 #endif
-#if DROPBEAR_ED25519
-		case DROPBEAR_SIGNKEY_ED25519:
+#if SILLYBEAR_ED25519
+		case SILLYBEAR_SIGNKEY_ED25519:
 			key->ed25519key = gen_ed25519_priv_key(bits);
 			break;
 #endif
 		default:
-			dropbear_exit("Internal error");
+			sillybear_exit("Internal error");
 	}
 
 	seedrandom();
@@ -153,7 +153,7 @@ int signkey_generate(enum signkey_type keytype, int bits, const char* filename, 
 	snprintf(fn_temp, strlen(filename)+30, "%s.tmp%d", filename, getpid());
 	ret = buf_writefile(buf, fn_temp, 0);
 
-	if (ret == DROPBEAR_FAILURE) {
+	if (ret == SILLYBEAR_FAILURE) {
 		goto out;
 	}
 
@@ -166,9 +166,9 @@ int signkey_generate(enum signkey_type keytype, int bits, const char* filename, 
 				buf_setpos(buf, 0);
 				ret = buf_writefile(buf, filename, skip_exist);
 			} else {
-				dropbear_log(LOG_ERR, "Failed moving key file to %s: %s", filename,
+				sillybear_log(LOG_ERR, "Failed moving key file to %s: %s", filename,
 					strerror(errno));
-				ret = DROPBEAR_FAILURE;
+				ret = SILLYBEAR_FAILURE;
 			}
 
 			goto out;

@@ -1,31 +1,31 @@
-from test_dropbear import *
+from test_sillybear import *
 import signal
 import queue
 import socket
 
 # Tests for various edge cases of SSH channels and connection service
 
-def test_exitcode(request, dropbear):
+def test_exitcode(request, sillybear):
 	r = dbclient(request, "exit 44")
 	assert r.returncode == 44
 
 @pytest.mark.xfail(reason="Not yet implemented", strict=True)
-def test_signal(request, dropbear):
+def test_signal(request, sillybear):
 	r = dbclient(request, "kill -FPE $$")
 	assert r.returncode == -signal.SIGFPE
 
 @pytest.mark.parametrize("size", [0, 1, 2, 100, 5000, 200_000])
-def test_roundtrip(request, dropbear, size):
+def test_roundtrip(request, sillybear, size):
 	dat = os.urandom(size)
 	r = dbclient(request, "cat", input=dat, capture_output=True)
 	r.check_returncode()
 	assert r.stdout == dat
 
 @pytest.mark.parametrize("size", [0, 1, 2, 100, 20001, 41234])
-def test_read_pty(request, dropbear, size):
+def test_read_pty(request, sillybear, size):
 	# testcase for
 	# https://bugs.openwrt.org/index.php?do=details&task_id=1814
-	# https://github.com/mkj/dropbear/pull/85
+	# https://github.com/mkj/sillybear/pull/85
 	# From Yousong Zhou
 	# Fixed Oct 2021
 	#
@@ -46,8 +46,8 @@ def test_read_pty(request, dropbear, size):
 	assert r.stdout.decode() == dat
 
 @pytest.mark.parametrize("fd", [1, 2])
-def test_bg_sleep(request, fd, dropbear):
-	# https://lists.ucc.asn.au/pipermail/dropbear/2006q1/000362.html
+def test_bg_sleep(request, fd, sillybear):
+	# https://lists.ucc.asn.au/pipermail/sillybear/2006q1/000362.html
 	# Rob Landley "Is this a bug?" 24 Mar 2006
 	# dbclient user@system "sleep 10& echo hello"
 	#
@@ -68,7 +68,7 @@ def test_bg_sleep(request, fd, dropbear):
 		assert st.rstrip() == "hello"
 
 
-def test_idle(request, dropbear):
+def test_idle(request, sillybear):
 	# Idle test, -I 1 should make it return before the 5 second timeout
 	r = dbclient(request, "-I", "1", "echo zong; sleep 10",
 		capture_output=True, timeout=5, text=True)
@@ -76,7 +76,7 @@ def test_idle(request, dropbear):
 	assert r.stdout.rstrip() == "zong"
 
 @pytest.mark.parametrize("size", [1, 4000, 40000])
-def test_netcat(request, dropbear, size):
+def test_netcat(request, sillybear, size):
 	opt = request.config.option
 	if opt.remote:
 		pytest.xfail("don't know netcat address for remote")
@@ -91,7 +91,7 @@ def test_netcat(request, dropbear, size):
 
 @pytest.mark.parametrize("size", [1, 4000, 40000])
 @pytest.mark.parametrize("fwd_flag", "LR")
-def test_tcpflushout(request, dropbear, size, fwd_flag):
+def test_tcpflushout(request, sillybear, size, fwd_flag):
 	""" Tests that an opened TCP connection prevent a SSH session from being closed
 	until that TCP connection has finished transferring
 	"""

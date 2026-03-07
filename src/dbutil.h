@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,9 +22,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_DBUTIL_H_
+#ifndef SILLYBEAR_DBUTIL_H_
 
-#define DROPBEAR_DBUTIL_H_
+#define SILLYBEAR_DBUTIL_H_
 
 #include "includes.h"
 #include "buffer.h"
@@ -36,22 +36,22 @@
 void startsyslog(const char *ident);
 #endif
 
-extern void (*_dropbear_exit)(int exitcode, const char* format, va_list param) ATTRIB_NORETURN;
-extern void (*_dropbear_log)(int priority, const char* format, va_list param);
+extern void (*_sillybear_exit)(int exitcode, const char* format, va_list param) ATTRIB_NORETURN;
+extern void (*_sillybear_log)(int priority, const char* format, va_list param);
 
-void dropbear_exit(const char* format, ...) ATTRIB_PRINTF(1,2) ATTRIB_NORETURN;
+void sillybear_exit(const char* format, ...) ATTRIB_PRINTF(1,2) ATTRIB_NORETURN;
 
-void dropbear_close(const char* format, ...) ATTRIB_PRINTF(1,2) ;
-void dropbear_log(int priority, const char* format, ...) ATTRIB_PRINTF(2,3) ;
+void sillybear_close(const char* format, ...) ATTRIB_PRINTF(1,2) ;
+void sillybear_log(int priority, const char* format, ...) ATTRIB_PRINTF(2,3) ;
 
 void fail_assert(const char* expr, const char* file, int line) ATTRIB_NORETURN;
 
 #if DEBUG_TRACE
-void dropbear_trace1(const char* format, ...) ATTRIB_PRINTF(1,2);
-void dropbear_trace2(const char* format, ...) ATTRIB_PRINTF(1,2);
-void dropbear_trace3(const char* format, ...) ATTRIB_PRINTF(1,2);
-void dropbear_trace4(const char* format, ...) ATTRIB_PRINTF(1,2);
-void dropbear_trace5(const char* format, ...) ATTRIB_PRINTF(1,2);
+void sillybear_trace1(const char* format, ...) ATTRIB_PRINTF(1,2);
+void sillybear_trace2(const char* format, ...) ATTRIB_PRINTF(1,2);
+void sillybear_trace3(const char* format, ...) ATTRIB_PRINTF(1,2);
+void sillybear_trace4(const char* format, ...) ATTRIB_PRINTF(1,2);
+void sillybear_trace5(const char* format, ...) ATTRIB_PRINTF(1,2);
 void printhex(const char * label, const unsigned char * buf, int len);
 void printmpint(const char *label, const mp_int *mp);
 void debug_start_net(void);
@@ -80,8 +80,8 @@ int m_snprintf(char *str, size_t size, const char *format, ...);
 /* Used to force mp_ints to be initialised */
 #define DEF_MP_INT(X) mp_int X = {0, 0, 0, NULL}
 
-/* Dropbear assertion */
-#define dropbear_assert(X) do { if (!(X)) { fail_assert(#X, __FILE__, __LINE__); } } while (0)
+/* Sillybear assertion */
+#define sillybear_assert(X) do { if (!(X)) { fail_assert(#X, __FILE__, __LINE__); } } while (0)
 
 /* Returns 0 if a and b have the same contents */
 int constant_time_memcmp(const void* a, const void *b, size_t n);
@@ -99,21 +99,21 @@ void fsync_parent_dir(const char* fn);
 
 int fd_read_pending(int fd);
 
-#if DROPBEAR_MSAN
+#if SILLYBEAR_MSAN
 /* FD_ZERO seems to leave some memory uninitialized. clear it to avoid false positives */
-#define DROPBEAR_FD_ZERO(fds) do { memset((fds), 0x0, sizeof(fd_set)); FD_ZERO(fds); } while(0)
+#define SILLYBEAR_FD_ZERO(fds) do { memset((fds), 0x0, sizeof(fd_set)); FD_ZERO(fds); } while(0)
 #else
-#define DROPBEAR_FD_ZERO(fds) FD_ZERO(fds)
+#define SILLYBEAR_FD_ZERO(fds) FD_ZERO(fds)
 #endif
 
-/* dropbearmulti entry points */
-int dropbear_main(int argc, char ** argv, const char * multipath);
+/* sillybearmulti entry points */
+int sillybear_main(int argc, char ** argv, const char * multipath);
 int cli_main(int argc, char ** argv);
-int dropbearkey_main(int argc, char ** argv);
-int dropbearconvert_main(int argc, char ** argv);
+int sillybearkey_main(int argc, char ** argv);
+int sillybearconvert_main(int argc, char ** argv);
 int scp_main(int argc, char ** argv);
 
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof(x[0]))
 
 
-#endif /* DROPBEAR_DBUTIL_H_ */
+#endif /* SILLYBEAR_DBUTIL_H_ */

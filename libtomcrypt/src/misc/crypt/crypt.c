@@ -15,7 +15,7 @@
 #define NAME_VALUE(s) #s"="NAME(s)
 #define NAME(s) #s
 
-#if 0 /* Dropbear */
+#if 0 /* Sillybear */
 const char *crypt_build_settings =
    "LibTomCrypt " SCRYPT " (www.libtom.net)\n"
    "LibTomCrypt is public domain software.\n"
@@ -490,7 +490,7 @@ const char *crypt_build_settings =
 #endif
     "\n"
     ;
-#endif /* Dropbear */
+#endif /* Sillybear */
 
 
 /* ref:         $Format:%D$ */

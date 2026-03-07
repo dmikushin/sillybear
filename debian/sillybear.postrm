@@ -1,0 +1,12 @@
+#! /bin/sh
+set -e
+
+test "$1" = 'purge' || exit 0
+if test -e /etc/sillybear; then
+  rm -f /etc/sillybear/sillybear_rsa_host_key
+  rm -f /etc/sillybear/sillybear_dss_host_key
+  rmdir --ignore-fail-on-non-empty /etc/sillybear
+fi
+update-rc.d sillybear remove >/dev/null
+rm -f /etc/default/sillybear
+rm -rf /etc/sillybear/supervise /etc/sillybear/log/supervise

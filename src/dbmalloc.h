@@ -10,7 +10,7 @@ void * m_calloc(size_t nmemb, size_t size);
 void * m_strdup(const char * str);
 void * m_realloc(void* ptr, size_t size);
 
-#if DROPBEAR_TRACKING_MALLOC
+#if SILLYBEAR_TRACKING_MALLOC
 void m_free_direct(void* ptr);
 void m_malloc_set_epoch(unsigned int epoch);
 void m_malloc_free_epoch(unsigned int epoch, int dofree);

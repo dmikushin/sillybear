@@ -5,12 +5,12 @@
 #include "ecc.h"
 #include "dbrandom.h"
 
-#if DROPBEAR_LTC_PRNG
-	int dropbear_ltc_prng = -1;
+#if SILLYBEAR_LTC_PRNG
+	int sillybear_ltc_prng = -1;
 #endif
 
 /* Wrapper for libtommath */
-static mp_err dropbear_rand_source(void* out, size_t size) {
+static mp_err sillybear_rand_source(void* out, size_t size) {
 	genrandom((unsigned char*)out, (unsigned int)size);
 	return MP_OKAY;
 }
@@ -21,26 +21,26 @@ static mp_err dropbear_rand_source(void* out, size_t size) {
 void crypto_init() {
 
 	const struct ltc_cipher_descriptor *regciphers[] = {
-#if DROPBEAR_AES
+#if SILLYBEAR_AES
 		&aes_desc,
 #endif
-#if DROPBEAR_3DES
+#if SILLYBEAR_3DES
 		&des3_desc,
 #endif
 		NULL
 	};
 
 	const struct ltc_hash_descriptor *reghashes[] = {
-#if DROPBEAR_SHA1_HMAC
+#if SILLYBEAR_SHA1_HMAC
 		&sha1_desc,
 #endif
-#if DROPBEAR_SHA256
+#if SILLYBEAR_SHA256
 		&sha256_desc,
 #endif
-#if DROPBEAR_SHA384
+#if SILLYBEAR_SHA384
 		&sha384_desc,
 #endif
-#if DROPBEAR_SHA512
+#if SILLYBEAR_SHA512
 		&sha512_desc,
 #endif
 		NULL
@@ -49,28 +49,28 @@ void crypto_init() {
 
 	for (i = 0; regciphers[i] != NULL; i++) {
 		if (register_cipher(regciphers[i]) == -1) {
-			dropbear_exit("Error registering crypto");
+			sillybear_exit("Error registering crypto");
 		}
 	}
 
 	for (i = 0; reghashes[i] != NULL; i++) {
 		if (register_hash(reghashes[i]) == -1) {
-			dropbear_exit("Error registering crypto");
+			sillybear_exit("Error registering crypto");
 		}
 	}
 
-#if DROPBEAR_LTC_PRNG
-	dropbear_ltc_prng = register_prng(&dropbear_prng_desc);
-	if (dropbear_ltc_prng == -1) {
-		dropbear_exit("Error registering crypto");
+#if SILLYBEAR_LTC_PRNG
+	sillybear_ltc_prng = register_prng(&sillybear_prng_desc);
+	if (sillybear_ltc_prng == -1) {
+		sillybear_exit("Error registering crypto");
 	}
 #endif
 
-	mp_rand_source(dropbear_rand_source);
+	mp_rand_source(sillybear_rand_source);
 
-#if DROPBEAR_ECC
+#if SILLYBEAR_ECC
 	ltc_mp = ltm_desc;
-	dropbear_ecc_fill_dp();
+	sillybear_ecc_fill_dp();
 #endif
 }
 

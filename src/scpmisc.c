@@ -1,4 +1,4 @@
-/* Dropbear Note: This file is based on OpenSSH 4.3p2. Avoid unnecessary 
+/* Sillybear Note: This file is based on OpenSSH 4.3p2. Avoid unnecessary 
    changes to simplify future updates */
 
 /*
@@ -235,7 +235,7 @@ sanitise_stdfd(void)
 {
 	int nullfd, dupfd;
 
-	if ((nullfd = dupfd = open(DROPBEAR_PATH_DEVNULL, O_RDWR)) == -1) {
+	if ((nullfd = dupfd = open(SILLYBEAR_PATH_DEVNULL, O_RDWR)) == -1) {
 		fprintf(stderr, "Couldn't open /dev/null: %s", strerror(errno));
 		exit(1);
 	}

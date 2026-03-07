@@ -19,7 +19,7 @@ dbclient \- lightweight SSH client
 
 .SH DESCRIPTION
 .B dbclient
-is the client part of Dropbear SSH
+is the client part of Sillybear SSH
 .SH OPTIONS
 .TP
 .B command
@@ -38,8 +38,8 @@ Default is 22.
 Identity file.
 Read the identity key from file
 .I idfile
-(multiple allowed). This file is created with dropbearkey(1) or converted
-from OpenSSH with dropbearconvert(1). The default path ~/.ssh/id_dropbear is used
+(multiple allowed). This file is created with sillybearkey(1) or converted
+from OpenSSH with sillybearconvert(1). The default path ~/.ssh/id_sillybear is used
 .TP
 .B \-L\fR [\fIlistenaddress\fR]:\fIlistenport\fR:\fIhost\fR:\fIport\fR
 Local port forwarding.
@@ -99,7 +99,7 @@ Beware that a forwarded agent connection will allow the remote server to have
 the same authentication credentials as you have used locally. A compromised
 remote server could use that to log in to other servers. 
 
-In many situations Dropbear's multi-hop mode is a better and more secure alternative
+In many situations Sillybear's multi-hop mode is a better and more secure alternative
 to agent forwarding, avoiding having to trust the intermediate server.
 
 If the SSH agent program is set to prompt when a key is used, the 
@@ -122,7 +122,7 @@ if 0 disables keepalives. If no response is received for 3 consecutive keepalive
 Disconnect the session if no traffic is transmitted or received for \fIidle_timeout\fR seconds.
 .TP
 .B \-z
-By default Dropbear will send network traffic with the \fBAF21\fR setting for QoS, letting network devices give it higher priority. Some devices may have problems with that, \fI-z\fR can be used to disable it.
+By default Sillybear will send network traffic with the \fBAF21\fR setting for QoS, letting network devices give it higher priority. Some devices may have problems with that, \fI-z\fR can be used to disable it.
 .TP
 
 .\" TODO: how to avoid a line break between these two -J arguments?
@@ -142,7 +142,7 @@ socat EXEC:'dbclient -J &38 ev',fdin=38,fdout=38 TCP4:host.example.com:22
 
 .TP
 .B \-B \fIendhost:endport
-"Netcat-alike" mode, where Dropbear will connect to the given host, then create a
+"Netcat-alike" mode, where Sillybear will connect to the given host, then create a
 forwarded connection to \fIendhost\fR. This will then be presented as dbclient's
 standard input/output.
 .TP
@@ -187,7 +187,7 @@ Allow to remote host to connect to local forwarded ports. The argument must be "
 Specify an authentication identity file path.
 .TP
 .B PasswordAuthentication
-Allow to prompt a user for a password. If the DROPBEAR_PASSWORD env is specified then it still will be used. The argument must be "yes" (the default) or "no".
+Allow to prompt a user for a password. If the SILLYBEAR_PASSWORD env is specified then it still will be used. The argument must be "yes" (the default) or "no".
 .TP
 .B Port
 Specify a listening port, like the \fI-p\fR argument.
@@ -215,7 +215,7 @@ Send dbclient log messages to syslog in addition to stderr.
 .RE
 .TP
 .B \-s 
-The specified command will be requested as a subsystem, used for sftp. Dropbear doesn't implement sftp itself but the OpenSSH sftp client can be used eg \fIsftp -S dbclient user@host\fR
+The specified command will be requested as a subsystem, used for sftp. Sillybear doesn't implement sftp itself but the OpenSSH sftp client can be used eg \fIsftp -S dbclient user@host\fR
 .TP
 .B \-b \fI[address][:port]
 Bind to a specific local address when connecting to the remote host. This can be used to choose from
@@ -225,7 +225,7 @@ multiple outgoing interfaces. Either address or port (or both) can be given.
 Print the version
 
 .SH MULTI-HOP
-Dropbear will also allow multiple "hops" to be specified, separated by commas. In
+Sillybear will also allow multiple "hops" to be specified, separated by commas. In
 this case a connection will be made to the first host, then a TCP forwarded 
 connection will be made through that to the second host, and so on. Hosts other than
 the final destination will not see anything other than the encrypted SSH stream. 
@@ -248,9 +248,9 @@ applies when a PTY is used.
 
 .SH ENVIRONMENT
 .TP
-.B DROPBEAR_PASSWORD
+.B SILLYBEAR_PASSWORD
 A password to use for remote authentication can be specified in the environment
-variable DROPBEAR_PASSWORD. Care should be taken that the password is not
+variable SILLYBEAR_PASSWORD. Care should be taken that the password is not
 exposed to other users on a multi-user system, or stored in accessible files.
 .TP
 .B SSH_ASKPASS
@@ -261,7 +261,7 @@ standard input is not a TTY, or the environment variable SSH_ASKPASS_ALWAYS is
 set.
 
 .SH FILES
-.B ~/.ssh/dropbear_config
+.B ~/.ssh/sillybear_config
 
 This is the per user configuration file. A very limited subset of the keywords for
 ssh_config(5) is supported, and none of the advanced features. The file contains
@@ -297,7 +297,7 @@ Specifies the user name to login in as.
 .B
 IdentityFile
 Specifies the file with the private key used for public key authentication with the remote
-host. The file must be in the Dropbear format. See dropbearkey(1) to generate one. A '~/' at
+host. The file must be in the Sillybear format. See sillybearkey(1) to generate one. A '~/' at
 the start of the path will expanded to the executing user's home directory. A path that
 does not start with '/' will be treated relative to this configuration file's directory. Otherwise
 the path will be used as is.
@@ -312,10 +312,10 @@ always use compression.
 .SH AUTHOR
 Matt Johnston (matt@ucc.asn.au).
 .br
-Mihnea Stoenescu wrote initial Dropbear client support
+Mihnea Stoenescu wrote initial Sillybear client support
 .br
 Gerrit Pape (pape@smarden.org) wrote this manual page.
 .SH SEE ALSO
-dropbear(8), dropbearkey(1)
+sillybear(8), sillybearkey(1)
 .P
-https://matt.ucc.asn.au/dropbear/dropbear.html
+https://matt.ucc.asn.au/sillybear/sillybear.html

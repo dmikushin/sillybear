@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  *
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -66,7 +66,7 @@
 #include "algo.h"
 #include "runopts.h"
 
-#if DROPBEAR_SVR_PUBKEY_AUTH
+#if SILLYBEAR_SVR_PUBKEY_AUTH
 
 #define MIN_AUTHKEYS_LINE 10 /* "ssh-rsa AB" - short but doesn't matter */
 #define MAX_AUTHKEYS_LINE 4200 /* max length of a line in authkeys */
@@ -118,7 +118,7 @@ void svr_auth_pubkey(int valid_user) {
 	}
 
 	sigtype = signature_type_from_name(sigalgo, sigalgolen);
-	if (sigtype == DROPBEAR_SIGNATURE_NONE) {
+	if (sigtype == SILLYBEAR_SIGNATURE_NONE) {
 		send_msg_userauth_failure(0, 0);
 		goto out;
 	}
@@ -126,7 +126,7 @@ void svr_auth_pubkey(int valid_user) {
 	keytype = signkey_type_from_signature(sigtype);
 	keyalgo = signkey_name_from_type(keytype, &keyalgolen);
 
-#if DROPBEAR_PLUGIN
+#if SILLYBEAR_PLUGIN
     if (svr_ses.plugin_instance != NULL) {
         char *options_buf;
         if (svr_ses.plugin_instance->checkpubkey(
@@ -136,7 +136,7 @@ void svr_auth_pubkey(int valid_user) {
                     keyalgolen,
                     keyblob,
                     keybloblen,
-                    ses.authstate.username) == DROPBEAR_SUCCESS) {
+                    ses.authstate.username) == SILLYBEAR_SUCCESS) {
             /* Success */
             auth_failure = 0;
 
@@ -150,7 +150,7 @@ void svr_auth_pubkey(int valid_user) {
                     .size = 0
                 };
                 int ret = svr_add_pubkey_options(&temp_buf, 0, "N/A");
-                if (ret == DROPBEAR_FAILURE) {
+                if (ret == SILLYBEAR_FAILURE) {
                     /* Fail immediately as the plugin provided wrong options */
                     send_msg_userauth_failure(0, 0);
                     goto out;
@@ -161,7 +161,7 @@ void svr_auth_pubkey(int valid_user) {
 #endif
 	/* check if the key is valid */
 	if (auth_failure) {
-	    auth_failure = checkpubkey(keyalgo, keyalgolen, keyblob, keybloblen) == DROPBEAR_FAILURE;
+	    auth_failure = checkpubkey(keyalgo, keyalgolen, keyblob, keybloblen) == SILLYBEAR_FAILURE;
 	}
 
 	if (auth_failure) {
@@ -188,21 +188,21 @@ void svr_auth_pubkey(int valid_user) {
 
 	/* get the key */
 	key = new_sign_key();
-	if (buf_get_pub_key(ses.payload, key, &keytype) == DROPBEAR_FAILURE) {
+	if (buf_get_pub_key(ses.payload, key, &keytype) == SILLYBEAR_FAILURE) {
 		send_msg_userauth_failure(0, 1);
 		goto out;
 	}
 
-#if DROPBEAR_SK_ECDSA || DROPBEAR_SK_ED25519
+#if SILLYBEAR_SK_ECDSA || SILLYBEAR_SK_ED25519
 	key->sk_flags_mask = SSH_SK_USER_PRESENCE_REQD;
-#if DROPBEAR_SVR_PUBKEY_OPTIONS_BUILT
+#if SILLYBEAR_SVR_PUBKEY_OPTIONS_BUILT
 	if (ses.authstate.pubkey_options && ses.authstate.pubkey_options->no_touch_required_flag) {
 		key->sk_flags_mask &= ~SSH_SK_USER_PRESENCE_REQD;
 	}
 	if (ses.authstate.pubkey_options && ses.authstate.pubkey_options->verify_required_flag) {
 		key->sk_flags_mask |= SSH_SK_USER_VERIFICATION_REQD;
 	}
-#endif /* DROPBEAR_SVR_PUBKEY_OPTIONS */
+#endif /* SILLYBEAR_SVR_PUBKEY_OPTIONS */
 #endif
 
 	/* create the data which has been signed - this a string containing
@@ -223,10 +223,10 @@ void svr_auth_pubkey(int valid_user) {
 
 	/* ... and finally verify the signature */
 	fp = sign_key_fingerprint(keyblob, keybloblen);
-	if (buf_verify(ses.payload, key, sigtype, signbuf) == DROPBEAR_SUCCESS) {
+	if (buf_verify(ses.payload, key, sigtype, signbuf) == SILLYBEAR_SUCCESS) {
 		if (svr_opts.multiauthmethod && (ses.authstate.authtypes & ~AUTH_TYPE_PUBKEY)) {
 			/* successful pubkey authentication, but extra auth required */
-			dropbear_log(LOG_NOTICE,
+			sillybear_log(LOG_NOTICE,
 					"Pubkey auth succeeded for '%s' with %s key %s from %s, extra auth required",
 					ses.authstate.pw_name,
 					signkey_name_from_type(keytype, NULL), fp,
@@ -235,21 +235,21 @@ void svr_auth_pubkey(int valid_user) {
 			send_msg_userauth_failure(1, 0); /* Send partial success */
 		} else {
 			/* successful authentication */
-			dropbear_log(LOG_NOTICE,
+			sillybear_log(LOG_NOTICE,
 					"Pubkey auth succeeded for '%s' with %s key %s from %s",
 					ses.authstate.pw_name,
 					signkey_name_from_type(keytype, NULL), fp,
 					svr_ses.addrstring);
 			send_msg_userauth_success();
 		}
-#if DROPBEAR_PLUGIN
+#if SILLYBEAR_PLUGIN
 		if ((ses.plugin_session != NULL) && (svr_ses.plugin_instance->auth_success != NULL)) {
 		    /* Was authenticated through the external plugin. tell plugin that signature verification was ok */
 		    svr_ses.plugin_instance->auth_success(ses.plugin_session);
 		}
 #endif
 	} else {
-		dropbear_log(LOG_WARNING,
+		sillybear_log(LOG_WARNING,
 				"Pubkey auth bad signature for '%s' with key %s from %s",
 				ses.authstate.pw_name, fp, svr_ses.addrstring);
 		send_msg_userauth_failure(0, 1);
@@ -302,7 +302,7 @@ static int checkpubkey_line(buffer* line, int line_num, const char* filename,
 	buffer *options_buf = NULL;
 	char *info_str = NULL;
 	unsigned int pos, len, infopos, infolen;
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 
 	if (line->len < MIN_AUTHKEYS_LINE || line->len > MAX_AUTHKEYS_LINE) {
 		TRACE(("checkpubkey_line: bad line length %d", line->len))
@@ -422,7 +422,7 @@ static int checkpubkey_line(buffer* line, int line_num, const char* filename,
 		*ret_info = NULL;
 	}
 
-	if (ret == DROPBEAR_SUCCESS) {
+	if (ret == SILLYBEAR_SUCCESS) {
 		if (options_buf) {
 			ret = svr_add_pubkey_options(options_buf, line_num, filename);
 		}
@@ -464,13 +464,13 @@ static char *authorized_keys_filepath() {
 
 /* Checks whether a specified publickey (and associated algorithm) is an
  * acceptable key for authentication */
-/* Returns DROPBEAR_SUCCESS if key is ok for auth, DROPBEAR_FAILURE otherwise */
+/* Returns SILLYBEAR_SUCCESS if key is ok for auth, SILLYBEAR_FAILURE otherwise */
 static int checkpubkey(const char* keyalgo, unsigned int keyalgolen,
 		const unsigned char* keyblob, unsigned int keybloblen) {
 
 	FILE * authfile = NULL;
 	char * filename = NULL;
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 	buffer * line = NULL;
 	int line_num;
 	uid_t origuid;
@@ -478,17 +478,17 @@ static int checkpubkey(const char* keyalgo, unsigned int keyalgolen,
 
 	TRACE(("enter checkpubkey"))
 
-#if DROPBEAR_SVR_MULTIUSER
+#if SILLYBEAR_SVR_MULTIUSER
 	/* access the file as the authenticating user. */
 	origuid = getuid();
 	origgid = getgid();
 	if ((setegid(ses.authstate.pw_gid)) < 0 ||
 		(seteuid(ses.authstate.pw_uid)) < 0) {
-		dropbear_exit("Failed to set euid");
+		sillybear_exit("Failed to set euid");
 	}
 #endif
 	/* check file permissions, also whether file exists */
-	if (checkpubkeyperms() == DROPBEAR_FAILURE) {
+	if (checkpubkeyperms() == SILLYBEAR_FAILURE) {
 		TRACE(("bad authorized_keys permissions, or file doesn't exist"))
 	} else {
 		/* we don't need to check pw and pw_dir for validity, since
@@ -499,10 +499,10 @@ static int checkpubkey(const char* keyalgo, unsigned int keyalgolen,
 			TRACE(("checkpubkey: failed opening %s: %s", filename, strerror(errno)))
 		}
 	}
-#if DROPBEAR_SVR_MULTIUSER
+#if SILLYBEAR_SVR_MULTIUSER
 	if ((seteuid(origuid)) < 0 ||
 		(setegid(origgid)) < 0) {
-		dropbear_exit("Failed to revert euid");
+		sillybear_exit("Failed to revert euid");
 	}
 #endif
 
@@ -516,7 +516,7 @@ static int checkpubkey(const char* keyalgo, unsigned int keyalgolen,
 
 	/* iterate through the lines */
 	do {
-		if (buf_getline(line, authfile) == DROPBEAR_FAILURE) {
+		if (buf_getline(line, authfile) == SILLYBEAR_FAILURE) {
 			/* EOF reached */
 			TRACE(("checkpubkey: authorized_keys EOF reached"))
 			break;
@@ -525,13 +525,13 @@ static int checkpubkey(const char* keyalgo, unsigned int keyalgolen,
 
 		ret = checkpubkey_line(line, line_num, filename, keyalgo, keyalgolen,
 			keyblob, keybloblen,
-#if DROPBEAR_SVR_PUBKEY_OPTIONS_BUILT
+#if SILLYBEAR_SVR_PUBKEY_OPTIONS_BUILT
 			&ses.authstate.pubkey_info
 #else
 			NULL
 #endif
 		);
-		if (ret == DROPBEAR_SUCCESS) {
+		if (ret == SILLYBEAR_SUCCESS) {
 			break;
 		}
 
@@ -551,15 +551,15 @@ out:
 }
 
 
-/* Returns DROPBEAR_SUCCESS if file permissions for pubkeys are ok,
- * DROPBEAR_FAILURE otherwise.
+/* Returns SILLYBEAR_SUCCESS if file permissions for pubkeys are ok,
+ * SILLYBEAR_FAILURE otherwise.
  * Checks that the authorized_keys path permissions are all owned by either
  * root or the user, and are g-w, o-w.
  * When this path is inside the user's home dir it checks up to and including
  * the home dir, otherwise it checks every path component. */
 static int checkpubkeyperms() {
 	char *path = authorized_keys_filepath(), *sep = NULL;
-	int ret = DROPBEAR_SUCCESS;
+	int ret = SILLYBEAR_SUCCESS;
 
 	TRACE(("enter checkpubkeyperms"))
 
@@ -570,9 +570,9 @@ static int checkpubkeyperms() {
 			sep++;
 		}
 		*sep = '\0';
-		if (checkfileperm(path) != DROPBEAR_SUCCESS) {
+		if (checkfileperm(path) != SILLYBEAR_SUCCESS) {
 			TRACE(("checkpubkeyperms: bad perm on %s", path))
-			ret = DROPBEAR_FAILURE;
+			ret = SILLYBEAR_FAILURE;
 		}
 		if (strcmp(path, ses.authstate.pw_dir) == 0 || strcmp(path, "/") == 0) {
 			break;
@@ -588,7 +588,7 @@ static int checkpubkeyperms() {
 
 /* Checks that a file is owned by the user or root, and isn't writable by
  * group or other */
-/* returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+/* returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 static int checkfileperm(char * filename) {
 	struct stat filestat;
 	int badperm = 0;
@@ -597,7 +597,7 @@ static int checkfileperm(char * filename) {
 
 	if (stat(filename, &filestat) != 0) {
 		TRACE(("leave checkfileperm: stat() != 0"))
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 	/* check ownership - user or root only*/
 	if (filestat.st_uid != ses.authstate.pw_uid
@@ -613,17 +613,17 @@ static int checkfileperm(char * filename) {
 	if (badperm) {
 		if (!ses.authstate.perm_warn) {
 			ses.authstate.perm_warn = 1;
-			dropbear_log(LOG_INFO, "%s must be owned by user or root, and not writable by group or others", filename);
+			sillybear_log(LOG_INFO, "%s must be owned by user or root, and not writable by group or others", filename);
 		}
 		TRACE(("leave checkfileperm: failure perms/owner"))
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	TRACE(("leave checkfileperm: success"))
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 }
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 int fuzz_checkpubkey_line(buffer* line, int line_num, char* filename,
 		const char* algo, unsigned int algolen,
 		const unsigned char* keyblob, unsigned int keybloblen) {

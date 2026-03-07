@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,16 +22,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_RSA_H_
-#define DROPBEAR_RSA_H_
+#ifndef SILLYBEAR_RSA_H_
+#define SILLYBEAR_RSA_H_
 
 #include "includes.h"
 #include "signkey.h"
 #include "buffer.h"
 
-#if DROPBEAR_RSA 
+#if SILLYBEAR_RSA 
 
-typedef struct dropbear_RSA_Key {
+typedef struct sillybear_RSA_Key {
 
 	mp_int* n;
 	mp_int* e;
@@ -40,20 +40,20 @@ typedef struct dropbear_RSA_Key {
 	mp_int* p;
 	mp_int* q;
 
-} dropbear_rsa_key;
+} sillybear_rsa_key;
 
-void buf_put_rsa_sign(buffer* buf, const dropbear_rsa_key *key, 
+void buf_put_rsa_sign(buffer* buf, const sillybear_rsa_key *key, 
         enum signature_type sigtype, const buffer *data_buf);
-#if DROPBEAR_SIGNKEY_VERIFY
-int buf_rsa_verify(buffer * buf, const dropbear_rsa_key *key, 
+#if SILLYBEAR_SIGNKEY_VERIFY
+int buf_rsa_verify(buffer * buf, const sillybear_rsa_key *key, 
         enum signature_type sigtype, const buffer *data_buf);
 #endif
-int buf_get_rsa_pub_key(buffer* buf, dropbear_rsa_key *key);
-int buf_get_rsa_priv_key(buffer* buf, dropbear_rsa_key *key);
-void buf_put_rsa_pub_key(buffer* buf, const dropbear_rsa_key *key);
-void buf_put_rsa_priv_key(buffer* buf, const dropbear_rsa_key *key);
-void rsa_key_free(dropbear_rsa_key *key);
+int buf_get_rsa_pub_key(buffer* buf, sillybear_rsa_key *key);
+int buf_get_rsa_priv_key(buffer* buf, sillybear_rsa_key *key);
+void buf_put_rsa_pub_key(buffer* buf, const sillybear_rsa_key *key);
+void buf_put_rsa_priv_key(buffer* buf, const sillybear_rsa_key *key);
+void rsa_key_free(sillybear_rsa_key *key);
 
-#endif /* DROPBEAR_RSA */
+#endif /* SILLYBEAR_RSA */
 
-#endif /* DROPBEAR_RSA_H_ */
+#endif /* SILLYBEAR_RSA_H_ */

@@ -13,13 +13,13 @@ make PROGRAMS="programs you want here" MULTI=1
 To use the binary, symlink it from the desired executable:
 
 ```sh
-ln -s dropbearmulti dropbear
-ln -s dropbearmulti dbclient
+ln -s sillybearmulti sillybear
+ln -s sillybearmulti dbclient
 ```
 etc.
 
 Then execute as normal:
 
 ```
-./dropbear <options here>
+./sillybear <options here>
 ```

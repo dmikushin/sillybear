@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -41,7 +41,7 @@
 buffer* buf_new(unsigned int size) {
 	buffer* buf;
 	if (size > BUF_MAX_SIZE) {
-		dropbear_exit("buf->size too big");
+		sillybear_exit("buf->size too big");
 	}
 
 	buf = (buffer*)m_malloc(sizeof(buffer)+size);
@@ -66,7 +66,7 @@ void buf_burn_free(buffer* buf) {
  * downsizing */
 buffer* buf_resize(buffer *buf, unsigned int newsize) {
 	if (newsize > BUF_MAX_SIZE) {
-		dropbear_exit("buf->size too big");
+		sillybear_exit("buf->size too big");
 	}
 
 	buf = m_realloc(buf, sizeof(buffer)+newsize);
@@ -94,7 +94,7 @@ buffer* buf_newcopy(const buffer* buf) {
 /* Set the length of the buffer */
 void buf_setlen(buffer* buf, unsigned int len) {
 	if (len > buf->size) {
-		dropbear_exit("Bad buf_setlen");
+		sillybear_exit("Bad buf_setlen");
 	}
 	buf->len = len;
 	buf->pos = MIN(buf->pos, buf->len);
@@ -103,7 +103,7 @@ void buf_setlen(buffer* buf, unsigned int len) {
 /* Increment the length of the buffer */
 void buf_incrlen(buffer* buf, unsigned int incr) {
 	if (incr > BUF_MAX_INCR || buf->len + incr > buf->size) {
-		dropbear_exit("Bad buf_incrlen");
+		sillybear_exit("Bad buf_incrlen");
 	}
 	buf->len += incr;
 }
@@ -111,7 +111,7 @@ void buf_incrlen(buffer* buf, unsigned int incr) {
 void buf_setpos(buffer* buf, unsigned int pos) {
 
 	if (pos > buf->len) {
-		dropbear_exit("Bad buf_setpos");
+		sillybear_exit("Bad buf_setpos");
 	}
 	buf->pos = pos;
 }
@@ -119,7 +119,7 @@ void buf_setpos(buffer* buf, unsigned int pos) {
 /* increment the position by incr, increasing the buffer length if required */
 void buf_incrwritepos(buffer* buf, unsigned int incr) {
 	if (incr > BUF_MAX_INCR || buf->pos + incr > buf->size) {
-		dropbear_exit("Bad buf_incrwritepos");
+		sillybear_exit("Bad buf_incrwritepos");
 	}
 	buf->pos += incr;
 	if (buf->pos > buf->len) {
@@ -131,7 +131,7 @@ void buf_incrwritepos(buffer* buf, unsigned int incr) {
 void buf_incrpos(buffer* buf, unsigned int incr) {
 	if (incr > BUF_MAX_INCR 
 		|| (buf->pos + incr) > buf->len) {
-		dropbear_exit("Bad buf_incrpos");
+		sillybear_exit("Bad buf_incrpos");
 	}
 	buf->pos += incr;
 }
@@ -139,7 +139,7 @@ void buf_incrpos(buffer* buf, unsigned int incr) {
 /* decrement the position by decr */
 void buf_decrpos(buffer* buf, unsigned int decr) {
 	if (decr > buf->pos) {
-		dropbear_exit("Bad buf_decrpos");
+		sillybear_exit("Bad buf_decrpos");
 	}
 	buf->pos -= decr;
 }
@@ -150,7 +150,7 @@ unsigned char buf_getbyte(buffer* buf) {
 	/* This check is really just ==, but the >= allows us to check for the
 	 * bad case of pos > len, which should _never_ happen. */
 	if (buf->pos >= buf->len) {
-		dropbear_exit("Bad buf_getbyte");
+		sillybear_exit("Bad buf_getbyte");
 	}
 	return buf->data[buf->pos++];
 }
@@ -180,7 +180,7 @@ void buf_putbyte(buffer* buf, unsigned char val) {
 unsigned char* buf_getptr(const buffer* buf, unsigned int len) {
 
 	if (len > BUF_MAX_INCR || buf->pos + len > buf->len) {
-		dropbear_exit("Bad buf_getptr");
+		sillybear_exit("Bad buf_getptr");
 	}
 	return &buf->data[buf->pos];
 }
@@ -190,7 +190,7 @@ unsigned char* buf_getptr(const buffer* buf, unsigned int len) {
 unsigned char* buf_getwriteptr(const buffer* buf, unsigned int len) {
 
 	if (len > BUF_MAX_INCR || buf->pos + len > buf->size) {
-		dropbear_exit("Bad buf_getwriteptr");
+		sillybear_exit("Bad buf_getwriteptr");
 	}
 	return &buf->data[buf->pos];
 }
@@ -205,7 +205,7 @@ char* buf_getstring(buffer* buf, unsigned int *retlen) {
 	void* src = NULL;
 	len = buf_getint(buf);
 	if (len > MAX_STRING_LEN) {
-		dropbear_exit("String too long");
+		sillybear_exit("String too long");
 	}
 
 	if (retlen != NULL) {
@@ -226,7 +226,7 @@ static buffer * buf_getstringbuf_int(buffer *buf, int incllen) {
 	unsigned int len = buf_getint(buf);
 	int extra = 0;
 	if (len > MAX_STRING_LEN) {
-		dropbear_exit("String too long");
+		sillybear_exit("String too long");
 	}
 	if (incllen) {
 		extra = 4;
@@ -313,10 +313,10 @@ void buf_putmpint(buffer* buf, const mp_int * mp) {
 	unsigned int len, pad = 0;
 	TRACE2(("enter buf_putmpint"))
 
-	dropbear_assert(mp != NULL);
+	sillybear_assert(mp != NULL);
 
 	if (mp_isneg(mp)) {
-		dropbear_exit("negative bignum");
+		sillybear_exit("negative bignum");
 	}
 
 	/* zero check */
@@ -342,7 +342,7 @@ void buf_putmpint(buffer* buf, const mp_int * mp) {
 			buf_putbyte(buf, 0x00);
 		}
 		if (mp_to_ubin(mp, buf_getwriteptr(buf, len-pad), len-pad, &written) != MP_OKAY) {
-			dropbear_exit("mpint error");
+			sillybear_exit("mpint error");
 		}
 		buf_incrwritepos(buf, written);
 	}
@@ -352,7 +352,7 @@ void buf_putmpint(buffer* buf, const mp_int * mp) {
 
 /* Retrieve an mp_int from the buffer.
  * Will fail for -ve since they shouldn't be required here.
- * Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+ * Returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 int buf_getmpint(buffer* buf, mp_int* mp) {
 
 	unsigned int len;
@@ -360,22 +360,22 @@ int buf_getmpint(buffer* buf, mp_int* mp) {
 	
 	if (len == 0) {
 		mp_zero(mp);
-		return DROPBEAR_SUCCESS;
+		return SILLYBEAR_SUCCESS;
 	}
 
 	if (len > BUF_MAX_MPINT) {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	/* check for negative */
 	if (*buf_getptr(buf, 1) & (1 << (CHAR_BIT-1))) {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	if (mp_from_ubin(mp, buf_getptr(buf, len), len) != MP_OKAY) {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	buf_incrpos(buf, len);
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 }

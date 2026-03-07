@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,15 +22,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_GENED25519_H_
-#define DROPBEAR_GENED25519_H_
+#ifndef SILLYBEAR_GENED25519_H_
+#define SILLYBEAR_GENED25519_H_
 
 #include "ed25519.h"
 
-#if DROPBEAR_ED25519
+#if SILLYBEAR_ED25519
 
-dropbear_ed25519_key * gen_ed25519_priv_key(unsigned int size);
+sillybear_ed25519_key * gen_ed25519_priv_key(unsigned int size);
 
-#endif /* DROPBEAR_ED25519 */
+#endif /* SILLYBEAR_ED25519 */
 
-#endif /* DROPBEAR_GENED25519_H_ */
+#endif /* SILLYBEAR_GENED25519_H_ */

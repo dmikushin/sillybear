@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -31,21 +31,21 @@
 
 #define RSA_E 65537
 
-#if DROPBEAR_RSA
+#if SILLYBEAR_RSA
 
 static void getrsaprime(mp_int* prime, mp_int *primeminus, 
 		const mp_int* rsa_e, unsigned int size_bytes);
 
 /* mostly taken from libtomcrypt's rsa key generation routine */
-dropbear_rsa_key * gen_rsa_priv_key(unsigned int size) {
+sillybear_rsa_key * gen_rsa_priv_key(unsigned int size) {
 
-	dropbear_rsa_key * key;
+	sillybear_rsa_key * key;
 	DEF_MP_INT(pminus);
 	DEF_MP_INT(qminus);
 	DEF_MP_INT(lcm);
 
 	if (size < 512 || size > 4096 || (size % 8 != 0)) {
-		dropbear_exit("Bits must satisfy 512 <= bits <= 4096, and be a"
+		sillybear_exit("Bits must satisfy 512 <= bits <= 4096, and be a"
 			" multiple of 8");
 	}
 
@@ -131,4 +131,4 @@ static void getrsaprime(mp_int* prime, mp_int *primeminus,
 	m_free(buf);
 }
 
-#endif /* DROPBEAR_RSA */
+#endif /* SILLYBEAR_RSA */

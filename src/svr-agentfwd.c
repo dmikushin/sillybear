@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -27,7 +27,7 @@
 
 #include "includes.h"
 
-#if DROPBEAR_SVR_AGENTFWD
+#if SILLYBEAR_SVR_AGENTFWD
 
 #include "agentfwd.h"
 #include "session.h"
@@ -41,23 +41,23 @@
 #include "listener.h"
 #include "auth.h"
 
-#define AGENTDIRPREFIX "/tmp/dropbear-"
+#define AGENTDIRPREFIX "/tmp/sillybear-"
 
 static int send_msg_channel_open_agent(int fd);
 static int bindagent(int fd, struct ChanSess * chansess);
 static void agentaccept(const struct Listener * listener, int sock);
 
 /* Handles client requests to start agent forwarding, sets up listening socket.
- * Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+ * Returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 int svr_agentreq(struct ChanSess * chansess) {
 	int fd = -1;
 
 	if (!svr_pubkey_allows_agentfwd()) {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	if (chansess->agentlistener != NULL) {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	/* create listening socket */
@@ -67,7 +67,7 @@ int svr_agentreq(struct ChanSess * chansess) {
 	}
 
 	/* create the unix socket dir and file */
-	if (bindagent(fd, chansess) == DROPBEAR_FAILURE) {
+	if (bindagent(fd, chansess) == SILLYBEAR_FAILURE) {
 		goto fail;
 	}
 
@@ -87,19 +87,19 @@ int svr_agentreq(struct ChanSess * chansess) {
 		goto fail;
 	}
 
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 
 fail:
 	m_close(fd);
 	/* cleanup */
 	svr_agentcleanup(chansess);
 
-	return DROPBEAR_FAILURE;
+	return SILLYBEAR_FAILURE;
 }
 
 /* accepts a connection on the forwarded socket and opens a new channel for it
  * back to the client */
-/* returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+/* returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 static void agentaccept(const struct Listener *UNUSED(listener), int sock) {
 
 	int fd;
@@ -110,7 +110,7 @@ static void agentaccept(const struct Listener *UNUSED(listener), int sock) {
 		return;
 	}
 
-	if (send_msg_channel_open_agent(fd) != DROPBEAR_SUCCESS) {
+	if (send_msg_channel_open_agent(fd) != SILLYBEAR_SUCCESS) {
 		close(fd);
 	}
 
@@ -151,14 +151,14 @@ void svr_agentcleanup(struct ChanSess * chansess) {
 
 	if (chansess->agentfile != NULL && chansess->agentdir != NULL) {
 
-#if !DROPBEAR_SVR_DROP_PRIVS
+#if !SILLYBEAR_SVR_DROP_PRIVS
 		/* Remove the dir as the user. That way they can't cause problems except
 		 * for themselves */
 		uid = getuid();
 		gid = getgid();
 		if ((setegid(ses.authstate.pw_gid)) < 0 ||
 			(seteuid(ses.authstate.pw_uid)) < 0) {
-			dropbear_exit("Failed to set euid");
+			sillybear_exit("Failed to set euid");
 		}
 #else
 		(void)uid;
@@ -175,10 +175,10 @@ void svr_agentcleanup(struct ChanSess * chansess) {
 
 		rmdir(chansess->agentdir);
 
-#if !DROPBEAR_SVR_DROP_PRIVS
+#if !SILLYBEAR_SVR_DROP_PRIVS
 		if ((seteuid(uid)) < 0 ||
 			(setegid(gid)) < 0) {
-			dropbear_exit("Failed to revert euid");
+			sillybear_exit("Failed to revert euid");
 		}
 #endif
 
@@ -201,16 +201,16 @@ static const struct ChanType chan_svr_agent = {
 /* helper for accepting an agent request */
 static int send_msg_channel_open_agent(int fd) {
 
-	if (send_msg_channel_open_init(fd, &chan_svr_agent) == DROPBEAR_SUCCESS) {
+	if (send_msg_channel_open_init(fd, &chan_svr_agent) == SILLYBEAR_SUCCESS) {
 		encrypt_packet();
-		return DROPBEAR_SUCCESS;
+		return SILLYBEAR_SUCCESS;
 	} else {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 }
 
 /* helper for creating the agent socket-file
-   returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+   returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 static int bindagent(int fd, struct ChanSess * chansess) {
 
 	struct sockaddr_un addr;
@@ -220,15 +220,15 @@ static int bindagent(int fd, struct ChanSess * chansess) {
 	int i;
 	uid_t uid;
 	gid_t gid;
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 
-#if !DROPBEAR_SVR_DROP_PRIVS
+#if !SILLYBEAR_SVR_DROP_PRIVS
 	/* drop to user privs to make the dir/file */
 	uid = getuid();
 	gid = getgid();
 	if ((setegid(ses.authstate.pw_gid)) < 0 ||
 		(seteuid(ses.authstate.pw_uid)) < 0) {
-		dropbear_exit("Failed to set euid");
+		sillybear_exit("Failed to set euid");
 	}
 #else
 		(void)uid;
@@ -242,7 +242,7 @@ static int bindagent(int fd, struct ChanSess * chansess) {
 
 	for (i = 0; i < 20; i++) {
 		genrandom((unsigned char*)&prefix, sizeof(prefix));
-		/* we want 32 bits (8 hex digits) - "/tmp/dropbear-f19c62c0" */
+		/* we want 32 bits (8 hex digits) - "/tmp/sillybear-f19c62c0" */
 		snprintf(path, sizeof(path), AGENTDIRPREFIX "%.8x", prefix);
 
 		if (mkdir(path, mode) == 0) {
@@ -256,7 +256,7 @@ static int bindagent(int fd, struct ChanSess * chansess) {
 	goto out;
 
 bindsocket:
-	/* Format is "/tmp/dropbear-0246dead/auth-d00f7654-23".
+	/* Format is "/tmp/sillybear-0246dead/auth-d00f7654-23".
 	 * The "23" is the file desc, the random data is to avoid collisions
 	 * between subsequent user processes reusing socket fds (odds are now
 	 * 1/(2^64) */
@@ -268,15 +268,15 @@ bindsocket:
 	if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) == 0) {
 		chansess->agentdir = m_strdup(path);
 		chansess->agentfile = m_strdup(sockfile);
-		ret = DROPBEAR_SUCCESS;
+		ret = SILLYBEAR_SUCCESS;
 	}
 
 
 out:
-#if !DROPBEAR_SVR_DROP_PRIVS
+#if !SILLYBEAR_SVR_DROP_PRIVS
 	if ((seteuid(uid)) < 0 ||
 		(setegid(gid)) < 0) {
-		dropbear_exit("Failed to revert euid");
+		sillybear_exit("Failed to revert euid");
 	}
 #endif
 	return ret;

@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -37,24 +37,24 @@
 #include "dbrandom.h"
 #include "signkey.h"
 
-#if DROPBEAR_RSA 
+#if SILLYBEAR_RSA 
 
-#if !(DROPBEAR_RSA_SHA1 || DROPBEAR_RSA_SHA256)
-#error Somehow RSA was enabled with neither DROPBEAR_RSA_SHA1 nor DROPBEAR_RSA_SHA256
+#if !(SILLYBEAR_RSA_SHA1 || SILLYBEAR_RSA_SHA256)
+#error Somehow RSA was enabled with neither SILLYBEAR_RSA_SHA1 nor SILLYBEAR_RSA_SHA256
 #endif
 
-static void rsa_pad_em(const dropbear_rsa_key * key,
+static void rsa_pad_em(const sillybear_rsa_key * key,
 	const buffer *data_buf, mp_int * rsa_em, enum signature_type sigtype);
 
 /* Load a public rsa key from a buffer, initialising the values.
  * The key will have the same format as buf_put_rsa_key.
  * These should be freed with rsa_key_free.
- * Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
-int buf_get_rsa_pub_key(buffer* buf, dropbear_rsa_key *key) {
+ * Returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
+int buf_get_rsa_pub_key(buffer* buf, sillybear_rsa_key *key) {
 
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 	TRACE(("enter buf_get_rsa_pub_key"))
-	dropbear_assert(key != NULL);
+	sillybear_assert(key != NULL);
 	m_mp_alloc_init_multi(&key->e, &key->n, NULL);
 	key->d = NULL;
 	key->p = NULL;
@@ -62,27 +62,27 @@ int buf_get_rsa_pub_key(buffer* buf, dropbear_rsa_key *key) {
 
 	buf_incrpos(buf, 4+SSH_SIGNKEY_RSA_LEN); /* int + "ssh-rsa" */
 
-	if (buf_getmpint(buf, key->e) == DROPBEAR_FAILURE
-	 || buf_getmpint(buf, key->n) == DROPBEAR_FAILURE) {
+	if (buf_getmpint(buf, key->e) == SILLYBEAR_FAILURE
+	 || buf_getmpint(buf, key->n) == SILLYBEAR_FAILURE) {
 		TRACE(("leave buf_get_rsa_pub_key: failure"))
 		goto out;
 	}
 
 	if (mp_count_bits(key->n) < MIN_RSA_KEYLEN) {
-		dropbear_log(LOG_WARNING, "RSA key too short");
+		sillybear_log(LOG_WARNING, "RSA key too short");
 		goto out;
 	}
 
 	/* 64 bit is limit used by openssl, so we won't block any keys in the wild */
 	if (mp_count_bits(key->e) > 64) {
-		dropbear_log(LOG_WARNING, "RSA key bad e");
+		sillybear_log(LOG_WARNING, "RSA key bad e");
 		goto out;
 	}
 
 	TRACE(("leave buf_get_rsa_pub_key: success"))
-	ret = DROPBEAR_SUCCESS;
+	ret = SILLYBEAR_SUCCESS;
 out:
-	if (ret == DROPBEAR_FAILURE) {
+	if (ret == SILLYBEAR_FAILURE) {
 		m_mp_free_multi(&key->e, &key->n, NULL);
 	}
 	return ret;
@@ -90,16 +90,16 @@ out:
 
 /* Same as buf_get_rsa_pub_key, but reads private bits at the end.
  * Loads a private rsa key from a buffer
- * Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
-int buf_get_rsa_priv_key(buffer* buf, dropbear_rsa_key *key) {
-	int ret = DROPBEAR_FAILURE;
+ * Returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
+int buf_get_rsa_priv_key(buffer* buf, sillybear_rsa_key *key) {
+	int ret = SILLYBEAR_FAILURE;
 
 	TRACE(("enter buf_get_rsa_priv_key"))
-	dropbear_assert(key != NULL);
+	sillybear_assert(key != NULL);
 
-	if (buf_get_rsa_pub_key(buf, key) == DROPBEAR_FAILURE) {
-		TRACE(("leave buf_get_rsa_priv_key: pub: ret == DROPBEAR_FAILURE"))
-		return DROPBEAR_FAILURE;
+	if (buf_get_rsa_pub_key(buf, key) == SILLYBEAR_FAILURE) {
+		TRACE(("leave buf_get_rsa_priv_key: pub: ret == SILLYBEAR_FAILURE"))
+		return SILLYBEAR_FAILURE;
 	}
 	
 	key->d = NULL;
@@ -107,30 +107,30 @@ int buf_get_rsa_priv_key(buffer* buf, dropbear_rsa_key *key) {
 	key->q = NULL;
 
 	m_mp_alloc_init_multi(&key->d, NULL);
-	if (buf_getmpint(buf, key->d) == DROPBEAR_FAILURE) {
-		TRACE(("leave buf_get_rsa_priv_key: d: ret == DROPBEAR_FAILURE"))
+	if (buf_getmpint(buf, key->d) == SILLYBEAR_FAILURE) {
+		TRACE(("leave buf_get_rsa_priv_key: d: ret == SILLYBEAR_FAILURE"))
 		goto out;
 	}
 
 	if (buf->pos == buf->len) {
-		/* old Dropbear private keys didn't keep p and q, so we will ignore them*/
+		/* old Sillybear private keys didn't keep p and q, so we will ignore them*/
 	} else {
 		m_mp_alloc_init_multi(&key->p, &key->q, NULL);
 
-		if (buf_getmpint(buf, key->p) == DROPBEAR_FAILURE) {
-			TRACE(("leave buf_get_rsa_priv_key: p: ret == DROPBEAR_FAILURE"))
+		if (buf_getmpint(buf, key->p) == SILLYBEAR_FAILURE) {
+			TRACE(("leave buf_get_rsa_priv_key: p: ret == SILLYBEAR_FAILURE"))
 			goto out;
 		}
 
-		if (buf_getmpint(buf, key->q) == DROPBEAR_FAILURE) {
-			TRACE(("leave buf_get_rsa_priv_key: q: ret == DROPBEAR_FAILURE"))
+		if (buf_getmpint(buf, key->q) == SILLYBEAR_FAILURE) {
+			TRACE(("leave buf_get_rsa_priv_key: q: ret == SILLYBEAR_FAILURE"))
 			goto out;
 		}
 	}
 
-	ret = DROPBEAR_SUCCESS;
+	ret = SILLYBEAR_SUCCESS;
 out:
-	if (ret == DROPBEAR_FAILURE) {
+	if (ret == SILLYBEAR_FAILURE) {
 		m_mp_free_multi(&key->d, &key->p, &key->q, NULL);
 	}
 	TRACE(("leave buf_get_rsa_priv_key"))
@@ -139,7 +139,7 @@ out:
 	
 
 /* Clear and free the memory used by a public or private key */
-void rsa_key_free(dropbear_rsa_key *key) {
+void rsa_key_free(sillybear_rsa_key *key) {
 
 	TRACE2(("enter rsa_key_free"))
 
@@ -158,10 +158,10 @@ void rsa_key_free(dropbear_rsa_key *key) {
  * mp_int	e
  * mp_int	n
  */
-void buf_put_rsa_pub_key(buffer* buf, const dropbear_rsa_key *key) {
+void buf_put_rsa_pub_key(buffer* buf, const sillybear_rsa_key *key) {
 
 	TRACE(("enter buf_put_rsa_pub_key"))
-	dropbear_assert(key != NULL);
+	sillybear_assert(key != NULL);
 
 	buf_putstring(buf, SSH_SIGNKEY_RSA, SSH_SIGNKEY_RSA_LEN);
 	buf_putmpint(buf, key->e);
@@ -172,11 +172,11 @@ void buf_put_rsa_pub_key(buffer* buf, const dropbear_rsa_key *key) {
 }
 
 /* Same as buf_put_rsa_pub_key, but with the private "x" key appended */
-void buf_put_rsa_priv_key(buffer* buf, const dropbear_rsa_key *key) {
+void buf_put_rsa_priv_key(buffer* buf, const sillybear_rsa_key *key) {
 
 	TRACE(("enter buf_put_rsa_priv_key"))
 
-	dropbear_assert(key != NULL);
+	sillybear_assert(key != NULL);
 	buf_put_rsa_pub_key(buf, key);
 	buf_putmpint(buf, key->d);
 
@@ -193,20 +193,20 @@ void buf_put_rsa_priv_key(buffer* buf, const dropbear_rsa_key *key) {
 
 }
 
-#if DROPBEAR_SIGNKEY_VERIFY
+#if SILLYBEAR_SIGNKEY_VERIFY
 /* Verify a signature in buf, made on data by the key given.
- * Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
-int buf_rsa_verify(buffer * buf, const dropbear_rsa_key *key, 
+ * Returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
+int buf_rsa_verify(buffer * buf, const sillybear_rsa_key *key, 
 		enum signature_type sigtype, const buffer *data_buf) {
 	unsigned int slen;
 	DEF_MP_INT(rsa_s);
 	DEF_MP_INT(rsa_mdash);
 	DEF_MP_INT(rsa_em);
-	int ret = DROPBEAR_FAILURE;
+	int ret = SILLYBEAR_FAILURE;
 
 	TRACE(("enter buf_rsa_verify"))
 
-	dropbear_assert(key != NULL);
+	sillybear_assert(key != NULL);
 
 	m_mp_init_multi(&rsa_mdash, &rsa_s, &rsa_em, NULL);
 
@@ -239,7 +239,7 @@ int buf_rsa_verify(buffer * buf, const dropbear_rsa_key *key,
 	if (mp_cmp(&rsa_em, &rsa_mdash) == MP_EQ) {
 		/* signature is valid */
 		TRACE(("success!"))
-		ret = DROPBEAR_SUCCESS;
+		ret = SILLYBEAR_SUCCESS;
 	}
 
 out:
@@ -248,11 +248,11 @@ out:
 	return ret;
 }
 
-#endif /* DROPBEAR_SIGNKEY_VERIFY */
+#endif /* SILLYBEAR_SIGNKEY_VERIFY */
 
 /* Sign the data presented with key, writing the signature contents
  * to the buffer */
-void buf_put_rsa_sign(buffer* buf, const dropbear_rsa_key *key, 
+void buf_put_rsa_sign(buffer* buf, const sillybear_rsa_key *key, 
 		enum signature_type sigtype, const buffer *data_buf) {
 	const char *name = NULL;
 	unsigned int nsize, ssize, namelen = 0;
@@ -264,7 +264,7 @@ void buf_put_rsa_sign(buffer* buf, const dropbear_rsa_key *key,
 	DEF_MP_INT(rsa_tmp3);
 	
 	TRACE(("enter buf_put_rsa_sign"))
-	dropbear_assert(key != NULL);
+	sillybear_assert(key != NULL);
 
 	m_mp_init_multi(&rsa_s, &rsa_tmp1, &rsa_tmp2, &rsa_tmp3, NULL);
 
@@ -272,7 +272,7 @@ void buf_put_rsa_sign(buffer* buf, const dropbear_rsa_key *key,
 
 	/* the actual signing of the padded data */
 
-#if DROPBEAR_RSA_BLINDING
+#if SILLYBEAR_RSA_BLINDING
 
 	/* With blinding, s = (r^(-1))((em)*r^e)^d mod n */
 
@@ -285,26 +285,26 @@ void buf_put_rsa_sign(buffer* buf, const dropbear_rsa_key *key,
 
 	/* rsa_s used as a temp var*/
 	if (mp_exptmod(&rsa_tmp2, key->e, key->n, &rsa_s) != MP_OKAY) {
-		dropbear_exit("RSA error");
+		sillybear_exit("RSA error");
 	}
 	if (mp_invmod(&rsa_tmp2, key->n, &rsa_tmp3) != MP_OKAY) {
-		dropbear_exit("RSA error");
+		sillybear_exit("RSA error");
 	}
 	if (mp_mulmod(&rsa_tmp1, &rsa_s, key->n, &rsa_tmp2) != MP_OKAY) {
-		dropbear_exit("RSA error");
+		sillybear_exit("RSA error");
 	}
 
 	/* rsa_tmp2 is em' */
 	/* s' = (em')^d mod n */
 	if (mp_exptmod(&rsa_tmp2, key->d, key->n, &rsa_tmp1) != MP_OKAY) {
-		dropbear_exit("RSA error");
+		sillybear_exit("RSA error");
 	}
 
 	/* rsa_tmp1 is s' */
 	/* rsa_tmp3 is r^(-1) mod n */
 	/* s = (s')r^(-1) mod n */
 	if (mp_mulmod(&rsa_tmp1, &rsa_tmp3, key->n, &rsa_s) != MP_OKAY) {
-		dropbear_exit("RSA error");
+		sillybear_exit("RSA error");
 	}
 
 #else
@@ -312,10 +312,10 @@ void buf_put_rsa_sign(buffer* buf, const dropbear_rsa_key *key,
 	/* s = em^d mod n */
 	/* rsa_tmp1 is em */
 	if (mp_exptmod(&rsa_tmp1, key->d, key->n, &rsa_s) != MP_OKAY) {
-		dropbear_exit("RSA error");
+		sillybear_exit("RSA error");
 	}
 
-#endif /* DROPBEAR_RSA_BLINDING */
+#endif /* SILLYBEAR_RSA_BLINDING */
 
 	mp_clear_multi(&rsa_tmp1, &rsa_tmp2, &rsa_tmp3, NULL);
 	
@@ -329,13 +329,13 @@ void buf_put_rsa_sign(buffer* buf, const dropbear_rsa_key *key,
 	buf_putint(buf, nsize);
 	/* pad out s to same length as n */
 	ssize = mp_ubin_size(&rsa_s);
-	dropbear_assert(ssize <= nsize);
+	sillybear_assert(ssize <= nsize);
 	for (i = 0; i < nsize-ssize; i++) {
 		buf_putbyte(buf, 0x00);
 	}
 
 	if (mp_to_ubin(&rsa_s, buf_getwriteptr(buf, ssize), ssize, &written) != MP_OKAY) {
-		dropbear_exit("RSA error");
+		sillybear_exit("RSA error");
 	}
 	buf_incrwritepos(buf, written);
 	mp_clear(&rsa_s);
@@ -352,7 +352,7 @@ void buf_put_rsa_sign(buffer* buf, const dropbear_rsa_key *key,
 
 /* Creates the message value as expected by PKCS, 
    see rfc8017 section 9.2 */
-static void rsa_pad_em(const dropbear_rsa_key * key,
+static void rsa_pad_em(const sillybear_rsa_key * key,
 	const buffer *data_buf, mp_int * rsa_em, enum signature_type sigtype) {
     /* EM = 0x00 || 0x01 || PS || 0x00 || T 
 	   PS is padding of 0xff to make EM the size of key->n
@@ -361,12 +361,12 @@ static void rsa_pad_em(const dropbear_rsa_key * key,
 	*/
 
 	/* From rfc8017 page 46 */
-#if DROPBEAR_RSA_SHA1
+#if SILLYBEAR_RSA_SHA1
 	const unsigned char T_sha1[] =
 		{0x30, 0x21, 0x30, 0x09, 0x06, 0x05, 0x2b,
 		 0x0e, 0x03, 0x02, 0x1a, 0x05, 0x00, 0x04, 0x14};
 #endif
-#if DROPBEAR_RSA_SHA256
+#if SILLYBEAR_RSA_SHA256
 	const unsigned char T_sha256[] =
 		{0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01,
 		 0x65, 0x03, 0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20};
@@ -380,15 +380,15 @@ static void rsa_pad_em(const dropbear_rsa_key * key,
 	unsigned int nsize;
 
 	switch (sigtype) {
-#if DROPBEAR_RSA_SHA1
-		case DROPBEAR_SIGNATURE_RSA_SHA1:
+#if SILLYBEAR_RSA_SHA1
+		case SILLYBEAR_SIGNATURE_RSA_SHA1:
 			Tlen = sizeof(T_sha1);
 			T = T_sha1;
 			hash_desc = &sha1_desc;
 			break;
 #endif
-#if DROPBEAR_RSA_SHA256
-		case DROPBEAR_SIGNATURE_RSA_SHA256:
+#if SILLYBEAR_RSA_SHA256
+		case SILLYBEAR_SIGNATURE_RSA_SHA256:
 			Tlen = sizeof(T_sha256);
 			T = T_sha256;
 			hash_desc = &sha256_desc;
@@ -419,7 +419,7 @@ static void rsa_pad_em(const dropbear_rsa_key * key,
 	hash_desc->done(&hs, buf_getwriteptr(rsa_EM, hash_desc->hashsize));
 	buf_incrwritepos(rsa_EM, hash_desc->hashsize);
 
-	dropbear_assert(rsa_EM->pos == rsa_EM->size);
+	sillybear_assert(rsa_EM->pos == rsa_EM->size);
 
 	/* Create the mp_int from the encoded bytes */
 	buf_setpos(rsa_EM, 0);
@@ -428,4 +428,4 @@ static void rsa_pad_em(const dropbear_rsa_key * key,
 	buf_free(rsa_EM);
 }
 
-#endif /* DROPBEAR_RSA */
+#endif /* SILLYBEAR_RSA */

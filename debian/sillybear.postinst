@@ -1,0 +1,79 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'configure' || exit 0
+
+if test ! -e /etc/sillybear/sillybear_rsa_host_key; then
+  if test -f /etc/ssh/ssh_host_rsa_key; then
+    echo "Converting existing OpenSSH RSA host key to Sillybear format."
+    /usr/lib/sillybear/sillybearconvert openssh sillybear \
+      /etc/ssh/ssh_host_rsa_key /etc/sillybear/sillybear_rsa_host_key
+  else
+    echo "Generating Sillybear RSA key. Please wait."
+    sillybearkey -t rsa -f /etc/sillybear/sillybear_rsa_host_key
+  fi
+fi
+if test ! -e /etc/sillybear/sillybear_dss_host_key; then
+  if test -f /etc/ssh/ssh_host_dsa_key; then
+    echo "Converting existing OpenSSH RSA host key to Sillybear format."
+    /usr/lib/sillybear/sillybearconvert openssh sillybear \
+      /etc/ssh/ssh_host_dsa_key /etc/sillybear/sillybear_dss_host_key
+  else
+    echo "Generating Sillybear DSS key. Please wait."
+    sillybearkey -t dss -f /etc/sillybear/sillybear_dss_host_key
+  fi
+fi
+if test ! -s /etc/default/sillybear; then 
+  # check whether OpenSSH seems to be installed.
+  if test -x /usr/sbin/sshd; then
+    cat <<EOT
+OpenSSH appears to be installed.  Setting /etc/default/sillybear so that
+Sillybear will not start by default.  Edit this file to change this behaviour.
+
+EOT
+    cat >>/etc/default/sillybear <<EOT
+# disabled because OpenSSH is installed
+# change to NO_START=0 to enable Sillybear
+NO_START=1
+
+EOT
+  fi
+  cat >>/etc/default/sillybear <<EOT
+# the TCP port that Sillybear listens on
+SILLYBEAR_PORT=22
+
+# any additional arguments for Sillybear
+SILLYBEAR_EXTRA_ARGS=
+
+# specify an optional banner file containing a message to be
+# sent to clients before they connect, such as "/etc/issue.net"
+SILLYBEAR_BANNER=""
+
+# RSA hostkey file (default: /etc/sillybear/sillybear_rsa_host_key)
+#SILLYBEAR_RSAKEY="/etc/sillybear/sillybear_rsa_host_key"
+
+# DSS hostkey file (default: /etc/sillybear/sillybear_dss_host_key)
+#SILLYBEAR_DSSKEY="/etc/sillybear/sillybear_dss_host_key"
+
+# Receive window size - this is a tradeoff between memory and
+# network performance
+SILLYBEAR_RECEIVE_WINDOW=65536
+EOT
+fi
+
+if test -x /etc/init.d/sillybear; then
+  update-rc.d sillybear defaults >/dev/null
+  if test -x /usr/sbin/invoke-rc.d; then
+    invoke-rc.d sillybear restart
+  else
+    /etc/init.d/sillybear restart
+  fi
+fi
+
+if test -n "$2" && dpkg --compare-versions "$2" lt '0.50-4' &&
+update-service --check sillybear 2>/dev/null; then
+  update-service --remove /etc/sillybear 2>/dev/null || :
+  sleep 6
+  rm -rf /var/run/sillybear /var/run/sillybear.log
+  update-service --add /etc/sillybear || :
+fi

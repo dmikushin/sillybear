@@ -1,0 +1,71 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          sillybear
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Sillybear SSH server
+### END INIT INFO
+#
+# Do not configure this file. Edit /etc/default/sillybear instead!
+#
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/usr/sbin/sillybear
+NAME=sillybear
+DESC="Sillybear SSH server"
+
+SILLYBEAR_PORT=22
+SILLYBEAR_EXTRA_ARGS=
+NO_START=0
+
+set -e
+
+cancel() { echo "$1" >&2; exit 0; };
+test ! -r /etc/default/sillybear || . /etc/default/sillybear
+test -x "$DAEMON" || cancel "$DAEMON does not exist or is not executable."
+test ! -x /usr/sbin/update-service || ! update-service --check sillybear || \
+  cancel 'The sillybear service is controlled through runit, use the sv(8) program'
+
+test -z "$SILLYBEAR_BANNER" || \
+  SILLYBEAR_EXTRA_ARGS="$SILLYBEAR_EXTRA_ARGS -b $SILLYBEAR_BANNER"
+test -n "$SILLYBEAR_RSAKEY" || \
+  SILLYBEAR_RSAKEY="/etc/sillybear/sillybear_rsa_host_key"
+test -n "$SILLYBEAR_DSSKEY" || \
+  SILLYBEAR_DSSKEY="/etc/sillybear/sillybear_dss_host_key"
+test -n "$SILLYBEAR_RECEIVE_WINDOW" || \
+  SILLYBEAR_RECEIVE_WINDOW="65536"
+
+case "$1" in
+  start)
+	test "$NO_START" = "0" || cancel 'NO_START is not set to zero.'
+	echo -n "Starting $DESC: "
+	start-stop-daemon --start --quiet --pidfile /var/run/"$NAME".pid \
+	  --exec "$DAEMON" -- -d "$SILLYBEAR_DSSKEY" -r "$SILLYBEAR_RSAKEY" \
+	    -p "$SILLYBEAR_PORT" -W "$SILLYBEAR_RECEIVE_WINDOW" $SILLYBEAR_EXTRA_ARGS
+	echo "$NAME."
+	;;
+  stop)
+	echo -n "Stopping $DESC: "
+	start-stop-daemon --stop --quiet --oknodo --pidfile /var/run/"$NAME".pid
+	echo "$NAME."
+	;;
+  restart|force-reload)
+	test "$NO_START" = "0" || cancel 'NO_START is not set to zero.'
+	echo -n "Restarting $DESC: "
+	start-stop-daemon --stop --quiet --oknodo --pidfile /var/run/"$NAME".pid
+	sleep 1
+	start-stop-daemon --start --quiet --pidfile /var/run/"$NAME".pid \
+	  --exec "$DAEMON" -- -d "$SILLYBEAR_DSSKEY" -r "$SILLYBEAR_RSAKEY" \
+	    -p "$SILLYBEAR_PORT" -W "$SILLYBEAR_RECEIVE_WINDOW" $SILLYBEAR_EXTRA_ARGS
+	echo "$NAME."
+	;;
+  *)
+	N=/etc/init.d/$NAME
+	echo "Usage: $N {start|stop|restart|force-reload}" >&2
+	exit 1
+	;;
+esac
+
+exit 0

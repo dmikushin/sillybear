@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * Copyright (c) 2004 by Mihnea Stoenescu
@@ -32,7 +32,7 @@
 #include "auth.h"
 #include "agentfwd.h"
 
-#if DROPBEAR_CLI_PUBKEY_AUTH
+#if SILLYBEAR_CLI_PUBKEY_AUTH
 static void send_msg_userauth_pubkey(sign_key *key, enum signature_type sigtype, int realsign);
 
 /* Called when we receive a SSH_MSG_USERAUTH_FAILURE for a pubkey request.
@@ -66,9 +66,9 @@ void recv_msg_userauth_pk_ok() {
 
 	algotype = buf_getstring(ses.payload, &algolen);
 	sigtype = signature_type_from_name(algotype, algolen);
-	if (sigtype == DROPBEAR_SIGNATURE_NONE) {
+	if (sigtype == SILLYBEAR_SIGNATURE_NONE) {
 		/* Server replied with an algorithm that we didn't send */
-		dropbear_exit("Bad pk_ok");
+		sillybear_exit("Bad pk_ok");
 	}
 	keytype = signkey_type_from_signature(sigtype);
 	TRACE(("recv_msg_userauth_pk_ok: type %d", sigtype))
@@ -120,7 +120,7 @@ void recv_msg_userauth_pk_ok() {
 		 * password */
 		send_msg_userauth_pubkey((sign_key*)iter->item, sigtype, 1);
 	} else {
-		TRACE(("That was whacky. We got told that a key was valid, but it didn't match our list. Sounds like dodgy code on Dropbear's part"))
+		TRACE(("That was whacky. We got told that a key was valid, but it didn't match our list. Sounds like dodgy code on Sillybear's part"))
 	}
 	
 	TRACE(("leave recv_msg_userauth_pk_ok"))
@@ -128,7 +128,7 @@ void recv_msg_userauth_pk_ok() {
 
 static void cli_buf_put_sign(buffer* buf, sign_key *key, enum signature_type sigtype,
 			const buffer *data_buf) {
-#if DROPBEAR_CLI_AGENTFWD
+#if SILLYBEAR_CLI_AGENTFWD
 	/* TODO: rsa-sha256 agent */
 	if (key->source == SIGNKEY_SOURCE_AGENT) {
 		/* Format the agent signature ourselves, as buf_put_sign would. */
@@ -138,7 +138,7 @@ static void cli_buf_put_sign(buffer* buf, sign_key *key, enum signature_type sig
 		buf_putbufstring(buf, sigblob);
 		buf_free(sigblob);
 	} else 
-#endif /* DROPBEAR_CLI_AGENTFWD */
+#endif /* SILLYBEAR_CLI_AGENTFWD */
 	{
 		buf_put_sign(buf, key, sigtype, data_buf);
 	}
@@ -189,10 +189,10 @@ static void send_msg_userauth_pubkey(sign_key *key, enum signature_type sigtype,
 
 /* Returns 1 if a key was tried */
 int cli_auth_pubkey() {
-	enum signature_type sigtype = DROPBEAR_SIGNATURE_NONE;
+	enum signature_type sigtype = SILLYBEAR_SIGNATURE_NONE;
 	TRACE(("enter cli_auth_pubkey"))
 
-#if DROPBEAR_CLI_AGENTFWD
+#if SILLYBEAR_CLI_AGENTFWD
 	if (!cli_opts.agent_keys_loaded) {
 		/* get the list of available keys from the agent */
 		cli_load_agent_keys(cli_opts.privkeys);
@@ -205,33 +205,33 @@ int cli_auth_pubkey() {
  	while (cli_opts.privkeys->first) {
 		sign_key * key = (sign_key*)cli_opts.privkeys->first->item;
 		if (cli_ses.server_sig_algs) {
-#if DROPBEAR_RSA
-			if (key->type == DROPBEAR_SIGNKEY_RSA) {
-#if DROPBEAR_RSA_SHA256
+#if SILLYBEAR_RSA
+			if (key->type == SILLYBEAR_SIGNKEY_RSA) {
+#if SILLYBEAR_RSA_SHA256
 				if (buf_has_algo(cli_ses.server_sig_algs, SSH_SIGNATURE_RSA_SHA256) 
-						== DROPBEAR_SUCCESS) {
-					sigtype = DROPBEAR_SIGNATURE_RSA_SHA256;
+						== SILLYBEAR_SUCCESS) {
+					sigtype = SILLYBEAR_SIGNATURE_RSA_SHA256;
 					TRACE(("server-sig-algs allows rsa sha256"))
 					break;
 				}
-#endif /* DROPBEAR_RSA_SHA256 */
-#if DROPBEAR_RSA_SHA1
+#endif /* SILLYBEAR_RSA_SHA256 */
+#if SILLYBEAR_RSA_SHA1
 				if (buf_has_algo(cli_ses.server_sig_algs, SSH_SIGNKEY_RSA)
-						== DROPBEAR_SUCCESS) {
-					sigtype = DROPBEAR_SIGNATURE_RSA_SHA1;
+						== SILLYBEAR_SUCCESS) {
+					sigtype = SILLYBEAR_SIGNATURE_RSA_SHA1;
 					TRACE(("server-sig-algs allows rsa sha1"))
 					break;
 				}
-#endif /* DROPBEAR_RSA_SHA256 */
+#endif /* SILLYBEAR_RSA_SHA256 */
 			} else
-#endif /* DROPBEAR_RSA */
+#endif /* SILLYBEAR_RSA */
 			{
 				/* Not RSA */
 				const char *name = NULL;
 				sigtype = signature_type_from_signkey(key->type);
 				name = signature_name_from_type(sigtype, NULL);
 				if (buf_has_algo(cli_ses.server_sig_algs, name)
-						== DROPBEAR_SUCCESS) {
+						== SILLYBEAR_SUCCESS) {
 					TRACE(("server-sig-algs allows %s", name))
 					break;
 				}
@@ -245,10 +245,10 @@ int cli_auth_pubkey() {
 		} else {
 			/* Server didn't provide a server-sig-algs list, we'll 
 			   assume all except rsa-sha256 are OK. */
-#if DROPBEAR_RSA
-			if (key->type == DROPBEAR_SIGNKEY_RSA) {
-#if DROPBEAR_RSA_SHA1
-				sigtype = DROPBEAR_SIGNATURE_RSA_SHA1;
+#if SILLYBEAR_RSA
+			if (key->type == SILLYBEAR_SIGNKEY_RSA) {
+#if SILLYBEAR_RSA_SHA1
+				sigtype = SILLYBEAR_SIGNATURE_RSA_SHA1;
 				TRACE(("no server-sig-algs, using rsa sha1"))
 				break;
 #else
@@ -258,8 +258,8 @@ int cli_auth_pubkey() {
 				sign_key_free(key); 
 				continue;
 #endif
-			} /* key->type == DROPBEAR_SIGNKEY_RSA */
-#endif /* DROPBEAR_RSA */
+			} /* key->type == SILLYBEAR_SIGNKEY_RSA */
+#endif /* SILLYBEAR_RSA */
 			sigtype = signature_type_from_signkey(key->type);
 			TRACE(("no server-sig-algs, using key"))
 			break;
@@ -282,7 +282,7 @@ int cli_auth_pubkey() {
 
 void cli_auth_pubkey_cleanup() {
 
-#if DROPBEAR_CLI_AGENTFWD
+#if SILLYBEAR_CLI_AGENTFWD
 	m_close(cli_opts.agent_fd);
 	cli_opts.agent_fd = -1;
 #endif

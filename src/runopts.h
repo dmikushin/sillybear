@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  *
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,8 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_RUNOPTS_H_
-#define DROPBEAR_RUNOPTS_H_
+#ifndef SILLYBEAR_RUNOPTS_H_
+#define SILLYBEAR_RUNOPTS_H_
 
 #include "includes.h"
 #include "signkey.h"
@@ -34,8 +34,8 @@
 typedef struct runopts {
 
 	int disable_ip_tos;
-#if DROPBEAR_SVR_REMOTETCPFWD || DROPBEAR_CLI_LOCALTCPFWD \
-    || DROPBEAR_CLI_REMOTETCPFWD
+#if SILLYBEAR_SVR_REMOTETCPFWD || SILLYBEAR_CLI_LOCALTCPFWD \
+    || SILLYBEAR_CLI_REMOTETCPFWD
 	int listen_fwd_all;
 #endif
 	unsigned int recv_window;
@@ -49,7 +49,7 @@ typedef struct runopts {
 	int allow_compress;
 #endif
 
-#if DROPBEAR_USER_ALGO_LIST
+#if SILLYBEAR_USER_ALGO_LIST
 	const char *cipher_list;
 	const char *mac_list;
 #endif
@@ -71,9 +71,9 @@ typedef struct svr_runopts {
 
 	/* ports and addresses are arrays of the portcount
 	listening ports. strings are malloced. */
-	char *ports[DROPBEAR_MAX_PORTS];
+	char *ports[SILLYBEAR_MAX_PORTS];
 	unsigned int portcount;
-	char *addresses[DROPBEAR_MAX_PORTS];
+	char *addresses[SILLYBEAR_MAX_PORTS];
 
 	int inetdmode;
 	/* Hidden "-2 childpipe_fd" flag indicates it's re-executing itself,
@@ -106,10 +106,10 @@ typedef struct svr_runopts {
 	int multiauthmethod;
 	unsigned int maxauthtries;
 
-#if DROPBEAR_SVR_REMOTETCPFWD
+#if SILLYBEAR_SVR_REMOTETCPFWD
 	int noremotetcp;
 #endif
-#if DROPBEAR_SVR_LOCALANYFWD
+#if SILLYBEAR_SVR_LOCALANYFWD
 	int nolocaltcp;
 #endif
 
@@ -128,7 +128,7 @@ typedef struct svr_runopts {
 	char * forced_command;
 	char* interface;
 
-#if DROPBEAR_PLUGIN
+#if SILLYBEAR_PLUGIN
 	/* malloced */
 	char *pubkey_plugin;
 	/* points into pubkey_plugin */
@@ -164,10 +164,10 @@ typedef struct cli_runopts {
 	int quiet;
 	int backgrounded;
 	int is_subsystem;
-#if DROPBEAR_CLI_PUBKEY_AUTH
+#if SILLYBEAR_CLI_PUBKEY_AUTH
 	m_list *privkeys; /* Keys to use for public-key auth */
 #endif
-#if DROPBEAR_CLI_ANYTCPFWD
+#if SILLYBEAR_CLI_ANYTCPFWD
 	int exit_on_fwd_failure;
 #endif
 	int disable_trivial_auth;
@@ -176,13 +176,13 @@ typedef struct cli_runopts {
 	int password_authentication;
 	/* -o BatchMode=yes, suppress interactive questions */
 	int batch_mode;
-#if DROPBEAR_CLI_REMOTETCPFWD
+#if SILLYBEAR_CLI_REMOTETCPFWD
 	m_list * remotefwds;
 #endif
-#if DROPBEAR_CLI_LOCALTCPFWD
+#if SILLYBEAR_CLI_LOCALTCPFWD
 	m_list * localfwds;
 #endif
-#if DROPBEAR_CLI_AGENTFWD
+#if SILLYBEAR_CLI_AGENTFWD
 	int agent_fwd;
 	int agent_keys_loaded; /* whether pubkeys has been populated with a
 							  list of keys held by the agent */
@@ -190,15 +190,15 @@ typedef struct cli_runopts {
 	                 agent sessions have their own file descriptors */
 #endif
 
-#if DROPBEAR_CLI_NETCAT
+#if SILLYBEAR_CLI_NETCAT
 	char *netcat_host;
 	unsigned int netcat_port;
 #endif
-#if DROPBEAR_CLI_PROXYCMD
+#if SILLYBEAR_CLI_PROXYCMD
 	/* A proxy command to run via the user's shell */
 	char *proxycmd;
 #endif
-#if DROPBEAR_CLI_MULTIHOP
+#if SILLYBEAR_CLI_MULTIHOP
 	/* Similar to proxycmd, but is arguments for execve(), not shell */
 	char **proxyexec;
 #endif
@@ -211,7 +211,7 @@ typedef struct cli_runopts {
 extern cli_runopts cli_opts;
 void cli_getopts(int argc, char ** argv);
 
-#if DROPBEAR_USER_ALGO_LIST
+#if SILLYBEAR_USER_ALGO_LIST
 void parse_ciphers_macs(void);
 #endif
 
@@ -219,12 +219,12 @@ void print_version(void);
 void parse_recv_window(const char* recv_window_arg);
 int split_address_port(const char* spec, char **first, char ** second);
 
-#if DROPBEAR_CLI_PUBKEY_AUTH
+#if SILLYBEAR_CLI_PUBKEY_AUTH
 void loadidentityfile(const char* filename, int warnfail);
 #endif
 
-#if DROPBEAR_USE_SSH_CONFIG
+#if SILLYBEAR_USE_SSH_CONFIG
 void read_config_file(char* filename, FILE* config_file, cli_runopts* options);
 #endif
 
-#endif /* DROPBEAR_RUNOPTS_H_ */
+#endif /* SILLYBEAR_RUNOPTS_H_ */

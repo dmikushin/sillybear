@@ -1,4 +1,4 @@
-from test_dropbear import *
+from test_sillybear import *
 import signal
 import queue
 import socket
@@ -9,22 +9,22 @@ from pathlib import Path
 
 # Requires keyfile and authorized_keys set up in github action build.yml
 @pytest.mark.skipif('DBTEST_IN_ACTION' not in os.environ, reason="DBTEST_IN_ACTION not set")
-def test_pubkeyinfo(request, dropbear):
-	kf = str(Path.home() / ".ssh/id_dropbear_key2")
+def test_pubkeyinfo(request, sillybear):
+	kf = str(Path.home() / ".ssh/id_sillybear_key2")
 	r = dbclient(request, "-i", kf, "echo -n $SSH_PUBKEYINFO", capture_output=True)
 	# stop at first space
 	assert r.stdout.decode() == "key2"
 
 @pytest.mark.skipif('DBTEST_IN_ACTION' not in os.environ, reason="DBTEST_IN_ACTION not set")
-def test_pubkeyinfo_special(request, dropbear):
-	kf = str(Path.home() / ".ssh/id_dropbear_key3")
+def test_pubkeyinfo_special(request, sillybear):
+	kf = str(Path.home() / ".ssh/id_sillybear_key3")
 	r = dbclient(request, "-i", kf, "echo -n $SSH_PUBKEYINFO", capture_output=True)
 	# comment contains special characters so the SSH_PUBKEYINFO should not be set
 	assert r.stdout.decode() == ""
 
 @pytest.mark.skipif('DBTEST_IN_ACTION' not in os.environ, reason="DBTEST_IN_ACTION not set")
-def test_pubkeyinfo_okchar(request, dropbear):
-	kf = str(Path.home() / ".ssh/id_dropbear_key4")
+def test_pubkeyinfo_okchar(request, sillybear):
+	kf = str(Path.home() / ".ssh/id_sillybear_key4")
 	r = dbclient(request, "-i", kf, "echo -n $SSH_PUBKEYINFO", capture_output=True)
 	# comment contains special characters so the SSH_PUBKEYINFO should not be set
 	assert r.stdout.decode() == "key4,char"

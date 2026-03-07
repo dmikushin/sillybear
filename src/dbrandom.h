@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,8 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_RANDOM_H_
-#define DROPBEAR_RANDOM_H_
+#ifndef SILLYBEAR_RANDOM_H_
+#define SILLYBEAR_RANDOM_H_
 
 #include "includes.h"
 
@@ -32,4 +32,4 @@ void genrandom(unsigned char* buf, unsigned int len);
 void addrandom(const unsigned char * buf, unsigned int len);
 void gen_random_mpint(const mp_int *max, mp_int *rand);
 
-#endif /* DROPBEAR_RANDOM_H_ */
+#endif /* SILLYBEAR_RANDOM_H_ */

@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,9 +22,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_BUFFER_H_
+#ifndef SILLYBEAR_BUFFER_H_
 
-#define DROPBEAR_BUFFER_H_
+#define SILLYBEAR_BUFFER_H_
 
 #include "includes.h"
 
@@ -70,4 +70,4 @@ void buf_putmpint(buffer* buf, const mp_int * mp);
 int buf_getmpint(buffer* buf, mp_int* mp);
 unsigned int buf_getint(buffer* buf);
 
-#endif /* DROPBEAR_BUFFER_H_ */
+#endif /* SILLYBEAR_BUFFER_H_ */

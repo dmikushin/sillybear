@@ -9,7 +9,7 @@ else
     TESTREL=0
 fi
 
-VERSION=$(echo '#include "src/default_options.h"\n#include "src/sysoptions.h"\necho DROPBEAR_VERSION' | cpp -DHAVE_CRYPT -DHAVE_SETRESGID - | sh)
+VERSION=$(echo '#include "src/default_options.h"\n#include "src/sysoptions.h"\necho SILLYBEAR_VERSION' | cpp -DHAVE_CRYPT -DHAVE_SETRESGID - | sh)
 
 if [ $TESTREL -eq 1 ]; then
     echo Making test tarball for "$VERSION" ...
@@ -36,7 +36,7 @@ else
     TARSUFFIX=""
 fi
 
-RELDIR=$WORKDIR/dropbear-$VERSION
+RELDIR=$WORKDIR/sillybear-$VERSION
 ARCHIVE=${RELDIR}${TARSUFFIX}.tar.bz2
 
 head -n1 CHANGES
@@ -57,7 +57,7 @@ if test -e $ARCHIVE; then
 	exit 1
 fi
 
-git -c tar.umask=0022 archive --format tar -o /dev/stdout --prefix=dropbear-$VERSION/ HEAD | tar xf - -C $WORKDIR || exit 2
+git -c tar.umask=0022 archive --format tar -o /dev/stdout --prefix=sillybear-$VERSION/ HEAD | tar xf - -C $WORKDIR || exit 2
 
 chmod -R a+rX $RELDIR
 

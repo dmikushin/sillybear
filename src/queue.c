@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -42,7 +42,7 @@ void* dequeue(struct Queue* queue) {
 
 	void* ret;
 	struct Link* oldhead;
-	dropbear_assert(!isempty(queue));
+	sillybear_assert(!isempty(queue));
 	
 	ret = queue->head->item;
 	oldhead = queue->head;
@@ -62,7 +62,7 @@ void* dequeue(struct Queue* queue) {
 
 void *examine(const struct Queue* queue) {
 
-	dropbear_assert(!isempty(queue));
+	sillybear_assert(!isempty(queue));
 	return queue->head->item;
 }
 

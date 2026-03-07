@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * Copyright (c) 2020 by Vladislav Grishenko
@@ -23,22 +23,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_DROPBEAR_CHACHAPOLY_H_
-#define DROPBEAR_DROPBEAR_CHACHAPOLY_H_
+#ifndef SILLYBEAR_SILLYBEAR_CHACHAPOLY_H_
+#define SILLYBEAR_SILLYBEAR_CHACHAPOLY_H_
 
 #include "includes.h"
 #include "algo.h"
 
-#if DROPBEAR_CHACHA20POLY1305
+#if SILLYBEAR_CHACHA20POLY1305
 
 typedef struct {
 	chacha_state chacha;
 	chacha_state header;
-} dropbear_chachapoly_state;
+} sillybear_chachapoly_state;
 
-extern const struct dropbear_cipher dropbear_chachapoly;
-extern const struct dropbear_cipher_mode dropbear_mode_chachapoly;
+extern const struct sillybear_cipher sillybear_chachapoly;
+extern const struct sillybear_cipher_mode sillybear_mode_chachapoly;
 
-#endif /* DROPBEAR_CHACHA20POLY1305 */
+#endif /* SILLYBEAR_CHACHA20POLY1305 */
 
-#endif /* DROPBEAR_DROPBEAR_CHACHAPOLY_H_ */
+#endif /* SILLYBEAR_SILLYBEAR_CHACHAPOLY_H_ */

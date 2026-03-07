@@ -5,13 +5,13 @@ SHELL=bash
 all: test
 
 test: venv/bin/pytest fakekey
-	(source ./venv/bin/activate; pytest --hostkey=fakekey --dbclient=../dbclient --dropbear=../dropbear $(srcdir) )
+	(source ./venv/bin/activate; pytest --hostkey=fakekey --dbclient=../dbclient --sillybear=../sillybear $(srcdir) )
 
 one: venv/bin/pytest fakekey
-	(source ./venv/bin/activate; pytest --hostkey=fakekey --dbclient=../dbclient --dropbear=../dropbear $(srcdir) -k exit)
+	(source ./venv/bin/activate; pytest --hostkey=fakekey --dbclient=../dbclient --sillybear=../sillybear $(srcdir) -k exit)
 
 fakekey:
-	../dropbearkey -t ecdsa -f $@
+	../sillybearkey -t ecdsa -f $@
 
 venv/bin/pytest: $(srcdir)/requirements.txt
 	python3 -m venv init venv

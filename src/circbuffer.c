@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002-2004 Matt Johnston
  * All rights reserved.
@@ -33,7 +33,7 @@ circbuffer * cbuf_new(unsigned int size) {
 	circbuffer *cbuf = NULL;
 
 	if (size > MAX_CBUF_SIZE) {
-		dropbear_exit("Bad cbuf size");
+		sillybear_exit("Bad cbuf size");
 	}
 
 	cbuf = (circbuffer*)m_malloc(sizeof(circbuffer));
@@ -70,9 +70,9 @@ unsigned int cbuf_getavail(const circbuffer * cbuf) {
 
 unsigned int cbuf_writelen(const circbuffer *cbuf) {
 
-	dropbear_assert(cbuf->used <= cbuf->size);
-	dropbear_assert(((2*cbuf->size)+cbuf->writepos-cbuf->readpos)%cbuf->size == cbuf->used%cbuf->size);
-	dropbear_assert(((2*cbuf->size)+cbuf->readpos-cbuf->writepos)%cbuf->size == (cbuf->size-cbuf->used)%cbuf->size);
+	sillybear_assert(cbuf->used <= cbuf->size);
+	sillybear_assert(((2*cbuf->size)+cbuf->writepos-cbuf->readpos)%cbuf->size == cbuf->used%cbuf->size);
+	sillybear_assert(((2*cbuf->size)+cbuf->readpos-cbuf->writepos)%cbuf->size == (cbuf->size-cbuf->used)%cbuf->size);
 
 	if (cbuf->used == cbuf->size) {
 		TRACE(("cbuf_writelen: full buffer"))
@@ -104,7 +104,7 @@ void cbuf_readptrs(const circbuffer *cbuf,
 unsigned char* cbuf_writeptr(circbuffer *cbuf, unsigned int len) {
 
 	if (len > cbuf_writelen(cbuf)) {
-		dropbear_exit("Bad cbuf write");
+		sillybear_exit("Bad cbuf write");
 	}
 
 	if (!cbuf->data) {
@@ -117,17 +117,17 @@ unsigned char* cbuf_writeptr(circbuffer *cbuf, unsigned int len) {
 
 void cbuf_incrwrite(circbuffer *cbuf, unsigned int len) {
 	if (len > cbuf_writelen(cbuf)) {
-		dropbear_exit("Bad cbuf write");
+		sillybear_exit("Bad cbuf write");
 	}
 
 	cbuf->used += len;
-	dropbear_assert(cbuf->used <= cbuf->size);
+	sillybear_assert(cbuf->used <= cbuf->size);
 	cbuf->writepos = (cbuf->writepos + len) % cbuf->size;
 }
 
 
 void cbuf_incrread(circbuffer *cbuf, unsigned int len) {
-	dropbear_assert(cbuf->used >= len);
+	sillybear_assert(cbuf->used >= len);
 	cbuf->used -= len;
 	cbuf->readpos = (cbuf->readpos + len) % cbuf->size;
 }

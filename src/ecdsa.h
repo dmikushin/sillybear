@@ -1,19 +1,19 @@
-#ifndef DROPBEAR_ECDSA_H_
-#define DROPBEAR_ECDSA_H_
+#ifndef SILLYBEAR_ECDSA_H_
+#define SILLYBEAR_ECDSA_H_
 
 #include "includes.h"
 #include "buffer.h"
 #include "signkey.h"
 
-#if DROPBEAR_ECDSA
+#if SILLYBEAR_ECDSA
 
 /* prefer 256 or 384 since those are SHOULD for
    draft-ietf-curdle-ssh-kex-sha2.txt */
-#if DROPBEAR_ECC_256
+#if SILLYBEAR_ECC_256
 #define ECDSA_DEFAULT_SIZE 256
-#elif DROPBEAR_ECC_384
+#elif SILLYBEAR_ECC_384
 #define ECDSA_DEFAULT_SIZE 384
-#elif DROPBEAR_ECC_521
+#elif SILLYBEAR_ECC_521
 #define ECDSA_DEFAULT_SIZE 521
 #else
 #error ECDSA cannot be enabled without enabling at least one size (256, 384, 521)
@@ -33,4 +33,4 @@ int signkey_is_ecdsa(enum signkey_type type);
 
 #endif
 
-#endif /* DROPBEAR_ECDSA_H_ */
+#endif /* SILLYBEAR_ECDSA_H_ */

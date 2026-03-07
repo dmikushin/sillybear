@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,35 +22,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_ED25519_H_
-#define DROPBEAR_ED25519_H_
+#ifndef SILLYBEAR_ED25519_H_
+#define SILLYBEAR_ED25519_H_
 
 #include "includes.h"
 #include "buffer.h"
 #include "signkey.h"
 
-#if DROPBEAR_ED25519 
+#if SILLYBEAR_ED25519 
 
 #define CURVE25519_LEN 32
 
-typedef struct dropbear_ED25519_Key {
+typedef struct sillybear_ED25519_Key {
 
 	unsigned char priv[CURVE25519_LEN];
 	unsigned char pub[CURVE25519_LEN];
 
-} dropbear_ed25519_key;
+} sillybear_ed25519_key;
 
-void buf_put_ed25519_sign(buffer* buf, const dropbear_ed25519_key *key, const buffer *data_buf);
-#if DROPBEAR_SIGNKEY_VERIFY
-int buf_ed25519_verify(buffer * buf, const dropbear_ed25519_key *key, const buffer *data_buf);
+void buf_put_ed25519_sign(buffer* buf, const sillybear_ed25519_key *key, const buffer *data_buf);
+#if SILLYBEAR_SIGNKEY_VERIFY
+int buf_ed25519_verify(buffer * buf, const sillybear_ed25519_key *key, const buffer *data_buf);
 #endif
-int buf_get_ed25519_pub_key(buffer *buf, dropbear_ed25519_key *key,
+int buf_get_ed25519_pub_key(buffer *buf, sillybear_ed25519_key *key,
         enum signkey_type expect_keytype);
-int buf_get_ed25519_priv_key(buffer* buf, dropbear_ed25519_key *key);
-void buf_put_ed25519_pub_key(buffer* buf, const dropbear_ed25519_key *key);
-void buf_put_ed25519_priv_key(buffer* buf, const dropbear_ed25519_key *key);
-void ed25519_key_free(dropbear_ed25519_key *key);
+int buf_get_ed25519_priv_key(buffer* buf, sillybear_ed25519_key *key);
+void buf_put_ed25519_pub_key(buffer* buf, const sillybear_ed25519_key *key);
+void buf_put_ed25519_priv_key(buffer* buf, const sillybear_ed25519_key *key);
+void ed25519_key_free(sillybear_ed25519_key *key);
 
-#endif /* DROPBEAR_ED25519 */
+#endif /* SILLYBEAR_ED25519 */
 
-#endif /* DROPBEAR_ED25519_H_ */
+#endif /* SILLYBEAR_ED25519_H_ */

@@ -10,6 +10,6 @@ package is installed, and set DEB_BUILD_OPTIONS=diet in the environment
 when building the package, e.g.:
 
  # apt-get install dietlibc-dev
- $ DEB_BUILD_OPTIONS=diet fakeroot apt-get source -b dropbear
+ $ DEB_BUILD_OPTIONS=diet fakeroot apt-get source -b sillybear
 
  -- Gerrit Pape <pape@smarden.org>, Sat, 17 Jul 2004 19:09:34 +0000

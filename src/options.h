@@ -1,5 +1,5 @@
-#ifndef DROPBEAR_OPTIONS_H
-#define DROPBEAR_OPTIONS_H
+#ifndef SILLYBEAR_OPTIONS_H
+#define SILLYBEAR_OPTIONS_H
 
 /*
 Local compile-time configuration should be defined in localoptions.h
@@ -28,4 +28,4 @@ See default_options.h.in for a description of the available options.
  * in sysoptions.h */
 #include "sysoptions.h"
 
-#endif /* DROPBEAR_OPTIONS_H */
+#endif /* SILLYBEAR_OPTIONS_H */

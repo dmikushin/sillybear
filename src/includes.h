@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,8 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_INCLUDES_H_
-#define DROPBEAR_INCLUDES_H_
+#ifndef SILLYBEAR_INCLUDES_H_
+#define SILLYBEAR_INCLUDES_H_
 
 #include "options.h"
 #include "debug.h"
@@ -180,7 +180,7 @@ typedef u_int32_t uint32_t;
 #include <linux/pkt_sched.h>
 #endif
 
-#if DROPBEAR_PLUGIN
+#if SILLYBEAR_PLUGIN
 #include <dlfcn.h>
 #endif
 
@@ -216,4 +216,4 @@ extern char** environ;
 #endif
 #endif
 
-#endif /* DROPBEAR_INCLUDES_H_ */
+#endif /* SILLYBEAR_INCLUDES_H_ */

@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -68,7 +68,7 @@ void write_packet() {
 #endif
 	
 	TRACE2(("enter write_packet"))
-	dropbear_assert(!isempty(&ses.writequeue));
+	sillybear_assert(!isempty(&ses.writequeue));
 
 #if defined(HAVE_WRITEV) && (defined(IOV_MAX) || defined(UIO_MAXIOV))
 
@@ -76,7 +76,7 @@ void write_packet() {
 	/* This may return EAGAIN. The main loop sometimes
 	calls write_packet() without bothering to test with select() since
 	it's likely to be necessary */
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (fuzz.fuzzing) {
 		/* pretend to write one packet at a time */
 		/* TODO(fuzz): randomise amount written based on the fuzz input */
@@ -91,7 +91,7 @@ void write_packet() {
 			TRACE2(("leave write_packet: EINTR"))
 			return;
 		} else {
-			dropbear_exit("Error writing: %s", strerror(errno));
+			sillybear_exit("Error writing: %s", strerror(errno));
 		}
 	}
 	}
@@ -104,14 +104,14 @@ void write_packet() {
 	}
 
 #else /* No writev () */
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	_Static_assert(0, "No fuzzing code for no-writev writes");
 #endif
 	/* Get the next buffer in the queue of encrypted packets to write*/
 	writebuf = (buffer*)examine(&ses.writequeue);
 
 	len = writebuf->len - writebuf->pos;
-	dropbear_assert(len > 0);
+	sillybear_assert(len > 0);
 	/* Try to write as much as possible */
 	written = write(ses.sock_out, buf_getptr(writebuf, len), len);
 
@@ -120,7 +120,7 @@ void write_packet() {
 			TRACE2(("leave writepacket: EINTR"))
 			return;
 		} else {
-			dropbear_exit("Error writing: %s", strerror(errno));
+			sillybear_exit("Error writing: %s", strerror(errno));
 		}
 	} 
 
@@ -164,7 +164,7 @@ void read_packet() {
 		 * find the length of the whole packet */
 		ret = read_packet_init();
 
-		if (ret == DROPBEAR_FAILURE) {
+		if (ret == SILLYBEAR_FAILURE) {
 			/* didn't read enough to determine the length */
 			TRACE2(("leave read_packet: packetinit done"))
 			return;
@@ -191,7 +191,7 @@ void read_packet() {
 				TRACE2(("leave read_packet: EINTR or EAGAIN"))
 				return;
 			} else {
-				dropbear_exit("Error reading: %s", strerror(errno));
+				sillybear_exit("Error reading: %s", strerror(errno));
 			}
 		}
 
@@ -209,8 +209,8 @@ void read_packet() {
 
 /* Function used to read the initial portion of a packet, and determine the
  * length. Only called during the first BLOCKSIZE of a packet. */
-/* Returns DROPBEAR_SUCCESS if the length is determined, 
- * DROPBEAR_FAILURE otherwise */
+/* Returns SILLYBEAR_SUCCESS if the length is determined, 
+ * SILLYBEAR_FAILURE otherwise */
 static int read_packet_init() {
 
 	unsigned int maxlen;
@@ -239,28 +239,28 @@ static int read_packet_init() {
 	if (slen < 0) {
 		if (errno == EINTR || errno == EAGAIN) {
 			TRACE2(("leave read_packet_init: EINTR"))
-			return DROPBEAR_FAILURE;
+			return SILLYBEAR_FAILURE;
 		}
-		dropbear_exit("Error reading: %s", strerror(errno));
+		sillybear_exit("Error reading: %s", strerror(errno));
 	}
 
 	buf_incrwritepos(ses.readbuf, slen);
 
 	if ((unsigned int)slen != maxlen) {
 		/* don't have enough bytes to determine length, get next time */
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	}
 
 	/* now we have the first block, need to get packet length, so we decrypt
 	 * the first block (only need first 4 bytes) */
 	buf_setpos(ses.readbuf, 0);
-#if DROPBEAR_AEAD_MODE
+#if SILLYBEAR_AEAD_MODE
 	if (ses.keys->recv.crypt_mode->aead_crypt) {
 		if (ses.keys->recv.crypt_mode->aead_getlength(ses.recvseq,
 					buf_getptr(ses.readbuf, blocksize), &plen,
 					blocksize,
 					&ses.keys->recv.cipher_state) != CRYPT_OK) {
-			dropbear_exit("Error decrypting");
+			sillybear_exit("Error decrypting");
 		}
 		len = plen + 4 + macsize;
 	} else
@@ -270,7 +270,7 @@ static int read_packet_init() {
 					buf_getwriteptr(ses.readbuf, blocksize),
 					blocksize,
 					&ses.keys->recv.cipher_state) != CRYPT_OK) {
-			dropbear_exit("Error decrypting");
+			sillybear_exit("Error decrypting");
 		}
 		plen = buf_getint(ses.readbuf) + 4;
 		len = plen + macsize;
@@ -283,7 +283,7 @@ static int read_packet_init() {
 	if ((len > RECV_MAX_PACKET_LEN) ||
 		(plen < blocksize) ||
 		(plen % blocksize != 0)) {
-		dropbear_exit("Integrity error (bad packet size %u)", len);
+		sillybear_exit("Integrity error (bad packet size %u)", len);
 	}
 
 	if (len > ses.readbuf->size) {
@@ -291,7 +291,7 @@ static int read_packet_init() {
 	}
 	buf_setlen(ses.readbuf, len);
 	buf_setpos(ses.readbuf, blocksize);
-	return DROPBEAR_SUCCESS;
+	return SILLYBEAR_SUCCESS;
 }
 
 /* handle the received packet */
@@ -308,7 +308,7 @@ void decrypt_packet() {
 
 	ses.kexstate.datarecv += ses.readbuf->len;
 
-#if DROPBEAR_AEAD_MODE
+#if SILLYBEAR_AEAD_MODE
 	if (ses.keys->recv.crypt_mode->aead_crypt) {
 		/* first blocksize is not decrypted yet */
 		buf_setpos(ses.readbuf, 0);
@@ -320,7 +320,7 @@ void decrypt_packet() {
 					buf_getwriteptr(ses.readbuf, len),
 					len, macsize,
 					&ses.keys->recv.cipher_state, LTC_DECRYPT) != CRYPT_OK) {
-			dropbear_exit("Error decrypting");
+			sillybear_exit("Error decrypting");
 		}
 		buf_incrpos(ses.readbuf, len);
 	} else
@@ -336,18 +336,18 @@ void decrypt_packet() {
 					buf_getwriteptr(ses.readbuf, len),
 					len,
 					&ses.keys->recv.cipher_state) != CRYPT_OK) {
-			dropbear_exit("Error decrypting");
+			sillybear_exit("Error decrypting");
 		}
 		buf_incrpos(ses.readbuf, len);
 
 		/* check the hmac */
-		if (checkmac() != DROPBEAR_SUCCESS) {
-			dropbear_exit("Integrity error");
+		if (checkmac() != SILLYBEAR_SUCCESS) {
+			sillybear_exit("Integrity error");
 		}
 
 	}
 	
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	fuzz_dump(ses.readbuf->data, ses.readbuf->len);
 #endif
 
@@ -359,7 +359,7 @@ void decrypt_packet() {
 	/* - 4 - 1 is for LEN and PADLEN values */
 	len = ses.readbuf->len - padlen - 4 - 1 - macsize;
 	if ((len > RECV_MAX_PAYLOAD_LEN+ZLIB_COMPRESS_EXPANSION) || (len < 1)) {
-		dropbear_exit("Bad packet size %u", len);
+		sillybear_exit("Bad packet size %u", len);
 	}
 
 	buf_setpos(ses.readbuf, PACKET_PAYLOAD_OFF);
@@ -386,7 +386,7 @@ void decrypt_packet() {
 }
 
 /* Checks the mac at the end of a decrypted readbuf.
- * Returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+ * Returns SILLYBEAR_SUCCESS or SILLYBEAR_FAILURE */
 static int checkmac() {
 
 	unsigned char mac_bytes[MAX_MAC_LEN];
@@ -398,7 +398,7 @@ static int checkmac() {
 	buf_setpos(ses.readbuf, 0);
 	make_mac(ses.recvseq, &ses.keys->recv, ses.readbuf, contents_len, mac_bytes);
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (fuzz.fuzzing) {
 	 	/* fail 1 in 2000 times to test error path. */
 		unsigned int value = 0;
@@ -406,18 +406,18 @@ static int checkmac() {
 			memcpy(&value, mac_bytes, sizeof(value));
 		}
 		if (value % 2000 == 99) {
-			return DROPBEAR_FAILURE;
+			return SILLYBEAR_FAILURE;
 		}
-		return DROPBEAR_SUCCESS;
+		return SILLYBEAR_SUCCESS;
 	}
 #endif
 
 	/* compare the hash */
 	buf_setpos(ses.readbuf, contents_len);
 	if (constant_time_memcmp(mac_bytes, buf_getptr(ses.readbuf, mac_size), mac_size) != 0) {
-		return DROPBEAR_FAILURE;
+		return SILLYBEAR_FAILURE;
 	} else {
-		return DROPBEAR_SUCCESS;
+		return SILLYBEAR_SUCCESS;
 	}
 }
 
@@ -441,7 +441,7 @@ static buffer* buf_decompress(const buffer* buf, unsigned int len) {
 
 	result = inflate(zstream, Z_SYNC_FLUSH);
 	if (result != Z_OK) {
-		dropbear_exit("zlib error");
+		sillybear_exit("zlib error");
 	}
 
 	buf_setlen(ret, ret->size - zstream->avail_out);
@@ -450,7 +450,7 @@ static buffer* buf_decompress(const buffer* buf, unsigned int len) {
 		/* The remote side sent larger than a payload size
 		 * of uncompressed data.
 		 */
-		dropbear_exit("bad packet, oversized decompressed");
+		sillybear_exit("bad packet, oversized decompressed");
 	}
 
 	/* Success. All input was consumed and avail_out > 0 */
@@ -587,7 +587,7 @@ void encrypt_packet() {
 	 * field in aead mode must be a multiple of blocksize, with a minimum of
 	 * 4 bytes of padding */
 	len = writebuf->len;
-#if DROPBEAR_AEAD_MODE
+#if SILLYBEAR_AEAD_MODE
 	if (ses.keys->trans.crypt_mode->aead_crypt) {
 		len -= 4;
 	}
@@ -612,7 +612,7 @@ void encrypt_packet() {
 	buf_incrlen(writebuf, padlen);
 	genrandom(buf_getptr(writebuf, padlen), padlen);
 
-#if DROPBEAR_AEAD_MODE
+#if SILLYBEAR_AEAD_MODE
 	if (ses.keys->trans.crypt_mode->aead_crypt) {
 		/* do the actual encryption, in-place */
 		buf_setpos(writebuf, 0);
@@ -624,7 +624,7 @@ void encrypt_packet() {
 					buf_getwriteptr(writebuf, len + mac_size),
 					len, mac_size,
 					&ses.keys->trans.cipher_state, LTC_ENCRYPT) != CRYPT_OK) {
-			dropbear_exit("Error encrypting");
+			sillybear_exit("Error encrypting");
 		}
 		buf_incrpos(writebuf, len + mac_size);
 	} else
@@ -641,7 +641,7 @@ void encrypt_packet() {
 					buf_getwriteptr(writebuf, len),
 					len,
 					&ses.keys->trans.cipher_state) != CRYPT_OK) {
-			dropbear_exit("Error encrypting");
+			sillybear_exit("Error encrypting");
 		}
 		buf_incrpos(writebuf, len);
 
@@ -695,13 +695,13 @@ static void make_mac(unsigned int seqno, const struct key_context_directional * 
 					key_state->hash_index,
 					key_state->mackey,
 					key_state->algo_mac->keysize) != CRYPT_OK) {
-			dropbear_exit("HMAC error");
+			sillybear_exit("HMAC error");
 		}
 	
 		/* sequence number */
 		STORE32H(seqno, seqbuf);
 		if (hmac_process(&hmac, seqbuf, 4) != CRYPT_OK) {
-			dropbear_exit("HMAC error");
+			sillybear_exit("HMAC error");
 		}
 	
 		/* the actual contents */
@@ -709,12 +709,12 @@ static void make_mac(unsigned int seqno, const struct key_context_directional * 
 		if (hmac_process(&hmac, 
 					buf_getptr(clear_buf, clear_len),
 					clear_len) != CRYPT_OK) {
-			dropbear_exit("HMAC error");
+			sillybear_exit("HMAC error");
 		}
 	
 		bufsize = MAX_MAC_LEN;
 		if (hmac_done(&hmac, output_mac, &bufsize) != CRYPT_OK) {
-			dropbear_exit("HMAC error");
+			sillybear_exit("HMAC error");
 		}
 	}
 	TRACE2(("leave writemac"))
@@ -731,7 +731,7 @@ static void buf_compress(buffer * dest, buffer * src, unsigned int len) {
 
 	TRACE2(("enter buf_compress"))
 
-	dropbear_assert(dest->size - dest->pos >= len+ZLIB_COMPRESS_EXPANSION);
+	sillybear_assert(dest->size - dest->pos >= len+ZLIB_COMPRESS_EXPANSION);
 
 	ses.keys->trans.zstream->avail_in = endpos - src->pos;
 	ses.keys->trans.zstream->next_in = 
@@ -748,11 +748,11 @@ static void buf_compress(buffer * dest, buffer * src, unsigned int len) {
 	buf_setpos(dest, dest->len);
 
 	if (result != Z_OK) {
-		dropbear_exit("zlib error");
+		sillybear_exit("zlib error");
 	}
 
 	/* fails if destination buffer wasn't large enough */
-	dropbear_assert(ses.keys->trans.zstream->avail_in == 0);
+	sillybear_assert(ses.keys->trans.zstream->avail_in == 0);
 	TRACE2(("leave buf_compress"))
 }
 #endif

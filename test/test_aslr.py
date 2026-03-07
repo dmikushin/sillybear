@@ -1,14 +1,14 @@
 from pathlib import Path
 import sys
 
-from test_dropbear import *
+from test_sillybear import *
 
-def test_reexec(request, dropbear):
+def test_reexec(request, sillybear):
 	"""
 	Tests that two consecutive connections have different address layouts.
 	This indicates that re-exec makes ASLR work
 	"""
-	map_script = (Path(request.node.fspath).parent / "parent_dropbear_map.py").resolve()
+	map_script = (Path(request.node.fspath).parent / "parent_sillybear_map.py").resolve()
 	activate = own_venv_command()
 	if activate == "":
 		cmd = map_script
@@ -29,8 +29,8 @@ def test_reexec(request, dropbear):
 	print(map1)
 	print(map2)
 	# expect something like
-	# "563174d59000-563174d5d000 r--p 00000000 00:29 4242372                    /home/matt/src/dropbear/build/dropbear"
-	assert map1.endswith('/dropbear') or map1.endswith('/dropbearmulti')
+	# "563174d59000-563174d5d000 r--p 00000000 00:29 4242372                    /home/matt/src/sillybear/build/sillybear"
+	assert map1.endswith('/sillybear') or map1.endswith('/sillybearmulti')
 	a1 = map1.split()[0]
 	a2 = map2.split()[0]
 	print(a1)

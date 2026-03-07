@@ -1,9 +1,9 @@
-#ifndef DROPBEAR_CRYPTO_DESC_H
-#define DROPBEAR_CRYPTO_DESC_H
+#ifndef SILLYBEAR_CRYPTO_DESC_H
+#define SILLYBEAR_CRYPTO_DESC_H
 
 void crypto_init(void);
 
-extern int dropbear_ltc_prng;
+extern int sillybear_ltc_prng;
 
-#endif /* DROPBEAR_CRYPTO_DESC_H */
+#endif /* SILLYBEAR_CRYPTO_DESC_H */
 

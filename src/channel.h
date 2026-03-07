@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,8 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_CHANNEL_H_
-#define DROPBEAR_CHANNEL_H_
+#ifndef SILLYBEAR_CHANNEL_H_
+#define SILLYBEAR_CHANNEL_H_
 
 #include "includes.h"
 #include "buffer.h"
@@ -70,7 +70,7 @@ struct Channel {
 	(not waiting for EOF) */
 	int flushing;
 
-	struct dropbear_progress_connection *conn_pending;
+	struct sillybear_progress_connection *conn_pending;
 	int initconn; /* used for TCP forwarding, whether the channel has been
 					 fully initialised */
 
@@ -83,7 +83,7 @@ struct Channel {
 
 	const struct ChanType* type;
 
-	enum dropbear_prio prio;
+	enum sillybear_prio prio;
 };
 
 struct ChanType {
@@ -102,7 +102,7 @@ struct ChanType {
 	void (*cleanup)(const struct Channel*);
 };
 
-/* Callback for connect_remote/connect_streamlocal. errstring may be NULL if result == DROPBEAR_SUCCESS */
+/* Callback for connect_remote/connect_streamlocal. errstring may be NULL if result == SILLYBEAR_SUCCESS */
 void channel_connect_done(int result, int sock, void* user_data, const char* errstring);
 
 void chaninitialise(const struct ChanType *chantypes[]);
@@ -127,11 +127,11 @@ void recv_msg_channel_eof(void);
 void common_recv_msg_channel_data(struct Channel *channel, int fd, 
 		circbuffer * buf);
 
-#if DROPBEAR_CLIENT
+#if SILLYBEAR_CLIENT
 extern const struct ChanType clichansess;
 #endif
 
-#if DROPBEAR_LISTENERS || DROPBEAR_CLIENT
+#if SILLYBEAR_LISTENERS || SILLYBEAR_CLIENT
 int send_msg_channel_open_init(int fd, const struct ChanType *type);
 void recv_msg_channel_open_confirmation(void);
 void recv_msg_channel_open_failure(void);
@@ -142,4 +142,4 @@ void send_msg_request_success(void);
 void send_msg_request_failure(void);
 
 
-#endif /* DROPBEAR_CHANNEL_H_ */
+#endif /* SILLYBEAR_CHANNEL_H_ */

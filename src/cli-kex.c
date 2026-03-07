@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002-2004 Matt Johnston
  * Copyright (c) 2004 by Mihnea Stoenescu
@@ -43,25 +43,25 @@ static void checkhostkey(const unsigned char* keyblob, unsigned int keybloblen);
 #define MAX_KNOWNHOSTS_LINE 4500
 
 static void cli_kex_free_param(void) {
-#if DROPBEAR_NORMAL_DH
+#if SILLYBEAR_NORMAL_DH
 	if (cli_ses.dh_param) {
 		free_kexdh_param(cli_ses.dh_param);
 		cli_ses.dh_param = NULL;
 	}
 #endif
-#if DROPBEAR_ECDH
+#if SILLYBEAR_ECDH
 	if (cli_ses.ecdh_param) {
 		free_kexecdh_param(cli_ses.ecdh_param);
 		cli_ses.ecdh_param = NULL;
 	}
 #endif
-#if DROPBEAR_CURVE25519
+#if SILLYBEAR_CURVE25519
 	if (cli_ses.curve25519_param) {
 		free_kexcurve25519_param(cli_ses.curve25519_param);
 		cli_ses.curve25519_param = NULL;
 	}
 #endif
-#if DROPBEAR_PQHYBRID
+#if SILLYBEAR_PQHYBRID
 	if (cli_ses.pqhybrid_param) {
 		free_kexpqhybrid_param(cli_ses.pqhybrid_param);
 		cli_ses.pqhybrid_param = NULL;
@@ -74,7 +74,7 @@ void send_msg_kexdh_init() {
 
 	CHECKCLEARTOWRITE();
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (fuzz.fuzzing && fuzz.skip_kexmaths) {
 		return;
 	}
@@ -84,26 +84,26 @@ void send_msg_kexdh_init() {
 
 	buf_putbyte(ses.writepayload, SSH_MSG_KEXDH_INIT);
 	switch (ses.newkeys->algo_kex->mode) {
-#if DROPBEAR_NORMAL_DH
-		case DROPBEAR_KEX_NORMAL_DH:
+#if SILLYBEAR_NORMAL_DH
+		case SILLYBEAR_KEX_NORMAL_DH:
 			cli_ses.dh_param = gen_kexdh_param();
 			buf_putmpint(ses.writepayload, &cli_ses.dh_param->pub);
 			break;
 #endif
-#if DROPBEAR_ECDH
-		case DROPBEAR_KEX_ECDH:
+#if SILLYBEAR_ECDH
+		case SILLYBEAR_KEX_ECDH:
 			cli_ses.ecdh_param = gen_kexecdh_param();
 			buf_put_ecc_raw_pubkey_string(ses.writepayload, &cli_ses.ecdh_param->key);
 			break;
 #endif
-#if DROPBEAR_CURVE25519
-		case DROPBEAR_KEX_CURVE25519:
+#if SILLYBEAR_CURVE25519
+		case SILLYBEAR_KEX_CURVE25519:
 			cli_ses.curve25519_param = gen_kexcurve25519_param();
 			buf_putstring(ses.writepayload, cli_ses.curve25519_param->pub, CURVE25519_LEN);
 			break;
 #endif
-#if DROPBEAR_PQHYBRID
-		case DROPBEAR_KEX_PQHYBRID:
+#if SILLYBEAR_PQHYBRID
+		case SILLYBEAR_KEX_PQHYBRID:
 			cli_ses.pqhybrid_param = gen_kexpqhybrid_param();
 			buf_putbufstring(ses.writepayload, cli_ses.pqhybrid_param->concat_public);
 			break;
@@ -122,14 +122,14 @@ void recv_msg_kexdh_reply() {
 
 	TRACE(("enter recv_msg_kexdh_reply"))
 	
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (fuzz.fuzzing && fuzz.skip_kexmaths) {
 		return;
 	}
 #endif
 
 	if (cli_ses.kex_state != KEXDH_INIT_SENT) {
-		dropbear_exit("Received out-of-order kexdhreply");
+		sillybear_exit("Received out-of-order kexdhreply");
 	}
 	keytype = ses.newkeys->algo_hostkey;
 	TRACE(("keytype is %d", keytype))
@@ -143,21 +143,21 @@ void recv_msg_kexdh_reply() {
 		checkhostkey(keyblob, keybloblen);
 	}
 
-	if (buf_get_pub_key(ses.payload, hostkey, &keytype) != DROPBEAR_SUCCESS) {
+	if (buf_get_pub_key(ses.payload, hostkey, &keytype) != SILLYBEAR_SUCCESS) {
 		TRACE(("failed getting pubkey"))
-		dropbear_exit("Bad KEX packet");
+		sillybear_exit("Bad KEX packet");
 	}
 
 	/* Derive the shared secret */
 	switch (ses.newkeys->algo_kex->mode) {
-#if DROPBEAR_NORMAL_DH
-		case DROPBEAR_KEX_NORMAL_DH:
+#if SILLYBEAR_NORMAL_DH
+		case SILLYBEAR_KEX_NORMAL_DH:
 			{
 			DEF_MP_INT(dh_f);
 			m_mp_init(&dh_f);
-			if (buf_getmpint(ses.payload, &dh_f) != DROPBEAR_SUCCESS) {
+			if (buf_getmpint(ses.payload, &dh_f) != SILLYBEAR_SUCCESS) {
 				TRACE(("failed getting mpint"))
-				dropbear_exit("Bad KEX packet");
+				sillybear_exit("Bad KEX packet");
 			}
 
 			kexdh_comb_key(cli_ses.dh_param, &dh_f, hostkey);
@@ -165,8 +165,8 @@ void recv_msg_kexdh_reply() {
 			}
 			break;
 #endif
-#if DROPBEAR_ECDH
-		case DROPBEAR_KEX_ECDH:
+#if SILLYBEAR_ECDH
+		case SILLYBEAR_KEX_ECDH:
 			{
 			buffer *ecdh_qs = buf_getstringbuf(ses.payload);
 			kexecdh_comb_key(cli_ses.ecdh_param, ecdh_qs, hostkey);
@@ -174,8 +174,8 @@ void recv_msg_kexdh_reply() {
 			}
 			break;
 #endif
-#if DROPBEAR_CURVE25519
-		case DROPBEAR_KEX_CURVE25519:
+#if SILLYBEAR_CURVE25519
+		case SILLYBEAR_KEX_CURVE25519:
 			{
 			buffer *ecdh_qs = buf_getstringbuf(ses.payload);
 			kexcurve25519_comb_key(cli_ses.curve25519_param, ecdh_qs, hostkey);
@@ -183,8 +183,8 @@ void recv_msg_kexdh_reply() {
 			}
 			break;
 #endif
-#if DROPBEAR_PQHYBRID
-		case DROPBEAR_KEX_PQHYBRID:
+#if SILLYBEAR_PQHYBRID
+		case SILLYBEAR_KEX_PQHYBRID:
 			{
 			buffer *q_s = buf_getstringbuf(ses.payload);
 			kexpqhybrid_comb_key(cli_ses.pqhybrid_param, q_s, hostkey);
@@ -198,8 +198,8 @@ void recv_msg_kexdh_reply() {
 	cli_kex_free_param();
 
 	if (buf_verify(ses.payload, hostkey, ses.newkeys->algo_signature, 
-			ses.hash) != DROPBEAR_SUCCESS) {
-		dropbear_exit("Bad hostkey signature");
+			ses.hash) != SILLYBEAR_SUCCESS) {
+		sillybear_exit("Bad hostkey signature");
 	}
 
 	sign_key_free(hostkey);
@@ -220,15 +220,15 @@ static void ask_to_confirm(const unsigned char* keyblob, unsigned int keybloblen
 	fp = sign_key_fingerprint(keyblob, keybloblen);
 
 	if (!cli_opts.ask_hostkey) {
-		dropbear_log(LOG_INFO, "\nHost '%s' key unknown.\n(%s fingerprint %s)",
+		sillybear_log(LOG_INFO, "\nHost '%s' key unknown.\n(%s fingerprint %s)",
 				cli_opts.remotehost,
 				algoname,
 				fp);
-		dropbear_exit("Not accepted automatically");
+		sillybear_exit("Not accepted automatically");
 	}
 
 	if (cli_opts.always_accept_key) {
-		dropbear_log(LOG_INFO, "\nHost '%s' key accepted unconditionally.\n(%s fingerprint %s)\n",
+		sillybear_log(LOG_INFO, "\nHost '%s' key accepted unconditionally.\n(%s fingerprint %s)\n",
 				cli_opts.remotehost,
 				algoname,
 				fp);
@@ -242,7 +242,7 @@ static void ask_to_confirm(const unsigned char* keyblob, unsigned int keybloblen
 			fp);
 	m_free(fp);
 	if (cli_opts.batch_mode) {
-		dropbear_exit("Didn't validate host key");
+		sillybear_exit("Didn't validate host key");
 	}
 
 	fprintf(stderr, "Do you want to continue connecting? (y/n) ");
@@ -260,7 +260,7 @@ static void ask_to_confirm(const unsigned char* keyblob, unsigned int keybloblen
 		return;
 	}
 
-	dropbear_exit("Didn't validate host key");
+	sillybear_exit("Didn't validate host key");
 }
 
 static FILE* open_known_hosts_file(int * readonly)
@@ -288,7 +288,7 @@ static FILE* open_known_hosts_file(int * readonly)
 		/* Check that ~/.ssh exists - easiest way is just to mkdir */
 		if (mkdir(filename, S_IRWXU) != 0) {
 			if (errno != EEXIST) {
-				dropbear_log(LOG_INFO, "Warning: failed creating %s/.ssh: %s",
+				sillybear_log(LOG_INFO, "Warning: failed creating %s/.ssh: %s",
 						homedir, strerror(errno));
 				TRACE(("mkdir didn't work: %s", strerror(errno)))
 				goto out;
@@ -313,7 +313,7 @@ static FILE* open_known_hosts_file(int * readonly)
 
 	if (hostsfile == NULL) {
 		TRACE(("hostsfile didn't open: %s", strerror(errno)))
-		dropbear_log(LOG_WARNING, "Failed to open %s/.ssh/known_hosts",
+		sillybear_log(LOG_WARNING, "Failed to open %s/.ssh/known_hosts",
 				homedir);
 		goto out;
 	}	
@@ -335,7 +335,7 @@ static void checkhostkey(const unsigned char* keyblob, unsigned int keybloblen) 
 	int ret;
 
 	if (cli_opts.no_hostkey_check) {
-		dropbear_log(LOG_INFO, "Caution, skipping hostkey check for %s\n", cli_opts.remotehost);
+		sillybear_log(LOG_INFO, "Caution, skipping hostkey check for %s\n", cli_opts.remotehost);
 		return;
 	}
 
@@ -352,7 +352,7 @@ static void checkhostkey(const unsigned char* keyblob, unsigned int keybloblen) 
 	hostlen = strlen(cli_opts.remotehost);
 
 	do {
-		if (buf_getline(line, hostsfile) == DROPBEAR_FAILURE) {
+		if (buf_getline(line, hostsfile) == SILLYBEAR_FAILURE) {
 			TRACE(("failed reading line: prob EOF"))
 			break;
 		}
@@ -394,7 +394,7 @@ static void checkhostkey(const unsigned char* keyblob, unsigned int keybloblen) 
 		ret = cmp_base64_key(keyblob, keybloblen, (const unsigned char *) algoname, algolen,
 						line, &fingerprint);
 
-		if (ret == DROPBEAR_SUCCESS) {
+		if (ret == SILLYBEAR_SUCCESS) {
 			/* Good matching key */
 			DEBUG1(("server match %s", fingerprint))
 			goto out;
@@ -402,7 +402,7 @@ static void checkhostkey(const unsigned char* keyblob, unsigned int keybloblen) 
 
 		/* The keys didn't match. eep. Note that we're "leaking"
 		   the fingerprint strings here, but we're exiting anyway */
-		dropbear_exit("\n\n%s host key mismatch for %s !\n"
+		sillybear_exit("\n\n%s host key mismatch for %s !\n"
 					"Fingerprint is %s\n"
 					"Expected %s\n"
 					"If you know that the host key is correct you can\nremove the bad entry from ~/.ssh/known_hosts", 
@@ -453,7 +453,7 @@ out:
 }
 
 void recv_msg_ext_info(void) {
-	/* This message is not client-specific in the protocol but Dropbear only handles
+	/* This message is not client-specific in the protocol but Sillybear only handles
 	a server-sent message at present. */
 	unsigned int num_ext;
 	unsigned int i;

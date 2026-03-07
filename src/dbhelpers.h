@@ -1,5 +1,5 @@
-#ifndef DROPBEAR_DBHELPERS_H_
-#define DROPBEAR_DBHELPERS_H_
+#ifndef SILLYBEAR_DBHELPERS_H_
+#define SILLYBEAR_DBHELPERS_H_
 
 /* This header defines some things that are also used by libtomcrypt/math. 
    We avoid including normal include.h since that can result in conflicting 
@@ -18,4 +18,4 @@
 
 void m_burn(void* data, unsigned int len);
 
-#endif /* DROPBEAR_DBHELPERS_H_ */
+#endif /* SILLYBEAR_DBHELPERS_H_ */

@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) Matt Johnston
  * All rights reserved.
@@ -64,11 +64,11 @@ void common_session_init(int sock_in, int sock_out) {
 		setnonblocking(sock_out);
 	}
 
-	ses.socket_prio = DROPBEAR_PRIO_NORMAL;
+	ses.socket_prio = SILLYBEAR_PRIO_NORMAL;
 	/* Sets it to lowdelay */
 	update_channel_prio();
 
-#if !DROPBEAR_SVR_MULTIUSER
+#if !SILLYBEAR_SVR_MULTIUSER
 	/* A sanity check to prevent an accidental configuration option
 	   leaving multiuser systems exposed */
 	{
@@ -76,7 +76,7 @@ void common_session_init(int sock_in, int sock_out) {
 		errno = 0;
 		ret = getgroups(0, NULL);
 		if (!(ret == -1 && errno == ENOSYS)) {
-			dropbear_exit("Non-multiuser Dropbear requires a non-multiuser kernel");
+			sillybear_exit("Non-multiuser Sillybear requires a non-multiuser kernel");
 		}
 	}
 #endif
@@ -88,12 +88,12 @@ void common_session_init(int sock_in, int sock_out) {
 	ses.last_packet_time_any_sent = 0;
 	ses.last_packet_time_keepalive_sent = 0;
 	
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 	if (!fuzz.fuzzing)
 #endif
 	{
 	if (pipe(ses.signal_pipe) < 0) {
-		dropbear_exit("Signal pipe failed");
+		sillybear_exit("Signal pipe failed");
 	}
 	setnonblocking(ses.signal_pipe[0]);
 	setnonblocking(ses.signal_pipe[1]);
@@ -121,18 +121,18 @@ void common_session_init(int sock_in, int sock_out) {
 	/* set all the algos to none */
 	ses.keys = (struct key_context*)m_malloc(sizeof(struct key_context));
 	ses.newkeys = NULL;
-	ses.keys->recv.algo_crypt = &dropbear_nocipher;
-	ses.keys->trans.algo_crypt = &dropbear_nocipher;
-	ses.keys->recv.crypt_mode = &dropbear_mode_none;
-	ses.keys->trans.crypt_mode = &dropbear_mode_none;
+	ses.keys->recv.algo_crypt = &sillybear_nocipher;
+	ses.keys->trans.algo_crypt = &sillybear_nocipher;
+	ses.keys->recv.crypt_mode = &sillybear_mode_none;
+	ses.keys->trans.crypt_mode = &sillybear_mode_none;
 	
-	ses.keys->recv.algo_mac = &dropbear_nohash;
-	ses.keys->trans.algo_mac = &dropbear_nohash;
+	ses.keys->recv.algo_mac = &sillybear_nohash;
+	ses.keys->trans.algo_mac = &sillybear_nohash;
 
 	ses.keys->algo_kex = NULL;
 	ses.keys->algo_hostkey = -1;
-	ses.keys->recv.algo_comp = DROPBEAR_COMP_NONE;
-	ses.keys->trans.algo_comp = DROPBEAR_COMP_NONE;
+	ses.keys->recv.algo_comp = SILLYBEAR_COMP_NONE;
+	ses.keys->trans.algo_comp = SILLYBEAR_COMP_NONE;
 
 #ifndef DISABLE_ZLIB
 	ses.keys->recv.zstream = NULL;
@@ -150,7 +150,7 @@ void common_session_init(int sock_in, int sock_out) {
 
 	ses.allowprivport = 0;
 
-#if DROPBEAR_PLUGIN
+#if SILLYBEAR_PLUGIN
         ses.plugin_session = NULL;
 #endif
 
@@ -169,14 +169,14 @@ void session_loop(void(*loophandler)(void)) {
 
 		timeout.tv_sec = select_timeout();
 		timeout.tv_usec = 0;
-		DROPBEAR_FD_ZERO(&writefd);
-		DROPBEAR_FD_ZERO(&readfd);
+		SILLYBEAR_FD_ZERO(&writefd);
+		SILLYBEAR_FD_ZERO(&readfd);
 
-		dropbear_assert(ses.payload == NULL);
+		sillybear_assert(ses.payload == NULL);
 
 		/* We get woken up when signal handlers write to this pipe.
 		   SIGCHLD in svr-chansession is the only one currently. */
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 		if (!fuzz.fuzzing) 
 #endif
 		{
@@ -210,11 +210,11 @@ void session_loop(void(*loophandler)(void)) {
 		val = select(ses.maxfd+1, &readfd, &writefd, NULL, &timeout);
 
 		if (ses.exitflag) {
-			dropbear_exit("Terminated by signal");
+			sillybear_exit("Terminated by signal");
 		}
 		
 		if (val < 0 && errno != EINTR) {
-			dropbear_exit("Error in select");
+			sillybear_exit("Error in select");
 		}
 
 		if (val <= 0) {
@@ -222,8 +222,8 @@ void session_loop(void(*loophandler)(void)) {
 			 * want to iterate over channels etc for reading, to handle
 			 * server processes exiting etc. 
 			 * We don't want to read/write FDs. */
-			DROPBEAR_FD_ZERO(&writefd);
-			DROPBEAR_FD_ZERO(&readfd);
+			SILLYBEAR_FD_ZERO(&writefd);
+			SILLYBEAR_FD_ZERO(&readfd);
 		}
 		
 		/* We'll just empty out the pipe if required. We don't do
@@ -313,7 +313,7 @@ void session_cleanup() {
 	}
 
 	/* After these are freed most functions will fail */
-#if DROPBEAR_CLEANUP
+#if SILLYBEAR_CLEANUP
 	/* listeners call cleanup functions, this should occur before
 	other session state is freed. */
 	remove_all_listeners();
@@ -328,13 +328,13 @@ void session_cleanup() {
 #ifndef DISABLE_ZLIB
 	if (ses.keys->recv.zstream != NULL) {
 		if (inflateEnd(ses.keys->recv.zstream) == Z_STREAM_ERROR) {
-			dropbear_exit("Crypto error");
+			sillybear_exit("Crypto error");
 		}
 		m_free(ses.keys->recv.zstream);
 	}
 	if (ses.keys->trans.zstream != NULL) {
 		if (deflateEnd(ses.keys->trans.zstream) == Z_STREAM_ERROR) {
-			dropbear_exit("Crypto error");
+			sillybear_exit("Crypto error");
 		}
 		m_free(ses.keys->trans.zstream);
 	}
@@ -385,7 +385,7 @@ static void read_session_identification() {
 	/* Servers may send other lines of data before sending the
 	 * version string, client must be able to process such lines.
 	 * If they send more than 50 lines, something is wrong */
-	for (i = IS_DROPBEAR_CLIENT ? 50 : 1; i > 0; i--) {
+	for (i = IS_SILLYBEAR_CLIENT ? 50 : 1; i > 0; i--) {
 		len = ident_readln(ses.sock_in, linebuf, sizeof(linebuf));
 
 		if (len < 0 && errno != EINTR) {
@@ -412,7 +412,7 @@ static void read_session_identification() {
 	/* Shall assume that 2.x will be backwards compatible. */
 	if (strncmp(ses.remoteident, "SSH-2.", 6) != 0
 			&& strncmp(ses.remoteident, "SSH-1.99-", 9) != 0) {
-		dropbear_exit("Incompatible remote version '%s'", ses.remoteident);
+		sillybear_exit("Incompatible remote version '%s'", ses.remoteident);
 	}
 
 	DEBUG1(("remoteident: %s", ses.remoteident))
@@ -435,7 +435,7 @@ static int ident_readln(int fd, char* buf, int count) {
 		return -1;
 	}
 
-	DROPBEAR_FD_ZERO(&fds);
+	SILLYBEAR_FD_ZERO(&fds);
 
 	/* select since it's a non-blocking fd */
 	
@@ -477,7 +477,7 @@ static int ident_readln(int fd, char* buf, int count) {
 				return -1;
 			}
 
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
 			fuzz_dump(&in, 1);
 #endif
 
@@ -513,14 +513,14 @@ static void send_msg_keepalive() {
 		/* Channel requests are preferable, more implementations
 		handle them than SSH_MSG_GLOBAL_REQUEST */
 		TRACE(("keepalive channel request %d", chan->index))
-		start_send_channel_request(chan, DROPBEAR_KEEPALIVE_STRING);
+		start_send_channel_request(chan, SILLYBEAR_KEEPALIVE_STRING);
 	} else {
 		TRACE(("keepalive global request"))
 		/* Some peers will reply with SSH_MSG_REQUEST_FAILURE, 
 		some will reply with SSH_MSG_UNIMPLEMENTED, some will exit. */
 		buf_putbyte(ses.writepayload, SSH_MSG_GLOBAL_REQUEST); 
-		buf_putstring(ses.writepayload, DROPBEAR_KEEPALIVE_STRING,
-			strlen(DROPBEAR_KEEPALIVE_STRING));
+		buf_putstring(ses.writepayload, SILLYBEAR_KEEPALIVE_STRING,
+			strlen(SILLYBEAR_KEEPALIVE_STRING));
 	}
 	buf_putbyte(ses.writepayload, 1); /* want_reply */
 	encrypt_packet();
@@ -547,9 +547,9 @@ static void checktimeouts() {
 	time_t now;
 	now = monotonic_now();
 
-	if (IS_DROPBEAR_SERVER && ses.connect_time != 0
+	if (IS_SILLYBEAR_SERVER && ses.connect_time != 0
 		&& elapsed(now, ses.connect_time) >= AUTH_TIMEOUT) {
-			dropbear_close("Timeout before auth");
+			sillybear_close("Timeout before auth");
 	}
 
 	/* we can't rekey if we haven't done remote ident exchange yet */
@@ -584,13 +584,13 @@ static void checktimeouts() {
 
 		if (elapsed(now, ses.last_packet_time_keepalive_recv)
 			>= opts.keepalive_secs * DEFAULT_KEEPALIVE_LIMIT) {
-			dropbear_exit("Keepalive timeout");
+			sillybear_exit("Keepalive timeout");
 		}
 	}
 
 	if (opts.idle_timeout_secs > 0
 			&& elapsed(now, ses.last_packet_time_idle) >= opts.idle_timeout_secs) {
-		dropbear_close("Idle timeout");
+		sillybear_close("Idle timeout");
 	}
 }
 
@@ -618,7 +618,7 @@ static long select_timeout() {
 		timeout = 0;
 	}
 
-	if (ses.authstate.authdone != 1 && IS_DROPBEAR_SERVER) {
+	if (ses.authstate.authdone != 1 && IS_SILLYBEAR_SERVER) {
 		/* AUTH_TIMEOUT is only relevant before authdone */
 		update_timeout(AUTH_TIMEOUT, now, ses.connect_time, &timeout);
 	}
@@ -689,7 +689,7 @@ void fill_passwd(const char* username) {
 
 /* Called when channels are modified */
 void update_channel_prio() {
-	enum dropbear_prio new_prio;
+	enum sillybear_prio new_prio;
 	int any = 0;
 	unsigned int i;
 
@@ -700,15 +700,15 @@ void update_channel_prio() {
 		return;
 	}
 
-	new_prio = DROPBEAR_PRIO_NORMAL;
+	new_prio = SILLYBEAR_PRIO_NORMAL;
 	for (i = 0; i < ses.chansize; i++) {
 		struct Channel *channel = ses.channels[i];
 		if (!channel) {
 			continue;
 		}
 		any = 1;
-		if (channel->prio == DROPBEAR_PRIO_LOWDELAY) {
-			new_prio = DROPBEAR_PRIO_LOWDELAY;
+		if (channel->prio == SILLYBEAR_PRIO_LOWDELAY) {
+			new_prio = SILLYBEAR_PRIO_LOWDELAY;
 			break;
 		}
 	}
@@ -716,11 +716,11 @@ void update_channel_prio() {
 	if (any == 0) {
 		/* lowdelay during setup */
 		TRACE(("update_channel_prio: not any"))
-		new_prio = DROPBEAR_PRIO_LOWDELAY;
+		new_prio = SILLYBEAR_PRIO_LOWDELAY;
 	}
 
 	if (new_prio != ses.socket_prio) {
-		TRACE(("Dropbear priority transitioning %d -> %d", ses.socket_prio, new_prio))
+		TRACE(("Sillybear priority transitioning %d -> %d", ses.socket_prio, new_prio))
 		set_sock_priority(ses.sock_out, new_prio);
 		ses.socket_prio = new_prio;
 	}

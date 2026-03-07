@@ -29,7 +29,7 @@
  ** loginrec.c:  platform-independent login recording and lastlog retrieval
  **/
 
-/* For now lastlog code has been removed as it wasn't being used by Dropbear. */
+/* For now lastlog code has been removed as it wasn't being used by Sillybear. */
 
 /*
   The new login code explained
@@ -269,7 +269,7 @@ login_init_entry(struct logininfo *li, int pid, const char *username,
 		strlcpy(li->username, username, sizeof(li->username));
 		pw = getpwnam(li->username);
 		if (pw == NULL)
-			dropbear_exit("login_init_entry: Cannot find user \"%s\"",
+			sillybear_exit("login_init_entry: Cannot find user \"%s\"",
 					li->username);
 		li->uid = pw->pw_uid;
 	}
@@ -668,7 +668,7 @@ utmp_write_direct(struct logininfo *li, struct utmp *ut)
 	endttyent();
 
 	if((struct ttyent *)0 == ty) {
-		dropbear_log(LOG_WARNING, "utmp_write_entry: tty not found");
+		sillybear_log(LOG_WARNING, "utmp_write_entry: tty not found");
 		return(1);
 	}
 #else /* FIXME */
@@ -693,7 +693,7 @@ utmp_write_direct(struct logininfo *li, struct utmp *ut)
 
 		(void)lseek(fd, (off_t)(tty * sizeof(struct utmp)), SEEK_SET);
 		if (atomicio(vwrite, fd, ut, sizeof(*ut)) != sizeof(*ut))
-			dropbear_log(LOG_WARNING, "utmp_write_direct: error writing %s: %s",
+			sillybear_log(LOG_WARNING, "utmp_write_direct: error writing %s: %s",
 			    UTMP_FILE, strerror(errno));
 
 		(void)close(fd);
@@ -712,12 +712,12 @@ utmp_perform_login(struct logininfo *li)
 	construct_utmp(li, &ut);
 # ifdef UTMP_USE_LIBRARY
 	if (!utmp_write_library(li, &ut)) {
-		dropbear_log(LOG_WARNING, "utmp_perform_login: utmp_write_library() failed");
+		sillybear_log(LOG_WARNING, "utmp_perform_login: utmp_write_library() failed");
 		return 0;
 	}
 # else
 	if (!utmp_write_direct(li, &ut)) {
-		dropbear_log(LOG_WARNING, "utmp_perform_login: utmp_write_direct() failed");
+		sillybear_log(LOG_WARNING, "utmp_perform_login: utmp_write_direct() failed");
 		return 0;
 	}
 # endif
@@ -733,12 +733,12 @@ utmp_perform_logout(struct logininfo *li)
 	construct_utmp(li, &ut);
 # ifdef UTMP_USE_LIBRARY
 	if (!utmp_write_library(li, &ut)) {
-		dropbear_log(LOG_WARNING, "utmp_perform_logout: utmp_write_library() failed");
+		sillybear_log(LOG_WARNING, "utmp_perform_logout: utmp_write_library() failed");
 		return 0;
 	}
 # else
 	if (!utmp_write_direct(li, &ut)) {
-		dropbear_log(LOG_WARNING, "utmp_perform_logout: utmp_write_direct() failed");
+		sillybear_log(LOG_WARNING, "utmp_perform_logout: utmp_write_direct() failed");
 		return 0;
 	}
 # endif
@@ -757,7 +757,7 @@ utmp_write_entry(struct logininfo *li)
 		return utmp_perform_logout(li);
 
 	default:
-		dropbear_log(LOG_WARNING, "utmp_write_entry: invalid type field");
+		sillybear_log(LOG_WARNING, "utmp_write_entry: invalid type field");
 		return 0;
 	}
 }
@@ -798,7 +798,7 @@ utmpx_write_library(struct logininfo *li, struct utmpx *utx)
 static int
 utmpx_write_direct(struct logininfo *li, struct utmpx *utx)
 {
-	dropbear_log(LOG_WARNING, "utmpx_write_direct: not implemented!");
+	sillybear_log(LOG_WARNING, "utmpx_write_direct: not implemented!");
 	return 0;
 }
 # endif /* UTMPX_USE_LIBRARY */
@@ -811,12 +811,12 @@ utmpx_perform_login(struct logininfo *li)
 	construct_utmpx(li, &utx);
 # ifdef UTMPX_USE_LIBRARY
 	if (!utmpx_write_library(li, &utx)) {
-		dropbear_log(LOG_WARNING, "utmpx_perform_login: utmp_write_library() failed");
+		sillybear_log(LOG_WARNING, "utmpx_perform_login: utmp_write_library() failed");
 		return 0;
 	}
 # else
 	if (!utmpx_write_direct(li, &utx)) {
-		dropbear_log(LOG_WARNING, "utmpx_perform_login: utmp_write_direct() failed");
+		sillybear_log(LOG_WARNING, "utmpx_perform_login: utmp_write_direct() failed");
 		return 0;
 	}
 # endif
@@ -854,7 +854,7 @@ utmpx_write_entry(struct logininfo *li)
 	case LTYPE_LOGOUT:
 		return utmpx_perform_logout(li);
 	default:
-		dropbear_log(LOG_WARNING, "utmpx_write_entry: invalid type field");
+		sillybear_log(LOG_WARNING, "utmpx_write_entry: invalid type field");
 		return 0;
 	}
 }
@@ -876,14 +876,14 @@ wtmp_write(struct logininfo *li, struct utmp *ut)
 	int fd, ret = 1;
 
 	if ((fd = open(WTMP_FILE, O_WRONLY|O_APPEND, 0)) < 0) {
-		dropbear_log(LOG_WARNING, "wtmp_write: problem writing %s: %s",
+		sillybear_log(LOG_WARNING, "wtmp_write: problem writing %s: %s",
 		    WTMP_FILE, strerror(errno));
 		return 0;
 	}
 	if (fstat(fd, &buf) == 0)
 		if (atomicio(vwrite, fd, ut, sizeof(*ut)) != sizeof(*ut)) {
 			ftruncate(fd, buf.st_size);
-			dropbear_log(LOG_WARNING, "wtmp_write: problem writing %s: %s",
+			sillybear_log(LOG_WARNING, "wtmp_write: problem writing %s: %s",
 			    WTMP_FILE, strerror(errno));
 			ret = 0;
 		}
@@ -920,7 +920,7 @@ wtmp_write_entry(struct logininfo *li)
 	case LTYPE_LOGOUT:
 		return wtmp_perform_logout(li);
 	default:
-		dropbear_log(LOG_WARNING, "wtmp_write_entry: invalid type field");
+		sillybear_log(LOG_WARNING, "wtmp_write_entry: invalid type field");
 		return 0;
 	}
 }
@@ -969,12 +969,12 @@ wtmp_get_entry(struct logininfo *li)
 	li->tv_sec = li->tv_usec = 0;
 
 	if ((fd = open(WTMP_FILE, O_RDONLY)) < 0) {
-		dropbear_log(LOG_WARNING, "wtmp_get_entry: problem opening %s: %s",
+		sillybear_log(LOG_WARNING, "wtmp_get_entry: problem opening %s: %s",
 		    WTMP_FILE, strerror(errno));
 		return 0;
 	}
 	if (fstat(fd, &st) != 0) {
-		dropbear_log(LOG_WARNING, "wtmp_get_entry: couldn't stat %s: %s",
+		sillybear_log(LOG_WARNING, "wtmp_get_entry: couldn't stat %s: %s",
 		    WTMP_FILE, strerror(errno));
 		close(fd);
 		return 0;
@@ -989,7 +989,7 @@ wtmp_get_entry(struct logininfo *li)
 
 	while (!found) {
 		if (atomicio(read, fd, &ut, sizeof(ut)) != sizeof(ut)) {
-			dropbear_log(LOG_WARNING, "wtmp_get_entry: read of %s failed: %s",
+			sillybear_log(LOG_WARNING, "wtmp_get_entry: read of %s failed: %s",
 			    WTMP_FILE, strerror(errno));
 			close (fd);
 			return 0;
@@ -1042,7 +1042,7 @@ wtmpx_write(struct logininfo *li, struct utmpx *utx)
 	int fd, ret = 1;
 
 	if ((fd = open(WTMPX_FILE, O_WRONLY|O_APPEND, 0)) < 0) {
-		dropbear_log(LOG_WARNING, "wtmpx_write: problem opening %s: %s",
+		sillybear_log(LOG_WARNING, "wtmpx_write: problem opening %s: %s",
 		    WTMPX_FILE, strerror(errno));
 		return 0;
 	}
@@ -1050,7 +1050,7 @@ wtmpx_write(struct logininfo *li, struct utmpx *utx)
 	if (fstat(fd, &buf) == 0)
 		if (atomicio(vwrite, fd, utx, sizeof(*utx)) != sizeof(*utx)) {
 			ftruncate(fd, buf.st_size);
-			dropbear_log(LOG_WARNING, "wtmpx_write: problem writing %s: %s",
+			sillybear_log(LOG_WARNING, "wtmpx_write: problem writing %s: %s",
 			    WTMPX_FILE, strerror(errno));
 			ret = 0;
 		}
@@ -1089,7 +1089,7 @@ wtmpx_write_entry(struct logininfo *li)
 	case LTYPE_LOGOUT:
 		return wtmpx_perform_logout(li);
 	default:
-		dropbear_log(LOG_WARNING, "wtmpx_write_entry: invalid type field");
+		sillybear_log(LOG_WARNING, "wtmpx_write_entry: invalid type field");
 		return 0;
 	}
 }
@@ -1125,12 +1125,12 @@ wtmpx_get_entry(struct logininfo *li)
 	li->tv_sec = li->tv_usec = 0;
 
 	if ((fd = open(WTMPX_FILE, O_RDONLY)) < 0) {
-		dropbear_log(LOG_WARNING, "wtmpx_get_entry: problem opening %s: %s",
+		sillybear_log(LOG_WARNING, "wtmpx_get_entry: problem opening %s: %s",
 		    WTMPX_FILE, strerror(errno));
 		return 0;
 	}
 	if (fstat(fd, &st) != 0) {
-		dropbear_log(LOG_WARNING, "wtmpx_get_entry: couldn't stat %s: %s",
+		sillybear_log(LOG_WARNING, "wtmpx_get_entry: couldn't stat %s: %s",
 		    WTMPX_FILE, strerror(errno));
 		close(fd);
 		return 0;
@@ -1145,7 +1145,7 @@ wtmpx_get_entry(struct logininfo *li)
 
 	while (!found) {
 		if (atomicio(read, fd, &utx, sizeof(utx)) != sizeof(utx)) {
-			dropbear_log(LOG_WARNING, "wtmpx_get_entry: read of %s failed: %s",
+			sillybear_log(LOG_WARNING, "wtmpx_get_entry: read of %s failed: %s",
 			    WTMPX_FILE, strerror(errno));
 			close (fd);
 			return 0;
@@ -1190,7 +1190,7 @@ syslogin_perform_login(struct logininfo *li)
 	struct utmp *ut;
 
 	if (! (ut = (struct utmp *)malloc(sizeof(*ut)))) {
-		dropbear_log(LOG_WARNING, "syslogin_perform_login: couldn't malloc()");
+		sillybear_log(LOG_WARNING, "syslogin_perform_login: couldn't malloc()");
 		return 0;
 	}
 	construct_utmp(li, ut);
@@ -1209,7 +1209,7 @@ syslogin_perform_logout(struct logininfo *li)
 	(void)line_stripname(line, li->line, sizeof(line));
 
 	if (!logout(line)) {
-		dropbear_log(LOG_WARNING, "syslogin_perform_logout: logout(%s) returned an error: %s", line, strerror(errno));
+		sillybear_log(LOG_WARNING, "syslogin_perform_logout: logout(%s) returned an error: %s", line, strerror(errno));
 #  ifdef HAVE_LOGWTMP
 	} else {
 		logwtmp(line, "", "");
@@ -1232,7 +1232,7 @@ syslogin_write_entry(struct logininfo *li)
 	case LTYPE_LOGOUT:
 		return syslogin_perform_logout(li);
 	default:
-		dropbear_log(LOG_WARNING, "syslogin_write_entry: Invalid type field");
+		sillybear_log(LOG_WARNING, "syslogin_write_entry: Invalid type field");
 		return 0;
 	}
 }
@@ -1268,7 +1268,7 @@ lastlog_filetype(char *filename)
 	struct stat st;
 
 	if (stat(filename, &st) != 0) {
-		dropbear_log(LOG_WARNING, "lastlog_perform_login: Couldn't stat %s: %s", filename,
+		sillybear_log(LOG_WARNING, "lastlog_perform_login: Couldn't stat %s: %s", filename,
 			strerror(errno));
 		return 0;
 	}
@@ -1299,14 +1299,14 @@ lastlog_openseek(struct logininfo *li, int *fd, int filemode)
 				 LASTLOG_FILE, li->username);
 			break;
 		default:
-			dropbear_log(LOG_WARNING, "lastlog_openseek: %.100s is not a file or directory!",
+			sillybear_log(LOG_WARNING, "lastlog_openseek: %.100s is not a file or directory!",
 			    LASTLOG_FILE);
 			return 0;
 	}
 
 	*fd = open(lastlog_file, filemode, 0600);
 	if ( *fd < 0) {
-		dropbear_log(LOG_INFO, "lastlog_openseek: Couldn't open %s: %s",
+		sillybear_log(LOG_INFO, "lastlog_openseek: Couldn't open %s: %s",
 		    lastlog_file, strerror(errno));
 		return 0;
 	}
@@ -1316,7 +1316,7 @@ lastlog_openseek(struct logininfo *li, int *fd, int filemode)
 		offset = (off_t) ((long)li->uid * sizeof(struct lastlog));
 
 		if ( lseek(*fd, offset, SEEK_SET) != offset ) {
-			dropbear_log(LOG_WARNING, "lastlog_openseek: %s->lseek(): %s",
+			sillybear_log(LOG_WARNING, "lastlog_openseek: %s->lseek(): %s",
 				lastlog_file, strerror(errno));
 			m_close(*fd);
 			return 0;
@@ -1341,7 +1341,7 @@ lastlog_perform_login(struct logininfo *li)
 	/* write the entry */
 	if (atomicio(vwrite, fd, &last, sizeof(last)) != sizeof(last)) {
 		close(fd);
-		dropbear_log(LOG_WARNING, "lastlog_write_filemode: Error writing to %s: %s",
+		sillybear_log(LOG_WARNING, "lastlog_write_filemode: Error writing to %s: %s",
 		    LASTLOG_FILE, strerror(errno));
 		return 0;
 	}
@@ -1357,7 +1357,7 @@ lastlog_write_entry(struct logininfo *li)
 	case LTYPE_LOGIN:
 		return lastlog_perform_login(li);
 	default:
-		dropbear_log(LOG_WARNING, "lastlog_write_entry: Invalid type field");
+		sillybear_log(LOG_WARNING, "lastlog_write_entry: Invalid type field");
 		return 0;
 	}
 }

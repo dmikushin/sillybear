@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2005 Matt Johnston
  * All rights reserved.
@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-#if DROPBEAR_CLI_AGENTFWD
+#if SILLYBEAR_CLI_AGENTFWD
 
 #include "agentfwd.h"
 #include "session.h"
@@ -67,7 +67,7 @@ static int connect_agent() {
 	fd = connect_unix(agent_sock);
 
 	if (fd < 0) {
-		dropbear_log(LOG_INFO, "Failed to connect to agent");
+		sillybear_log(LOG_INFO, "Failed to connect to agent");
 	}
 
 	return fd;
@@ -202,7 +202,7 @@ static void agent_get_key_list(m_list * ret_list)
 	num = buf_getint(inbuf);
 	for (i = 0; i < num; i++) {
 		sign_key * pubkey = NULL;
-		enum signkey_type key_type = DROPBEAR_SIGNKEY_ANY;
+		enum signkey_type key_type = SILLYBEAR_SIGNKEY_ANY;
 		buffer * key_buf;
 
 		/* each public key is encoded as a string */
@@ -210,7 +210,7 @@ static void agent_get_key_list(m_list * ret_list)
 		pubkey = new_sign_key();
 		ret = buf_get_pub_key(key_buf, pubkey, &key_type);
 		buf_free(key_buf);
-		if (ret != DROPBEAR_SUCCESS) {
+		if (ret != SILLYBEAR_SUCCESS) {
 			TRACE(("Skipping bad/unknown type pubkey from agent"));
 			sign_key_free(pubkey);
 		} else {
@@ -272,8 +272,8 @@ void agent_buf_sign(buffer *sigblob, sign_key *key,
 	buf_put_pub_key(request_data, key, key->type);
 	
 	buf_putbufstring(request_data, data_buf);
-#if DROPBEAR_RSA_SHA256
-	if (sigtype == DROPBEAR_SIGNATURE_RSA_SHA256) {
+#if SILLYBEAR_RSA_SHA256
+	if (sigtype == SILLYBEAR_SIGNATURE_RSA_SHA256) {
 		flags |= SSH_AGENT_RSA_SHA2_256;
 	}
 #endif
@@ -302,7 +302,7 @@ fail:
 	/* XXX don't fail badly here. instead propagate a failure code back up to
 	   the cli auth pubkey code, and just remove this key from the list of 
 	   ones to try. */
-	dropbear_exit("Agent failed signing key");
+	sillybear_exit("Agent failed signing key");
 
 cleanup:
 	if (request_data) {

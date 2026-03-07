@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,15 +22,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_LISTENER_H
-#define DROPBEAR_LISTENER_H
+#ifndef SILLYBEAR_LISTENER_H
+#define SILLYBEAR_LISTENER_H
 
 #define MAX_LISTENERS 20
 #define LISTENER_EXTEND_SIZE 1
 
 struct Listener {
 
-	int socks[DROPBEAR_MAX_SOCKS];
+	int socks[SILLYBEAR_MAX_SOCKS];
 	unsigned int nsocks;
 
 	int index; /* index in the array of listeners */
@@ -62,4 +62,4 @@ void remove_listener(struct Listener* listener);
 
 void remove_all_listeners(void);
 
-#endif /* DROPBEAR_LISTENER_H */
+#endif /* SILLYBEAR_LISTENER_H */

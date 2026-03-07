@@ -1,5 +1,5 @@
 /*
- * Dropbear SSH
+ * Sillybear SSH
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * Copyright (c) 2004 by Mihnea Stoenescu
@@ -74,7 +74,7 @@ static const packettype cli_packettypes[] = {
 	{SSH_MSG_GLOBAL_REQUEST, recv_msg_global_request_cli},
 	{SSH_MSG_CHANNEL_SUCCESS, ignore_recv_response},
 	{SSH_MSG_CHANNEL_FAILURE, ignore_recv_response},
-#if DROPBEAR_CLI_REMOTETCPFWD
+#if SILLYBEAR_CLI_REMOTETCPFWD
 	{SSH_MSG_REQUEST_SUCCESS, cli_recv_msg_request_success}, /* client */
 	{SSH_MSG_REQUEST_FAILURE, cli_recv_msg_request_failure}, /* client */
 #else
@@ -87,10 +87,10 @@ static const packettype cli_packettypes[] = {
 };
 
 static const struct ChanType *cli_chantypes[] = {
-#if DROPBEAR_CLI_REMOTETCPFWD
+#if SILLYBEAR_CLI_REMOTETCPFWD
 	&cli_chan_tcpremote,
 #endif
-#if DROPBEAR_CLI_AGENTFWD
+#if SILLYBEAR_CLI_AGENTFWD
 	&cli_chan_agent,
 #endif
 	NULL /* Null termination */
@@ -99,17 +99,17 @@ static const struct ChanType *cli_chantypes[] = {
 void cli_connected(int result, int sock, void* userdata, const char *errstring)
 {
 	struct sshsession *myses = userdata;
-	if (result == DROPBEAR_FAILURE) {
-		dropbear_exit("Connect failed: %s", errstring);
+	if (result == SILLYBEAR_FAILURE) {
+		sillybear_exit("Connect failed: %s", errstring);
 	}
 	myses->sock_in = myses->sock_out = sock;
 	DEBUG1(("cli_connected"))
-	ses.socket_prio = DROPBEAR_PRIO_NORMAL;
+	ses.socket_prio = SILLYBEAR_PRIO_NORMAL;
 	/* switches to lowdelay */
 	update_channel_prio();
 }
 
-void cli_session(int sock_in, int sock_out, struct dropbear_progress_connection *progress, pid_t proxy_cmd_pid) {
+void cli_session(int sock_in, int sock_out, struct sillybear_progress_connection *progress, pid_t proxy_cmd_pid) {
 
 	common_session_init(sock_in, sock_out);
 
@@ -139,7 +139,7 @@ void cli_session(int sock_in, int sock_out, struct dropbear_progress_connection 
 
 }
 
-#if DROPBEAR_KEX_FIRST_FOLLOWS
+#if SILLYBEAR_KEX_FIRST_FOLLOWS
 static void cli_send_kex_first_guess() {
 	send_msg_kexdh_init();
 }
@@ -182,7 +182,7 @@ static void cli_session_init(pid_t proxy_cmd_pid) {
 
 	ses.isserver = 0;
 
-#if DROPBEAR_KEX_FIRST_FOLLOWS
+#if SILLYBEAR_KEX_FIRST_FOLLOWS
 	ses.send_kex_first_guess = cli_send_kex_first_guess;
 #endif
 
@@ -264,8 +264,8 @@ static void cli_sessionloop() {
 			return;
 			
 		case USERAUTH_FAIL_RCVD:
-			if (cli_auth_try() == DROPBEAR_FAILURE) {
-				dropbear_exit("No auth methods could be used.");
+			if (cli_auth_try() == SILLYBEAR_FAILURE) {
+				sillybear_exit("No auth methods could be used.");
 			}
 			cli_ses.state = USERAUTH_REQ_SENT;
 			TRACE(("leave cli_sessionloop: cli_auth_try"))
@@ -274,7 +274,7 @@ static void cli_sessionloop() {
 		case USERAUTH_SUCCESS_RCVD:
 #ifndef DISABLE_SYSLOG
 			if (opts.usingsyslog) {
-				dropbear_log(LOG_INFO, "Authentication succeeded.");
+				sillybear_log(LOG_INFO, "Authentication succeeded.");
 			}
 #endif
 
@@ -282,19 +282,19 @@ static void cli_sessionloop() {
 				int devnull;
 				/* keeping stdin open steals input from the terminal and
 				   is confusing, though stdout/stderr could be useful. */
-				devnull = open(DROPBEAR_PATH_DEVNULL, O_RDONLY);
+				devnull = open(SILLYBEAR_PATH_DEVNULL, O_RDONLY);
 				if (devnull < 0) {
-					dropbear_exit("Opening /dev/null: %d %s",
+					sillybear_exit("Opening /dev/null: %d %s",
 							errno, strerror(errno));
 				}
 				dup2(devnull, STDIN_FILENO);
 				if (daemon(0, 1) < 0) {
-					dropbear_exit("Backgrounding failed: %d %s", 
+					sillybear_exit("Backgrounding failed: %d %s", 
 							errno, strerror(errno));
 				}
 			}
 			
-#if DROPBEAR_CLI_NETCAT
+#if SILLYBEAR_CLI_NETCAT
 			if (cli_opts.netcat_host) {
 				cli_send_netcat_request();
 			} else 
@@ -303,10 +303,10 @@ static void cli_sessionloop() {
 				cli_send_chansess_request();
 			}
 
-#if DROPBEAR_CLI_LOCALTCPFWD
+#if SILLYBEAR_CLI_LOCALTCPFWD
 			setup_localtcp();
 #endif
-#if DROPBEAR_CLI_REMOTETCPFWD
+#if SILLYBEAR_CLI_REMOTETCPFWD
 			setup_remotetcp();
 #endif
 
@@ -391,7 +391,7 @@ static void cli_remoteclosed() {
 	m_close(ses.sock_out);
 	ses.sock_in = -1;
 	ses.sock_out = -1;
-	dropbear_exit("Remote closed the connection");
+	sillybear_exit("Remote closed the connection");
 }
 
 /* Operates in-place turning dirty (untrusted potentially containing control
@@ -430,7 +430,7 @@ static void recv_msg_global_request_cli(void) {
 	}
 }
 
-void cli_dropbear_exit(int exitcode, const char* format, va_list param) {
+void cli_sillybear_exit(int exitcode, const char* format, va_list param) {
 	char exitmsg[400];
 	char fullmsg[550];
 
@@ -453,7 +453,7 @@ void cli_dropbear_exit(int exitcode, const char* format, va_list param) {
 	/* Do the cleanup first, since then the terminal will be reset */
 	session_cleanup();
 	
-#if DROPBEAR_FUZZ
+#if SILLYBEAR_FUZZ
     if (fuzz.do_jmp) {
         longjmp(fuzz.jmp, 1);
     }
@@ -462,12 +462,12 @@ void cli_dropbear_exit(int exitcode, const char* format, va_list param) {
 	/* Avoid printing onwards from terminal cruft */
 	fprintf(stderr, "\n");
 
-	dropbear_log(LOG_INFO, "%s", fullmsg);
+	sillybear_log(LOG_INFO, "%s", fullmsg);
 
 	exit(exitcode);
 }
 
-void cli_dropbear_log(int priority, const char* format, va_list param) {
+void cli_sillybear_log(int priority, const char* format, va_list param) {
 
 	char printbuf[1024];
 	const char *name;

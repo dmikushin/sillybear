@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,15 +22,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_GENRSA_H_
-#define DROPBEAR_GENRSA_H_
+#ifndef SILLYBEAR_GENRSA_H_
+#define SILLYBEAR_GENRSA_H_
 
 #include "rsa.h"
 
-#if DROPBEAR_RSA
+#if SILLYBEAR_RSA
 
-dropbear_rsa_key * gen_rsa_priv_key(unsigned int size);
+sillybear_rsa_key * gen_rsa_priv_key(unsigned int size);
 
-#endif /* DROPBEAR_RSA */
+#endif /* SILLYBEAR_RSA */
 
-#endif /* DROPBEAR_GENRSA_H_ */
+#endif /* SILLYBEAR_GENRSA_H_ */

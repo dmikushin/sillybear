@@ -1,5 +1,5 @@
 /*
- * Dropbear - a SSH2 server
+ * Sillybear - a SSH2 server
  * 
  * Copyright (c) 2002,2003 Matt Johnston
  * All rights reserved.
@@ -22,72 +22,72 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef DROPBEAR_SIGNKEY_H_
-#define DROPBEAR_SIGNKEY_H_
+#ifndef SILLYBEAR_SIGNKEY_H_
+#define SILLYBEAR_SIGNKEY_H_
 
 #include "buffer.h"
 
 /* Forward declarations */
-struct dropbear_DSS_Key;
-struct dropbear_RSA_Key;
-struct dropbear_ED25519_Key;
+struct sillybear_DSS_Key;
+struct sillybear_RSA_Key;
+struct sillybear_ED25519_Key;
 
 /* Must match with signature_type below */
 enum signkey_type {
-#if DROPBEAR_RSA
-	DROPBEAR_SIGNKEY_RSA,
+#if SILLYBEAR_RSA
+	SILLYBEAR_SIGNKEY_RSA,
 #endif
-#if DROPBEAR_DSS
-	DROPBEAR_SIGNKEY_DSS,
+#if SILLYBEAR_DSS
+	SILLYBEAR_SIGNKEY_DSS,
 #endif
-#if DROPBEAR_ECDSA
-	DROPBEAR_SIGNKEY_ECDSA_NISTP256,
-	DROPBEAR_SIGNKEY_ECDSA_NISTP384,
-	DROPBEAR_SIGNKEY_ECDSA_NISTP521,
-#if DROPBEAR_SK_ECDSA
-	DROPBEAR_SIGNKEY_SK_ECDSA_NISTP256,
-#endif /* DROPBEAR_SK_ECDSA */
-#endif /* DROPBEAR_ECDSA */
-#if DROPBEAR_ED25519
-	DROPBEAR_SIGNKEY_ED25519,
-#if DROPBEAR_SK_ED25519
-	DROPBEAR_SIGNKEY_SK_ED25519,
+#if SILLYBEAR_ECDSA
+	SILLYBEAR_SIGNKEY_ECDSA_NISTP256,
+	SILLYBEAR_SIGNKEY_ECDSA_NISTP384,
+	SILLYBEAR_SIGNKEY_ECDSA_NISTP521,
+#if SILLYBEAR_SK_ECDSA
+	SILLYBEAR_SIGNKEY_SK_ECDSA_NISTP256,
+#endif /* SILLYBEAR_SK_ECDSA */
+#endif /* SILLYBEAR_ECDSA */
+#if SILLYBEAR_ED25519
+	SILLYBEAR_SIGNKEY_ED25519,
+#if SILLYBEAR_SK_ED25519
+	SILLYBEAR_SIGNKEY_SK_ED25519,
 #endif
 #endif
-	DROPBEAR_SIGNKEY_NUM_NAMED,
-	DROPBEAR_SIGNKEY_ECDSA_KEYGEN = 70, /* just "ecdsa" for keygen */
-	DROPBEAR_SIGNKEY_ANY = 80,
-	DROPBEAR_SIGNKEY_NONE = 90,
+	SILLYBEAR_SIGNKEY_NUM_NAMED,
+	SILLYBEAR_SIGNKEY_ECDSA_KEYGEN = 70, /* just "ecdsa" for keygen */
+	SILLYBEAR_SIGNKEY_ANY = 80,
+	SILLYBEAR_SIGNKEY_NONE = 90,
 };
 
 /* Must match with signkey_type above, apart from rsa */
 enum signature_type {
-#if DROPBEAR_DSS
-	DROPBEAR_SIGNATURE_DSS = DROPBEAR_SIGNKEY_DSS,
+#if SILLYBEAR_DSS
+	SILLYBEAR_SIGNATURE_DSS = SILLYBEAR_SIGNKEY_DSS,
 #endif
-#if DROPBEAR_ECDSA
-	DROPBEAR_SIGNATURE_ECDSA_NISTP256 = DROPBEAR_SIGNKEY_ECDSA_NISTP256,
-	DROPBEAR_SIGNATURE_ECDSA_NISTP384 = DROPBEAR_SIGNKEY_ECDSA_NISTP384,
-	DROPBEAR_SIGNATURE_ECDSA_NISTP521 = DROPBEAR_SIGNKEY_ECDSA_NISTP521,
-#if DROPBEAR_SK_ECDSA
-	DROPBEAR_SIGNATURE_SK_ECDSA_NISTP256 = DROPBEAR_SIGNKEY_SK_ECDSA_NISTP256,
-#endif /* DROPBEAR_SK_ECDSA */
-#endif /* DROPBEAR_ECDSA */
-#if DROPBEAR_ED25519
-	DROPBEAR_SIGNATURE_ED25519 = DROPBEAR_SIGNKEY_ED25519,
-#if DROPBEAR_SK_ED25519
-	DROPBEAR_SIGNATURE_SK_ED25519 = DROPBEAR_SIGNKEY_SK_ED25519,
+#if SILLYBEAR_ECDSA
+	SILLYBEAR_SIGNATURE_ECDSA_NISTP256 = SILLYBEAR_SIGNKEY_ECDSA_NISTP256,
+	SILLYBEAR_SIGNATURE_ECDSA_NISTP384 = SILLYBEAR_SIGNKEY_ECDSA_NISTP384,
+	SILLYBEAR_SIGNATURE_ECDSA_NISTP521 = SILLYBEAR_SIGNKEY_ECDSA_NISTP521,
+#if SILLYBEAR_SK_ECDSA
+	SILLYBEAR_SIGNATURE_SK_ECDSA_NISTP256 = SILLYBEAR_SIGNKEY_SK_ECDSA_NISTP256,
+#endif /* SILLYBEAR_SK_ECDSA */
+#endif /* SILLYBEAR_ECDSA */
+#if SILLYBEAR_ED25519
+	SILLYBEAR_SIGNATURE_ED25519 = SILLYBEAR_SIGNKEY_ED25519,
+#if SILLYBEAR_SK_ED25519
+	SILLYBEAR_SIGNATURE_SK_ED25519 = SILLYBEAR_SIGNKEY_SK_ED25519,
 #endif
 #endif
-#if DROPBEAR_RSA
-#if DROPBEAR_RSA_SHA1
-	DROPBEAR_SIGNATURE_RSA_SHA1 = 100, /* ssh-rsa signature (sha1) */
+#if SILLYBEAR_RSA
+#if SILLYBEAR_RSA_SHA1
+	SILLYBEAR_SIGNATURE_RSA_SHA1 = 100, /* ssh-rsa signature (sha1) */
 #endif
-#if DROPBEAR_RSA_SHA256
-	DROPBEAR_SIGNATURE_RSA_SHA256 = 101, /* rsa-sha2-256 signature. has a ssh-rsa key */
+#if SILLYBEAR_RSA_SHA256
+	SILLYBEAR_SIGNATURE_RSA_SHA256 = 101, /* rsa-sha2-256 signature. has a ssh-rsa key */
 #endif
-#endif /* DROPBEAR_RSA */
-	DROPBEAR_SIGNATURE_NONE = DROPBEAR_SIGNKEY_NONE,
+#endif /* SILLYBEAR_RSA */
+	SILLYBEAR_SIGNATURE_NONE = SILLYBEAR_SIGNKEY_NONE,
 };
 
 
@@ -104,28 +104,28 @@ struct SIGN_key {
 	signkey_source source;
 	char *filename;
 
-#if DROPBEAR_DSS
-	struct dropbear_DSS_Key * dsskey;
+#if SILLYBEAR_DSS
+	struct sillybear_DSS_Key * dsskey;
 #endif
-#if DROPBEAR_RSA
-	struct dropbear_RSA_Key * rsakey;
+#if SILLYBEAR_RSA
+	struct sillybear_RSA_Key * rsakey;
 #endif
-#if DROPBEAR_ECDSA
-#if DROPBEAR_ECC_256
+#if SILLYBEAR_ECDSA
+#if SILLYBEAR_ECC_256
 	ecc_key * ecckey256;
 #endif
-#if DROPBEAR_ECC_384
+#if SILLYBEAR_ECC_384
 	ecc_key * ecckey384;
 #endif
-#if DROPBEAR_ECC_521
+#if SILLYBEAR_ECC_521
 	ecc_key * ecckey521;
 #endif
 #endif
-#if DROPBEAR_ED25519
-	struct dropbear_ED25519_Key * ed25519key;
+#if SILLYBEAR_ED25519
+	struct sillybear_ED25519_Key * ed25519key;
 #endif
 
-#if DROPBEAR_SK_ECDSA || DROPBEAR_SK_ED25519
+#if SILLYBEAR_SK_ECDSA || SILLYBEAR_SK_ED25519
 	/* application ID for U2F/FIDO key types, a malloced string */
 	char * sk_app;
 	unsigned int sk_applen;
@@ -149,7 +149,7 @@ void buf_put_pub_key(buffer* buf, sign_key *key, enum signkey_type type);
 void buf_put_priv_key(buffer* buf, sign_key *key, enum signkey_type type);
 void sign_key_free(sign_key *key);
 void buf_put_sign(buffer* buf, sign_key *key, enum signature_type sigtype, const buffer *data_buf);
-#if DROPBEAR_SIGNKEY_VERIFY
+#if SILLYBEAR_SIGNKEY_VERIFY
 int buf_verify(buffer * buf, sign_key *key, enum signature_type expect_sigtype, const buffer *data_buf);
 int sk_buf_verify(buffer * buf, sign_key *key, enum signature_type expect_sigtype, const buffer *data_buf, char* app, unsigned int applen);
 char * sign_key_fingerprint(const unsigned char* keyblob, unsigned int keybloblen);
@@ -160,4 +160,4 @@ int cmp_base64_key(const unsigned char* keyblob, unsigned int keybloblen,
 
 void** signkey_key_ptr(sign_key *key, enum signkey_type type);
 
-#endif /* DROPBEAR_SIGNKEY_H_ */
+#endif /* SILLYBEAR_SIGNKEY_H_ */

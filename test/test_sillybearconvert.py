@@ -19,7 +19,7 @@ def parse_keytype(kt):
 @pytest.mark.parametrize("keyformat", [None, "PEM"])
 def test_from_openssh(request, tmp_path, keytype, keyformat):
 	"""
-	Convert OpenSSH to Dropbear format,
+	Convert OpenSSH to Sillybear format,
 	PEM and OpenSSH internal
 	"""
 	opt = request.config.option
@@ -30,7 +30,7 @@ def test_from_openssh(request, tmp_path, keytype, keyformat):
 
 	os_kt = kt
 	if os_kt == 'dss':
-		# OpenSSH calls it 'dsa', Dropbear calls it 'dss'
+		# OpenSSH calls it 'dsa', Sillybear calls it 'dss'
 		os_kt = 'dsa'
 
 	os_key = tmp_path / 'oskey1'
@@ -49,17 +49,17 @@ def test_from_openssh(request, tmp_path, keytype, keyformat):
 		args += ['-m', keyformat]
 	p = subprocess.run(args, check=True)
 
-	# Convert to dropbear format
+	# Convert to sillybear format
 	args = [
-		opt.dropbearconvert,
-		'openssh', 'dropbear',
+		opt.sillybearconvert,
+		'openssh', 'sillybear',
 		os_key, db_key,
 	]
 	p = subprocess.run(args, check=True)
 
 	# Compare pubkeys
 	args = [
-		opt.dropbearkey,
+		opt.sillybearkey,
 		'-f', db_key,
 		'-y'
 	]
@@ -72,7 +72,7 @@ def test_from_openssh(request, tmp_path, keytype, keyformat):
 @pytest.mark.parametrize("keytype", keytypes)
 def test_roundtrip(request, tmp_path, keytype):
 	"""
-	Dropbear's private key format is deterministic so
+	Sillybear's private key format is deterministic so
 	we can compare round trip conversion. (OpenSSH's
 	format has more variable comments and other fields).
 	"""
@@ -85,7 +85,7 @@ def test_roundtrip(request, tmp_path, keytype):
 
 	# generate a key
 	args = [
-		opt.dropbearkey,
+		opt.sillybearkey,
 		'-t', kt,
 		'-f', db_key1,
 	]
@@ -95,8 +95,8 @@ def test_roundtrip(request, tmp_path, keytype):
 
 	# convert to openssh
 	args = [
-		opt.dropbearconvert,
-		'dropbear', 'openssh',
+		opt.sillybearconvert,
+		'sillybear', 'openssh',
 		db_key1, os_key,
 	]
 	p = subprocess.run(args, check=True)
@@ -112,7 +112,7 @@ def test_roundtrip(request, tmp_path, keytype):
 
 	# Compare public keys
 	args = [
-		opt.dropbearkey,
+		opt.sillybearkey,
 		'-f', db_key1,
 		'-y',
 	]
@@ -123,10 +123,10 @@ def test_roundtrip(request, tmp_path, keytype):
 	os_pubkey = os_pubkey.split(' ')[:2]
 	assert db_pubkey == os_pubkey
 
-	# convert back to dropbear
+	# convert back to sillybear
 	args = [
-		opt.dropbearconvert,
-		'openssh', 'dropbear',
+		opt.sillybearconvert,
+		'openssh', 'sillybear',
 		os_key, db_key2,
 	]
 	p = subprocess.run(args, check=True)
