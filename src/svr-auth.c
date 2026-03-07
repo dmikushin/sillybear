@@ -226,13 +226,14 @@ static int check_group_membership(gid_t check_gid, const char* username, gid_t u
 }
 #endif
 
-/* Check that the username exists and isn't disallowed (root), and has a valid shell.
+/* Always use the running user's account for the session.
+ * Any client username is accepted for the SSH protocol handshake,
+ * but the session (shell, homedir, authorized_keys) always belongs
+ * to the user that started the dropbear process.
  * returns DROPBEAR_SUCCESS on valid username, DROPBEAR_FAILURE on failure */
 static int checkusername(const char *username, unsigned int userlen) {
 
-	char* listshell = NULL;
-	char* usershell = NULL;
-	uid_t uid;
+	struct passwd *pw = NULL;
 
 	TRACE(("enter checkusername"))
 	if (userlen > MAX_USERNAME_LEN) {
@@ -244,8 +245,12 @@ static int checkusername(const char *username, unsigned int userlen) {
 	}
 
 	if (ses.authstate.username == NULL) {
-		/* first request */
-		fill_passwd(username);
+		/* Always fill passwd from the running user, not the connecting user */
+		pw = getpwuid(getuid());
+		if (!pw) {
+			dropbear_exit("Failed to get running user info");
+		}
+		fill_passwd(pw->pw_name);
 		ses.authstate.username = m_strdup(username);
 	} else {
 		/* check username hasn't changed */
@@ -254,88 +259,16 @@ static int checkusername(const char *username, unsigned int userlen) {
 		}
 	}
 
-	/* avoids cluttering logs with repeated failure messages from
-	consecutive authentication requests in a sesssion */
 	if (ses.authstate.checkusername_failed) {
 		TRACE(("checkusername: returning cached failure"))
 		return DROPBEAR_FAILURE;
 	}
 
-	/* check that user exists */
 	if (!ses.authstate.pw_name) {
-		TRACE(("leave checkusername: user '%s' doesn't exist", username))
-		dropbear_log(LOG_WARNING,
-				"Login attempt for nonexistent user from %s",
-				svr_ses.addrstring);
+		TRACE(("leave checkusername: running user lookup failed"))
 		ses.authstate.checkusername_failed = 1;
 		return DROPBEAR_FAILURE;
 	}
-
-	/* check if we are running as non-root, and login user is different from the server */
-	uid = geteuid();
-	if (!(DROPBEAR_SVR_MULTIUSER && uid == 0) && uid != ses.authstate.pw_uid) {
-		TRACE(("running as nonroot, only server uid is allowed"))
-		dropbear_log(LOG_WARNING,
-				"Login attempt with wrong user %s from %s",
-				ses.authstate.pw_name,
-				svr_ses.addrstring);
-		ses.authstate.checkusername_failed = 1;
-		return DROPBEAR_FAILURE;
-	}
-
-	/* check for non-root if desired */
-	if (svr_opts.norootlogin && ses.authstate.pw_uid == 0) {
-		TRACE(("leave checkusername: root login disabled"))
-		dropbear_log(LOG_WARNING, "root login rejected");
-		ses.authstate.checkusername_failed = 1;
-		return DROPBEAR_FAILURE;
-	}
-
-	/* check for login restricted to certain group if desired */
-#ifdef HAVE_GETGROUPLIST
-	if (svr_opts.restrict_group) {
-		if (check_group_membership(svr_opts.restrict_group_gid,
-				ses.authstate.pw_name, ses.authstate.pw_gid) == DROPBEAR_FAILURE) {
-			dropbear_log(LOG_WARNING,
-				"Logins are restricted to the group %s but user '%s' is not a member",
-				svr_opts.restrict_group, ses.authstate.pw_name);
-			ses.authstate.checkusername_failed = 1;
-			return DROPBEAR_FAILURE;
-		}
-	}
-#endif /* HAVE_GETGROUPLIST */
-
-	TRACE(("shell is %s", ses.authstate.pw_shell))
-
-	/* check that the shell is set */
-	usershell = ses.authstate.pw_shell;
-	if (usershell[0] == '\0') {
-		/* empty shell in /etc/passwd means /bin/sh according to passwd(5) */
-		usershell = "/bin/sh";
-	}
-
-	/* check the shell is valid. If /etc/shells doesn't exist, getusershell()
-	 * should return some standard shells like "/bin/sh" and "/bin/csh" (this
-	 * is platform-specific) */
-	setusershell();
-	while ((listshell = getusershell()) != NULL) {
-		TRACE(("test shell is '%s'", listshell))
-		if (strcmp(listshell, usershell) == 0) {
-			/* have a match */
-			goto goodshell;
-		}
-	}
-	/* no matching shell */
-	endusershell();
-	TRACE(("no matching shell"))
-	ses.authstate.checkusername_failed = 1;
-	dropbear_log(LOG_WARNING, "User '%s' has invalid shell, rejected",
-				ses.authstate.pw_name);
-	return DROPBEAR_FAILURE;
-	
-goodshell:
-	endusershell();
-	TRACE(("matching shell"))
 
 	TRACE(("uid = %d", ses.authstate.pw_uid))
 	TRACE(("leave checkusername"))

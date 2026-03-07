@@ -1,8 +1,55 @@
-## Dropbear SSH
-A smallish SSH server and client
-https://matt.ucc.asn.au/dropbear/dropbear.html
+## Dropbear SSH (sillybear fork)
 
-[INSTALL.md](INSTALL.md) has compilation instructions.
+A smallish SSH server and client, modified for personal/unprivileged use.
+
+Based on Dropbear — https://matt.ucc.asn.au/dropbear/dropbear.html
+
+### Fork modifications
+
+The login procedure has been removed from the server session chain.
+Instead of looking up the connecting client's username in `/etc/passwd`
+and switching to that account, the server always runs the session as the
+user who started the `dropbear` process:
+
+- **Any client username is accepted** for the SSH protocol handshake.
+- `~/.ssh/authorized_keys` is read from the **running user's** home
+  directory, not the connecting user's.
+- The shell, home directory, and environment all belong to the
+  **running user**.
+- No `setuid`/`setgid`/`initgroups` switching takes place (the call is
+  effectively a no-op).
+- Public-key authentication still works normally — the client's key is
+  verified against the running user's `authorized_keys`.
+
+This makes `dropbear` suitable as a lightweight personal SSH server that
+can be started without root privileges.
+
+### Building
+
+```sh
+autoconf && autoheader
+./configure --disable-syslog --disable-lastlog \
+            --disable-utmp --disable-utmpx \
+            --disable-wtmp --disable-wtmpx \
+            --disable-pututline --disable-pututxline
+make -j$(nproc)
+```
+
+### Running (as a regular user)
+
+```sh
+# Generate a host key (one-off)
+./dropbearkey -t ed25519 -f ~/.ssh/dropbear_ed25519_host_key
+
+# Start the server (foreground, stderr logging, pubkey-only)
+./dropbear -r ~/.ssh/dropbear_ed25519_host_key -p 2222 -F -E -s
+```
+
+`-s` disables password authentication, keeping only public-key auth.
+
+---
+
+[INSTALL.md](INSTALL.md) has the original compilation instructions.
 
 [MULTI.md](MULTI.md) has instructions on making a multi-purpose binary (ie a single binary which performs multiple tasks, to save disk space).
 
