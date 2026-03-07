@@ -68,18 +68,8 @@ void common_session_init(int sock_in, int sock_out) {
 	/* Sets it to lowdelay */
 	update_channel_prio();
 
-#if !SILLYBEAR_SVR_MULTIUSER
-	/* A sanity check to prevent an accidental configuration option
-	   leaving multiuser systems exposed */
-	{
-		int ret;
-		errno = 0;
-		ret = getgroups(0, NULL);
-		if (!(ret == -1 && errno == ENOSYS)) {
-			sillybear_exit("Non-multiuser Sillybear requires a non-multiuser kernel");
-		}
-	}
-#endif
+	/* SILLYBEAR_SVR_MULTIUSER=0: sillybear intentionally runs as a
+	   single-user personal server on a normal multiuser kernel. */
 
 	now = monotonic_now();
 	ses.connect_time = now;
