@@ -252,10 +252,9 @@ group1 in Sillybear server too */
  * authorized_keys file into account */
 #define SILLYBEAR_SVR_PUBKEY_OPTIONS 1
 
-/* Set this to 0 if your system does not have multiple user support.
-   (Linux kernel CONFIG_MULTIUSER option)
-   The resulting binary will not run on a normal system. */
-#define SILLYBEAR_SVR_MULTIUSER 1
+/* Disabled — sillybear runs as a single-user personal server,
+   no uid/gid switching is performed. */
+#define SILLYBEAR_SVR_MULTIUSER 0
 
 /* Client authentication options */
 #define SILLYBEAR_CLI_PASSWORD_AUTH 1
@@ -321,11 +320,9 @@ group1 in Sillybear server too */
 */
 #define MAX_PUBKEY_QUERIES 15
 
-/* Change server process to user privileges after authentication. */
-#ifndef SILLYBEAR_SVR_DROP_PRIVS
-/* Default is enabled. Should only be disabled if platforms are incompatible */
-#define SILLYBEAR_SVR_DROP_PRIVS SILLYBEAR_SVR_MULTIUSER
-#endif
+/* Privilege separation is disabled — sillybear always runs as the
+   invoking user, no uid/gid switching is needed. */
+#define SILLYBEAR_SVR_DROP_PRIVS 0
 
 /* Delay introduced before closing an unauthenticated session (seconds).
    Disabled by default, can be set to say 30 seconds to reduce the speed
