@@ -599,11 +599,15 @@ static int checkfileperm(char * filename) {
 		TRACE(("leave checkfileperm: stat() != 0"))
 		return SILLYBEAR_FAILURE;
 	}
-	/* check ownership - user or root only*/
-	if (filestat.st_uid != ses.authstate.pw_uid
-			&& filestat.st_uid != 0) {
-		badperm = 1;
-		TRACE(("wrong ownership"))
+	/* check ownership - user or root only */
+	/* Skip ownership check when forced_user is set, since the process
+	 * may run as a different OS user (e.g. LocalSystem on Windows) */
+	if (!svr_opts.forced_user) {
+		if (filestat.st_uid != ses.authstate.pw_uid
+				&& filestat.st_uid != 0) {
+			badperm = 1;
+			TRACE(("wrong ownership"))
+		}
 	}
 	/* check permissions - don't want group or others +w */
 	if (filestat.st_mode & (S_IWGRP | S_IWOTH)) {

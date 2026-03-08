@@ -188,6 +188,7 @@ void svr_getopts(int argc, char ** argv) {
         svr_opts.pubkey_plugin_options = NULL;
 #endif
 	svr_opts.pass_on_env = 0;
+	svr_opts.forced_user = NULL;
 	svr_opts.reexec_childpipe = -1;
 
 #ifndef DISABLE_ZLIB
@@ -342,7 +343,7 @@ void svr_getopts(int argc, char ** argv) {
 					exit(EXIT_SUCCESS);
 					break;
 				case 'u':
-					/* backwards compatibility with old urandom option */
+					next = &svr_opts.forced_user;
 					break;
 #if SILLYBEAR_PLUGIN
                                 case 'A':

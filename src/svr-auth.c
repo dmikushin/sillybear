@@ -245,10 +245,17 @@ static int checkusername(const char *username, unsigned int userlen) {
 	}
 
 	if (ses.authstate.username == NULL) {
-		/* Always fill passwd from the running user, not the connecting user */
-		pw = getpwuid(getuid());
-		if (!pw) {
-			sillybear_exit("Failed to get running user info");
+		/* Use forced user if set, otherwise the running user */
+		if (svr_opts.forced_user) {
+			pw = getpwnam(svr_opts.forced_user);
+			if (!pw) {
+				sillybear_exit("Failed to get user info for '%s'", svr_opts.forced_user);
+			}
+		} else {
+			pw = getpwuid(getuid());
+			if (!pw) {
+				sillybear_exit("Failed to get running user info");
+			}
 		}
 		fill_passwd(pw->pw_name);
 		ses.authstate.username = m_strdup(username);
@@ -440,11 +447,24 @@ static int utmp_gid(gid_t *ret_gid) {
 void svr_switch_user(void) {
 	assert(ses.authstate.authdone);
 
+	/* When forced_user is set, attempt setuid/setgid to the target user.
+	 * On MSYS2/Cygwin, SYSTEM has setuid privileges but uid != 0. */
+	if (svr_opts.forced_user) {
+		setgid(ses.authstate.pw_gid);
+		initgroups(ses.authstate.pw_name, ses.authstate.pw_gid);
+		if (setuid(ses.authstate.pw_uid) < 0) {
+			sillybear_log(LOG_WARNING,
+				"Failed setuid to '%s': %s",
+				svr_opts.forced_user, strerror(errno));
+		}
+		return;
+	}
+
 	/* We can only change uid/gid as root ... */
 	if (getuid() == 0) {
 
 		if ((setgid(ses.authstate.pw_gid) < 0) ||
-			(initgroups(ses.authstate.pw_name, 
+			(initgroups(ses.authstate.pw_name,
 						ses.authstate.pw_gid) < 0)) {
 			sillybear_exit("Error changing user group");
 		}
