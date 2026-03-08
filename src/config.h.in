@@ -54,12 +54,6 @@
 /* Use zlib */
 #undef DISABLE_ZLIB
 
-/* Fuzzing */
-#undef DROPBEAR_FUZZ
-
-/* External Public Key Authentication */
-#undef DROPBEAR_PLUGIN
-
 /* Define to 1 if you have the `basename' function. */
 #undef HAVE_BASENAME
 
@@ -437,6 +431,12 @@
 
 /* Define to the type of arg 5 for `select'. */
 #undef SELECT_TYPE_ARG5
+
+/* Fuzzing */
+#undef SILLYBEAR_FUZZ
+
+/* External Public Key Authentication */
+#undef SILLYBEAR_PLUGIN
 
 /* Define to 1 if all of the C90 standard headers exist (not just the ones
    required in a freestanding environment). This macro is provided for

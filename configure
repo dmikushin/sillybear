@@ -652,11 +652,11 @@ LIBTOM_LIBS
 EGREP
 GREP
 CPP
-DROPBEAR_FUZZ
+SILLYBEAR_FUZZ
 ac_ct_CXX
 CXXFLAGS
 CXX
-DROPBEAR_PLUGIN
+SILLYBEAR_PLUGIN
 CRYPTLIB
 INSTALL_DATA
 INSTALL_SCRIPT
@@ -673,7 +673,7 @@ build_vendor
 build_cpu
 build
 STATIC
-DROPBEAR_LTM_CFLAGS
+SILLYBEAR_LTM_CFLAGS
 LTM_CFLAGS
 LD
 OBJEXT
@@ -1398,7 +1398,7 @@ Optional Features:
                           system version exists. Use --disable-bundled-libtom
                           to force not using bundled even if system version
                           doesn't exist. Default is to use system if
-                          available, otherwise bundled. Dropbear requires
+                          available, otherwise bundled. Sillybear requires
                           system libtommath >= 1.2.0 and libtomcrypt >=
                           1.18.0.
   --disable-lastlog       Disable use of lastlog even if detected [no]
@@ -3993,13 +3993,13 @@ printf "%s\n" "$as_me: No \$CFLAGS set... using \"-Os -W -Wall\" for GCC" >&6;}
 fi
 
 # LTM_CFLAGS is given to ./configure by the user,
-# DROPBEAR_LTM_CFLAGS is substituted in the LTM Makefile.in
-DROPBEAR_LTM_CFLAGS="$LTM_CFLAGS"
-if test -z "$DROPBEAR_LTM_CFLAGS"; then
-	DROPBEAR_LTM_CFLAGS="-O3 -funroll-loops -fomit-frame-pointer"
+# SILLYBEAR_LTM_CFLAGS is substituted in the LTM Makefile.in
+SILLYBEAR_LTM_CFLAGS="$LTM_CFLAGS"
+if test -z "$SILLYBEAR_LTM_CFLAGS"; then
+	SILLYBEAR_LTM_CFLAGS="-O3 -funroll-loops -fomit-frame-pointer"
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: Setting LTM_CFLAGS to $DROPBEAR_LTM_CFLAGS" >&5
-printf "%s\n" "$as_me: Setting LTM_CFLAGS to $DROPBEAR_LTM_CFLAGS" >&6;}
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: Setting LTM_CFLAGS to $SILLYBEAR_LTM_CFLAGS" >&5
+printf "%s\n" "$as_me: Setting LTM_CFLAGS to $SILLYBEAR_LTM_CFLAGS" >&6;}
 
 
 
@@ -5696,7 +5696,7 @@ ac_res=$ac_cv_search_openpty
 if test "$ac_res" != no
 then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-  dropbear_cv_func_have_openpty=yes
+  sillybear_cv_func_have_openpty=yes
 fi
 
 		fi
@@ -5761,7 +5761,7 @@ ac_res=$ac_cv_search_openpty
 if test "$ac_res" != no
 then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-  dropbear_cv_func_have_openpty=yes
+  sillybear_cv_func_have_openpty=yes
 fi
 
 
@@ -5769,7 +5769,7 @@ fi
 fi
 
 
-if test "x$dropbear_cv_func_have_openpty" = "xyes"; then
+if test "x$sillybear_cv_func_have_openpty" = "xyes"; then
 
 printf "%s\n" "#define HAVE_OPENPTY /**/" >>confdefs.h
 
@@ -5841,18 +5841,18 @@ if test ${enable_plugin+y}
 then :
   enableval=$enable_plugin;
 
-printf "%s\n" "#define DROPBEAR_PLUGIN 1" >>confdefs.h
+printf "%s\n" "#define SILLYBEAR_PLUGIN 1" >>confdefs.h
 
 		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: Enabling support for External Public Key Authentication" >&5
 printf "%s\n" "$as_me: Enabling support for External Public Key Authentication" >&6;}
-		DROPBEAR_PLUGIN=1
+		SILLYBEAR_PLUGIN=1
 
 else $as_nop
 
 
-printf "%s\n" "#define DROPBEAR_PLUGIN 0" >>confdefs.h
+printf "%s\n" "#define SILLYBEAR_PLUGIN 0" >>confdefs.h
 
-		DROPBEAR_PLUGIN=0
+		SILLYBEAR_PLUGIN=0
 
 
 
@@ -5872,11 +5872,11 @@ then :
   enableval=$enable_fuzz;
 		if test "x$enableval" = "xyes"; then
 
-printf "%s\n" "#define DROPBEAR_FUZZ 1" >>confdefs.h
+printf "%s\n" "#define SILLYBEAR_FUZZ 1" >>confdefs.h
 
             { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Enabling fuzzing" >&5
 printf "%s\n" "$as_me: Enabling fuzzing" >&6;}
-            DROPBEAR_FUZZ=1
+            SILLYBEAR_FUZZ=1
             # libfuzzer needs linking with c++ libraries
             ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -6250,21 +6250,21 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 			mkdir -pv fuzz
         else
 
-printf "%s\n" "#define DROPBEAR_FUZZ 0" >>confdefs.h
+printf "%s\n" "#define SILLYBEAR_FUZZ 0" >>confdefs.h
 
             { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Disabling fuzzing" >&5
 printf "%s\n" "$as_me: Disabling fuzzing" >&6;}
-            DROPBEAR_FUZZ=0
+            SILLYBEAR_FUZZ=0
         fi
 
 else $as_nop
 
 
-printf "%s\n" "#define DROPBEAR_FUZZ 0" >>confdefs.h
+printf "%s\n" "#define SILLYBEAR_FUZZ 0" >>confdefs.h
 
 		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: Disabling fuzzing" >&5
 printf "%s\n" "$as_me: Disabling fuzzing" >&6;}
-		DROPBEAR_FUZZ=0
+		SILLYBEAR_FUZZ=0
 
 
 
@@ -10120,8 +10120,8 @@ fi
 if test "t$found_crypt_func" != there; then
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: " >&5
 printf "%s\n" "$as_me: " >&6;}
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: crypt() not available, dropbear server will not have password authentication" >&5
-printf "%s\n" "$as_me: crypt() not available, dropbear server will not have password authentication" >&6;}
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: crypt() not available, sillybear server will not have password authentication" >&5
+printf "%s\n" "$as_me: crypt() not available, sillybear server will not have password authentication" >&6;}
 fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: " >&5
