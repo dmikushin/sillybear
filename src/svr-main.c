@@ -278,6 +278,19 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 			if (errno == EINTR) {
 				continue;
 			}
+			/* EBADF: a childpipe FD went bad (e.g. connection thread
+			 * closed it). Find and clean up the bad FDs rather than
+			 * crashing the whole server. */
+			if (errno == EBADF) {
+				for (i = 0; i < MAX_UNAUTH_CLIENTS; i++) {
+					if (childpipes[i] >= 0
+						&& fcntl(childpipes[i], F_GETFD) < 0) {
+						childpipes[i] = -1;
+						m_free(preauth_addrs[i]);
+					}
+				}
+				continue;
+			}
 			sillybear_exit("Listening socket error");
 		}
 
