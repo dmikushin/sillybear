@@ -333,7 +333,9 @@ void svr_sillybear_exit(int exitcode, const char* format, va_list param) {
 		m_free(svr_opts.ports[i]);
 	}
 
-	exit(exitcode);
+	/* Use _exit() to avoid deadlocking with detached connection
+	 * threads that may hold locks during atexit/stdio cleanup. */
+	_exit(exitcode);
 
 }
 

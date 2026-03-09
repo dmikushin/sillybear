@@ -255,7 +255,14 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 			}
 		}
 
-		val = select(maxsock+1, &fds, NULL, NULL, NULL);
+		/* Use a timeout so we reliably check exitflag even if
+		 * SIGTERM doesn't interrupt select() on Cygwin. */
+		{
+			struct timeval timeout;
+			timeout.tv_sec = 1;
+			timeout.tv_usec = 0;
+			val = select(maxsock+1, &fds, NULL, NULL, &timeout);
+		}
 
 		if (ses.exitflag) {
 			unlink(svr_opts.pidfile);
