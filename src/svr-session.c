@@ -45,7 +45,13 @@
 static void svr_remoteclosed(void);
 static void svr_algos_initialise(void);
 
-struct serversession svr_ses; /* GLOBAL */
+__thread struct serversession svr_ses; /* THREAD-LOCAL */
+
+static __thread int is_conn_thread = 0;
+
+void svr_set_conn_thread(void) {
+	is_conn_thread = 1;
+}
 
 static const packettype svr_packettypes[] = {
 	{SSH_MSG_CHANNEL_DATA, recv_msg_channel_data},
@@ -91,6 +97,14 @@ svr_session_cleanup(void) {
 	m_free(svr_ses.remotehost);
 	m_free(svr_ses.childpids);
 	svr_ses.childpidsize = 0;
+
+	/* Close the childpipe to signal the main thread that this
+	 * connection is done (in threaded mode FDs aren't auto-closed
+	 * on thread exit like they are on process exit). */
+	if (svr_ses.childpipe >= 0) {
+		m_close(svr_ses.childpipe);
+		svr_ses.childpipe = -1;
+	}
 
 #if SILLYBEAR_PLUGIN
         if (svr_ses.plugin_handle != NULL) {
@@ -296,6 +310,20 @@ void svr_sillybear_exit(int exitcode, const char* format, va_list param) {
     }
 #endif
 
+	if (is_conn_thread) {
+		/* Connection thread: close socket FDs and exit thread.
+		 * Skip svr_opts cleanup — it's shared with the main thread. */
+		if (ses.sock_in >= 0) {
+			m_close(ses.sock_in);
+			if (ses.sock_out >= 0 && ses.sock_in != ses.sock_out) {
+				m_close(ses.sock_out);
+			}
+			ses.sock_in = -1;
+			ses.sock_out = -1;
+		}
+		pthread_exit(NULL);
+	}
+
 	if (svr_opts.hostkey) {
 		sign_key_free(svr_opts.hostkey);
 		svr_opts.hostkey = NULL;
@@ -305,7 +333,6 @@ void svr_sillybear_exit(int exitcode, const char* format, va_list param) {
 		m_free(svr_opts.ports[i]);
 	}
 
-    
 	exit(exitcode);
 
 }
@@ -333,9 +360,10 @@ void svr_sillybear_log(int priority, const char* format, va_list param) {
 #endif
 
 	if (!opts.usingsyslog || havetrace) {
+		struct tm local_tm_buf;
 		struct tm * local_tm = NULL;
 		timesec = time(NULL);
-		local_tm = localtime(&timesec);
+		local_tm = localtime_r(&timesec, &local_tm_buf);
 		if (local_tm == NULL
 			|| strftime(datestr, sizeof(datestr), "%b %d %H:%M:%S", 
 						local_tm) == 0)

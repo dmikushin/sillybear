@@ -57,6 +57,7 @@
 #include <time.h>
 #include <setjmp.h>
 #include <assert.h>
+#include <pthread.h>
 
 #ifdef HAVE_UTMP_H
 #include <utmp.h>

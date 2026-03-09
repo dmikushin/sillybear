@@ -349,14 +349,16 @@ struct clientsession {
 };
 
 /* Global structs storing the state */
-extern struct sshsession ses;
+extern __thread struct sshsession ses;
 
 #if SILLYBEAR_SERVER
-extern struct serversession svr_ses;
+extern __thread struct serversession svr_ses;
 #endif /* SILLYBEAR_SERVER */
 
 #if SILLYBEAR_CLIENT
 extern struct clientsession cli_ses;
 #endif /* SILLYBEAR_CLIENT */
+
+void svr_set_conn_thread(void);
 
 #endif /* SILLYBEAR_SESSION_H_ */

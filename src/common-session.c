@@ -41,7 +41,7 @@ static long select_timeout(void);
 static int ident_readln(int fd, char* buf, int count);
 static void read_session_identification(void);
 
-struct sshsession ses; /* GLOBAL */
+__thread struct sshsession ses; /* THREAD-LOCAL */
 
 /* called only at the start of a session, set up initial state */
 void common_session_init(int sock_in, int sock_out) {
@@ -159,6 +159,11 @@ void session_loop(void(*loophandler)(void)) {
 
 		timeout.tv_sec = select_timeout();
 		timeout.tv_usec = 0;
+		/* Cap timeout for polling child process exits via waitpid(WNOHANG).
+		 * In threaded mode SIGCHLD is blocked, so we poll instead. */
+		if (ses.isserver) {
+			timeout.tv_sec = MIN(timeout.tv_sec, 1);
+		}
 		SILLYBEAR_FD_ZERO(&writefd);
 		SILLYBEAR_FD_ZERO(&readfd);
 
@@ -219,13 +224,15 @@ void session_loop(void(*loophandler)(void)) {
 		/* We'll just empty out the pipe if required. We don't do
 		any thing with the data, since the pipe's purpose is purely to
 		wake up the select() above. */
-		ses.channel_signal_pending = 0;
 		if (FD_ISSET(ses.signal_pipe[0], &readfd)) {
 			char x;
 			TRACE(("signal pipe set"))
 			while (read(ses.signal_pipe[0], &x, 1) > 0) {}
-			ses.channel_signal_pending = 1;
 		}
+		/* Always poll for child exits in server mode. In threaded mode
+		 * SIGCHLD is blocked so the signal pipe won't be written to;
+		 * we rely on waitpid(WNOHANG) polling instead. */
+		ses.channel_signal_pending = ses.isserver ? 1 : 0;
 
 		/* check for auth timeout, rekeying required etc */
 		checktimeouts();

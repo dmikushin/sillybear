@@ -49,7 +49,7 @@ static int ptycommand(struct Channel *channel, struct ChanSess *chansess);
 static int sessionwinchange(const struct ChanSess *chansess);
 static void execchild(const void *user_data_chansess);
 static void addchildpid(struct ChanSess *chansess, pid_t pid);
-static void sesssigchild_handler(int val);
+
 static void closechansess(const struct Channel *channel);
 static void cleanupchansess(const struct Channel *channel);
 static int newchansess(struct Channel *channel);
@@ -95,32 +95,28 @@ static int sesscheckclose(struct Channel *channel) {
 void svr_chansess_checksignal(void) {
 	int status;
 	pid_t pid;
+	unsigned int i;
 
 	if (!ses.channel_signal_pending) {
 		return;
 	}
 
-	while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
-		unsigned int i;
+	/* Poll each known child by specific PID. This is thread-safe:
+	 * each connection thread only waits for its own children, avoiding
+	 * races with other threads' children. */
+	for (i = 0; i < svr_ses.childpidsize; i++) {
 		struct exitinfo *ex = NULL;
+		if (svr_ses.childpids[i].pid <= 0) {
+			continue;
+		}
+
+		pid = waitpid(svr_ses.childpids[i].pid, &status, WNOHANG);
+		if (pid <= 0) {
+			continue;
+		}
+
 		TRACE(("svr_chansess_checksignal : pid %d", pid))
-
-		ex = NULL;
-		/* find the corresponding chansess */
-		for (i = 0; i < svr_ses.childpidsize; i++) {
-			if (svr_ses.childpids[i].pid == pid) {
-				TRACE(("found match session"));
-				ex = &svr_ses.childpids[i].chansess->exit;
-				break;
-			}
-		}
-
-		/* If the pid wasn't matched, then we might have hit the race mentioned
-		 * above. So we just store the info for the parent to deal with */
-		if (ex == NULL) {
-			TRACE(("using lastexit"));
-			ex = &svr_ses.lastexit;
-		}
+		ex = &svr_ses.childpids[i].chansess->exit;
 
 		ex->exitpid = pid;
 		if (WIFEXITED(status)) {
@@ -140,28 +136,9 @@ void svr_chansess_checksignal(void) {
 	}
 }
 
-static void sesssigchild_handler(int UNUSED(dummy)) {
-	struct sigaction sa_chld;
-
-	const int saved_errno = errno;
-
-	/* Make sure that the main select() loop wakes up */
-	while (1) {
-		/* isserver is just a random byte to write. We can't do anything
-		about an error so should just ignore it */
-		if (write(ses.signal_pipe[1], &ses.isserver, 1) == 1
-				|| errno != EINTR) {
-			break;
-		}
-	}
-
-	sa_chld.sa_handler = sesssigchild_handler;
-	sa_chld.sa_flags = SA_NOCLDSTOP;
-	sigemptyset(&sa_chld.sa_mask);
-	sigaction(SIGCHLD, &sa_chld, NULL);
-
-	errno = saved_errno;
-}
+/* sesssigchild_handler removed — child exit detection is now done
+ * via waitpid(WNOHANG) polling in the session loop, which is
+ * thread-safe (no SIGCHLD handler needed). */
 
 /* send the exit status or the signal causing termination for a session */
 static void send_exitsignalstatus(const struct Channel *channel) {
@@ -1071,21 +1048,15 @@ static void execchild(const void *user_data) {
  * handling */
 void svr_chansessinitialise() {
 
-	struct sigaction sa_chld;
-
-	/* single child process intially */
+	/* single child process initially */
 	svr_ses.childpids = (struct ChildPid*)m_malloc(sizeof(struct ChildPid));
 	svr_ses.childpids[0].pid = -1; /* unused */
 	svr_ses.childpids[0].chansess = NULL;
 	svr_ses.childpidsize = 1;
 	svr_ses.lastexit.exitpid = -1; /* Nothing has exited yet */
-	sa_chld.sa_handler = sesssigchild_handler;
-	sa_chld.sa_flags = SA_NOCLDSTOP;
-	sigemptyset(&sa_chld.sa_mask);
-	if (sigaction(SIGCHLD, &sa_chld, NULL) < 0) {
-		sillybear_exit("signal() error");
-	}
-	
+
+	/* No SIGCHLD handler — child exits are detected via
+	 * waitpid(WNOHANG) polling in the session loop. */
 }
 
 /* add a new environment variable, allocating space for the entry */

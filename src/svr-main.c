@@ -32,12 +32,48 @@
 #include "crypto_desc.h"
 
 static size_t listensockets(int *sock, size_t sockcount, int *maxfd);
-static void sigchld_handler(int dummy);
 static void sigsegv_handler(int);
 static void sigintterm_handler(int fish);
 static void main_inetd(void);
 static void main_noinetd(int argc, char ** argv, const char* multipath);
 static void commonsetup(void);
+
+/* Thread-based connection handling (replaces fork) */
+struct conn_thread_args {
+	int childsock;
+	int childpipe_write;
+	struct sockaddr_storage remoteaddr;
+};
+
+static void *conn_thread_func(void *arg) {
+	struct conn_thread_args *cta = arg;
+	int sock = cta->childsock;
+	int pipe_fd = cta->childpipe_write;
+	char *remote_host = NULL, *remote_port = NULL;
+	sigset_t set;
+
+	/* Block all signals — main thread handles SIGINT/SIGTERM,
+	 * child process exits detected via waitpid(WNOHANG) polling. */
+	sigfillset(&set);
+	pthread_sigmask(SIG_BLOCK, &set, NULL);
+
+	getaddrstring(&cta->remoteaddr, &remote_host, NULL, 0);
+	getaddrstring(&cta->remoteaddr, NULL, &remote_port, 0);
+	sillybear_log(LOG_INFO, "Child connection from %s:%s",
+		remote_host, remote_port);
+	m_free(remote_host);
+	m_free(remote_port);
+	m_free(cta);
+
+	svr_set_conn_thread();
+	seedrandom();
+
+	/* Run the SSH session (never returns — exits via pthread_exit) */
+	svr_session(sock, pipe_fd);
+
+	/* Not reached */
+	return NULL;
+}
 
 #if defined(DBMULTI_sillybear) || !SILLYBEAR_MULTI
 #if defined(DBMULTI_sillybear) && SILLYBEAR_MULTI
@@ -131,7 +167,6 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 	int listensocks[MAX_LISTEN_ADDR];
 	size_t listensockcount = 0;
 	FILE *pidfile = NULL;
-	int execfd = -1;
 
 	int childpipes[MAX_UNAUTH_CLIENTS];
 	char * preauth_addrs[MAX_UNAUTH_CLIENTS];
@@ -147,6 +182,16 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 	   daemon() will chdir("/"), and we won't be able to find local-dir
 	   hostkeys. */
 	commonsetup();
+
+	/* Block SIGCHLD in the main thread. Connection threads also block
+	 * all signals. Child process exits (from Level 2 shell fork) are
+	 * detected by connection threads via waitpid(WNOHANG) polling. */
+	{
+		sigset_t set;
+		sigemptyset(&set);
+		sigaddset(&set, SIGCHLD);
+		pthread_sigmask(SIG_BLOCK, &set, NULL);
+	}
 
 	/* sockets to identify pre-authenticated clients */
 	for (i = 0; i < MAX_UNAUTH_CLIENTS; i++) {
@@ -164,18 +209,6 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 	for (i = 0; i < listensockcount; i++) {
 		FD_SET(listensocks[i], &fds);
 	}
-
-#if SILLYBEAR_DO_REEXEC
-	if (multipath) {
-		execfd = open(multipath, O_CLOEXEC|O_RDONLY);
-	} else {
-		execfd = open(argv[0], O_CLOEXEC|O_RDONLY);
-	}
-	if (execfd < 0) {
-		/* Just fallback to straight fork */
-		TRACE(("Couldn't open own binary %s, disabling re-exec: %s", argv[0], strerror(errno)))
-	}
-#endif
 
 	/* fork */
 	if (svr_opts.forkbg) {
@@ -255,17 +288,16 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 		for (i = 0; i < listensockcount; i++) {
 			size_t num_unauthed_for_addr = 0;
 			size_t num_unauthed_total = 0;
-			char *remote_host = NULL, *remote_port = NULL;
-			pid_t fork_ret = 0;
+			char *remote_host = NULL;
 			size_t conn_idx = 0;
 			struct sockaddr_storage remoteaddr;
 			socklen_t remoteaddrlen;
 
-			if (!FD_ISSET(listensocks[i], &fds)) 
+			if (!FD_ISSET(listensocks[i], &fds))
 				continue;
 
 			remoteaddrlen = sizeof(remoteaddr);
-			childsock = accept(listensocks[i], 
+			childsock = accept(listensocks[i],
 					(struct sockaddr*)&remoteaddr, &remoteaddrlen);
 
 			if (childsock < 0) {
@@ -295,101 +327,51 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
 				goto out;
 			}
 
-			seedrandom();
-
 			if (pipe(childpipe) < 0) {
 				TRACE(("error creating child pipe"))
 				goto out;
 			}
 
-#if DEBUG_NOFORK
-			fork_ret = 0;
-#else
-			fork_ret = fork();
-#endif
-			if (fork_ret < 0) {
-				sillybear_log(LOG_WARNING, "Error forking: %s", strerror(errno));
-				goto out;
-			}
+			/* Spawn a thread to handle this connection (replaces fork).
+			 * The thread owns childsock and childpipe[1]; main thread
+			 * keeps childpipe[0] to track authentication status. */
+			{
+				pthread_t conn_thread;
+				pthread_attr_t attr;
+				struct conn_thread_args *cta = m_malloc(sizeof(*cta));
+				cta->childsock = childsock;
+				cta->childpipe_write = childpipe[1];
+				memcpy(&cta->remoteaddr, &remoteaddr, sizeof(remoteaddr));
 
-			addrandom((void*)&fork_ret, sizeof(fork_ret));
+				seedrandom();
 
-			if (fork_ret > 0) {
+				pthread_attr_init(&attr);
+				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-				/* parent */
+				if (pthread_create(&conn_thread, &attr, conn_thread_func, cta) != 0) {
+					sillybear_log(LOG_WARNING, "Error creating connection thread: %s", strerror(errno));
+					m_free(cta);
+					m_close(childpipe[0]);
+					m_close(childpipe[1]);
+					pthread_attr_destroy(&attr);
+					goto out;
+				}
+
+				pthread_attr_destroy(&attr);
+
+				/* Main thread tracks the read end of childpipe */
 				childpipes[conn_idx] = childpipe[0];
-				m_close(childpipe[1]);
 				preauth_addrs[conn_idx] = remote_host;
 				remote_host = NULL;
 
-			} else {
-
-				/* child */
-				getaddrstring(&remoteaddr, NULL, &remote_port, 0);
-				sillybear_log(LOG_INFO, "Child connection from %s:%s", remote_host, remote_port);
-				m_free(remote_host);
-				m_free(remote_port);
-
-#if !DEBUG_NOFORK
-				if (setsid() < 0) {
-					sillybear_exit("setsid: %s", strerror(errno));
-				}
-#endif
-
-				/* make sure we close sockets */
-				for (j = 0; j < listensockcount; j++) {
-					m_close(listensocks[j]);
-				}
-
-				m_close(childpipe[0]);
-
-				if (execfd >= 0) {
-#if SILLYBEAR_DO_REEXEC
-					/* Add "-2 childpipe[1]" to the args and re-execute ourself. */
-					char **new_argv = m_malloc(sizeof(char*) * (argc+4));
-					char buf[10];
-					int pos0 = 0, new_argc = argc+2;
-
-					/* We need to specially handle "sillybearmulti sillybear". */
-					if (multipath) {
-						new_argv[0] = (char*)multipath;
-						pos0 = 1;
-						new_argc++;
-					}
-
-					memcpy(&new_argv[pos0], argv, sizeof(char*) * argc);
-					new_argv[new_argc-2] = "-2";
-					snprintf(buf, sizeof(buf), "%d", childpipe[1]);
-					new_argv[new_argc-1] = buf;
-					new_argv[new_argc] = NULL;
-
-					if ((dup2(childsock, STDIN_FILENO) < 0)) {
-						sillybear_exit("dup2 failed: %s", strerror(errno));
-					}
-					if (fcntl(childsock, F_SETFD, FD_CLOEXEC) < 0) {
-						TRACE(("cloexec for childsock %d failed: %s", childsock, strerror(errno)))
-					}
-					/* Re-execute ourself */
-					fexecve(execfd, new_argv, environ);
-					/* Not reached on success */
-
-					/* Fall back on plain fork otherwise.
-					 * To be removed in future once re-exec has been well tested */
-					sillybear_log(LOG_WARNING, "fexecve failed, disabling re-exec: %s", strerror(errno));
-					m_close(STDIN_FILENO);
-					m_free(new_argv);
-#endif /* SILLYBEAR_DO_REEXEC */
-				}
-
-				/* start the session */
-				svr_session(childsock, childpipe[1]);
-				/* don't return */
-				sillybear_assert(0);
+				/* Thread owns childsock and childpipe[1] now */
+				childsock = -1;
 			}
 
 out:
-			/* This section is important for the parent too */
-			m_close(childsock);
+			if (childsock >= 0) {
+				m_close(childsock);
+			}
 			if (remote_host) {
 				m_free(remote_host);
 			}
@@ -400,23 +382,6 @@ out:
 }
 #endif /* NON_INETD_MODE */
 
-
-/* catch + reap zombie children */
-static void sigchld_handler(int UNUSED(unused)) {
-	struct sigaction sa_chld;
-
-	const int saved_errno = errno;
-
-	while(waitpid(-1, NULL, WNOHANG) > 0) {}
-
-	sa_chld.sa_handler = sigchld_handler;
-	sa_chld.sa_flags = SA_NOCLDSTOP;
-	sigemptyset(&sa_chld.sa_mask);
-	if (sigaction(SIGCHLD, &sa_chld, NULL) < 0) {
-		sillybear_exit("signal() error");
-	}
-	errno = saved_errno;
-}
 
 /* catch any segvs */
 static void sigsegv_handler(int UNUSED(unused)) {
@@ -438,7 +403,6 @@ static void sigintterm_handler(int UNUSED(unused)) {
 /* Things used by inetd and non-inetd modes */
 static void commonsetup() {
 
-	struct sigaction sa_chld;
 #ifndef DISABLE_SYSLOG
 	if (opts.usingsyslog) {
 		startsyslog(PROGNAME);
@@ -446,7 +410,7 @@ static void commonsetup() {
 #endif
 
 	/* set up cleanup handler */
-	if (signal(SIGINT, sigintterm_handler) == SIG_ERR || 
+	if (signal(SIGINT, sigintterm_handler) == SIG_ERR ||
 #ifndef DEBUG_VALGRIND
 		signal(SIGTERM, sigintterm_handler) == SIG_ERR ||
 #endif
@@ -454,13 +418,10 @@ static void commonsetup() {
 		sillybear_exit("signal() error");
 	}
 
-	/* catch and reap zombie children */
-	sa_chld.sa_handler = sigchld_handler;
-	sa_chld.sa_flags = SA_NOCLDSTOP;
-	sigemptyset(&sa_chld.sa_mask);
-	if (sigaction(SIGCHLD, &sa_chld, NULL) < 0) {
-		sillybear_exit("signal() error");
-	}
+	/* No SIGCHLD handler — connection threads detect child exits
+	 * via waitpid(WNOHANG) polling in the session loop. SIGCHLD is
+	 * blocked in all threads to prevent interference. */
+
 	if (signal(SIGSEGV, sigsegv_handler) == SIG_ERR) {
 		sillybear_exit("signal() error");
 	}
