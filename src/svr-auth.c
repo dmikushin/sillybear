@@ -419,6 +419,7 @@ void send_msg_userauth_success() {
 	 * we fail, we might end up leaking connection slots, and disallow new
 	 * logins - a nasty situation. */							
 	m_close(svr_ses.childpipe);
+	svr_ses.childpipe = -1;
 
 	TRACE(("leave send_msg_userauth_success"))
 
