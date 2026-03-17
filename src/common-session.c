@@ -302,6 +302,14 @@ void session_cleanup() {
 
 	/* BEWARE of changing order of functions here. */
 
+	/* Close the signal pipe — in the fork model these were closed
+	 * automatically on process exit. In threaded mode pthread_exit()
+	 * does NOT close FDs, so we must do it explicitly. */
+	m_close(ses.signal_pipe[0]);
+	m_close(ses.signal_pipe[1]);
+	ses.signal_pipe[0] = -1;
+	ses.signal_pipe[1] = -1;
+
 	/* Must be before extra_session_cleanup() */
 	chancleanup();
 
