@@ -31,3 +31,8 @@ tags
 /test/init/
 /test/fakekey
 .vscode/
+
+*.exe
+/sillybear
+/sillybearconvert
+/sillybearkey
