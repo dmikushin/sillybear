@@ -1,0 +1,43 @@
+# Maintainer: Dmitry Mikushin <dmitry@kernelgen.org>
+pkgname=sillybear
+pkgver=2025.89
+pkgrel=1
+pkgdesc="Lightweight SSH2 server and client"
+arch=('x86_64' 'i686')
+url="https://github.com/dmikushin/sillybear"
+license=('MIT')
+depends=('zlib' 'libxcrypt')
+makedepends=('gcc' 'make' 'autoconf' 'zlib-devel' 'libcrypt-devel')
+source=("git+${url}.git")
+sha256sums=('SKIP')
+
+pkgver() {
+    cd "${srcdir}/${pkgname}"
+    grep -oP '#define SILLYBEAR_VERSION "\K[^"]+' src/sysoptions.h
+}
+
+prepare() {
+    cd "${srcdir}/${pkgname}"
+    autoconf
+    autoheader
+}
+
+build() {
+    cd "${srcdir}/${pkgname}"
+    ./configure \
+        --prefix=/usr \
+        --sysconfdir=/etc/sillybear \
+        --enable-bundled-libtom \
+        --disable-pam \
+        --disable-lastlog
+    make PROGRAMS="sillybear dbclient sillybearkey sillybearconvert scp"
+}
+
+package() {
+    cd "${srcdir}/${pkgname}"
+    make DESTDIR="${pkgdir}" \
+        PROGRAMS="sillybear dbclient sillybearkey sillybearconvert scp" \
+        install
+    install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+    install -dm755 "${pkgdir}/etc/sillybear"
+}
