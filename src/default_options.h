@@ -347,7 +347,7 @@ group1 in Sillybear server too */
  * Homedir is prepended if path begins with ~/
  */
 #define SILLYBEAR_SFTPSERVER 1
-#define SFTPSERVER_PATH "/usr/libexec/sftp-server"
+#define SFTPSERVER_PATH "/usr/lib/ssh/sftp-server"
 
 /* This is used by the scp binary when used as a client binary. If you're
  * not using the Sillybear client, you'll need to change it */
