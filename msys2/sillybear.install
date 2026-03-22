@@ -11,33 +11,9 @@ _generate_host_keys() {
         if [ ! -f "${keyfile}" ]; then
             echo "  Generating ${kt} host key..."
             /usr/bin/sillybearkey -t "${kt}" -f "${keyfile}"
+            chmod 600 "${keyfile}"
         fi
     done
-}
-
-_register_service() {
-    # Only register if cygrunsrv is available and we're on Cygwin/MSYS2
-    if ! command -v cygrunsrv >/dev/null 2>&1; then
-        echo "  cygrunsrv not found, skipping service registration."
-        echo "  Install cygrunsrv and run: cygrunsrv -I ${SILLYBEAR_SERVICE} -d 'Sillybear SSH Server' -p /usr/bin/sillybear -a '-F' -y tcpip"
-        return
-    fi
-
-    # Check if already registered
-    if cygrunsrv -Q "${SILLYBEAR_SERVICE}" >/dev/null 2>&1; then
-        echo "  Service '${SILLYBEAR_SERVICE}' is already registered."
-        return
-    fi
-
-    echo "  Registering Windows service '${SILLYBEAR_SERVICE}'..."
-    cygrunsrv -I "${SILLYBEAR_SERVICE}" \
-        -d "Sillybear SSH Server" \
-        -p /usr/bin/sillybear \
-        -a "-F" \
-        -y tcpip
-
-    echo "  Starting service '${SILLYBEAR_SERVICE}'..."
-    cygrunsrv -S "${SILLYBEAR_SERVICE}" || true
 }
 
 _stop_service() {
@@ -63,16 +39,31 @@ _unregister_service() {
     fi
 }
 
+_print_service_hint() {
+    echo ""
+    echo "  To register sillybear as a Windows service, run from an"
+    echo "  Administrator MSYS2 shell:"
+    echo ""
+    echo "    sillybear-host-config"
+    echo ""
+    echo "  Or with auto-confirm:  sillybear-host-config -y"
+    echo ""
+}
+
 post_install() {
     _generate_host_keys
-    _register_service
+    _print_service_hint
 }
 
 post_upgrade() {
     _generate_host_keys
-    _stop_service
-    _unregister_service
-    _register_service
+    # Restart the service if it was registered
+    if command -v cygrunsrv >/dev/null 2>&1 && \
+       cygrunsrv -Q "${SILLYBEAR_SERVICE}" >/dev/null 2>&1; then
+        _stop_service
+        echo "  Starting service '${SILLYBEAR_SERVICE}'..."
+        cygrunsrv -S "${SILLYBEAR_SERVICE}" || true
+    fi
 }
 
 pre_remove() {
