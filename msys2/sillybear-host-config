@@ -2,17 +2,17 @@
 #
 # sillybear-host-config — configure sillybear as a Windows service
 #
-# Must be run from an Administrator MSYS2 shell.
+# Must be run from an elevated (Administrator) MSYS2 shell.
 # Analogous to ssh-host-config for OpenSSH on Cygwin/MSYS2.
+# Based on the battle-tested install-services.sh approach.
 #
 
 set -e
 
-SILLYBEAR_KEY_DIR="/etc/sillybear"
 SILLYBEAR_SERVICE="sillybear"
-SILLYBEAR_BIN="/usr/bin/sillybear"
+SILLYBEAR_BIN="/usr/bin/sillybear.exe"
 SILLYBEAR_KEYGEN="/usr/bin/sillybearkey"
-SILLYBEAR_PORT=22
+SILLYBEAR_PORT=2222
 
 usage() {
     echo "Usage: $0 [OPTIONS]"
@@ -22,7 +22,7 @@ usage() {
     echo ""
     echo "Options:"
     echo "  -y          Answer yes to all prompts (non-interactive)"
-    echo "  -p PORT     SSH port (default: 22)"
+    echo "  -p PORT     SSH port (default: 2222)"
     echo "  -u          Uninstall: stop and remove the service"
     echo "  -s          Status: show current service status"
     echo "  -h          Show this help"
@@ -30,7 +30,6 @@ usage() {
 }
 
 check_admin() {
-    # On MSYS2/Cygwin, check if we can write to a system location
     if ! net session >/dev/null 2>&1; then
         echo "ERROR: This script must be run from an Administrator shell."
         echo ""
@@ -59,22 +58,23 @@ check_prerequisites() {
     fi
 }
 
-generate_host_keys() {
-    echo "*** Generating host keys..."
-    mkdir -p "${SILLYBEAR_KEY_DIR}"
-    chmod 755 "${SILLYBEAR_KEY_DIR}"
+generate_host_key() {
+    local user
+    user=$(whoami)
+    local sshdir="/home/${user}/.ssh"
 
-    local keytypes="rsa ecdsa ed25519"
-    for kt in ${keytypes}; do
-        local keyfile="${SILLYBEAR_KEY_DIR}/sillybear_${kt}_host_key"
-        if [ -f "${keyfile}" ]; then
-            echo "  ${kt} host key already exists: ${keyfile}"
-        else
-            echo "  Generating ${kt} host key..."
-            "${SILLYBEAR_KEYGEN}" -t "${kt}" -f "${keyfile}"
-            chmod 600 "${keyfile}"
-        fi
-    done
+    echo "*** Setting up SSH directory and host key..."
+    mkdir -p "${sshdir}"
+    chmod 700 "${sshdir}"
+
+    local keyfile="${sshdir}/sillybear_ed25519_host_key"
+    if [ -f "${keyfile}" ]; then
+        echo "  Host key already exists: ${keyfile}"
+    else
+        echo "  Generating ed25519 host key..."
+        "${SILLYBEAR_KEYGEN}" -t ed25519 -f "${keyfile}"
+        chmod 600 "${keyfile}"
+    fi
 }
 
 show_status() {
@@ -83,56 +83,51 @@ show_status() {
         exit 1
     fi
 
-    if cygrunsrv -Q "${SILLYBEAR_SERVICE}" 2>/dev/null; then
-        :
-    else
-        echo "Service '${SILLYBEAR_SERVICE}' is not installed."
-    fi
+    echo "=== sillybear ==="
+    cygrunsrv -Q "${SILLYBEAR_SERVICE}" 2>/dev/null || echo "  Not installed."
+    echo ""
+    echo "=== ssh_gateway ==="
+    cygrunsrv -Q ssh_gateway 2>/dev/null || echo "  Not installed."
     exit 0
 }
 
 uninstall_service() {
-    echo "*** Removing sillybear service..."
-    if cygrunsrv -Q "${SILLYBEAR_SERVICE}" >/dev/null 2>&1; then
-        echo "  Stopping service..."
-        cygrunsrv -E "${SILLYBEAR_SERVICE}" 2>/dev/null || true
-        echo "  Removing service..."
-        cygrunsrv -R "${SILLYBEAR_SERVICE}"
-        echo "  Service removed."
-    else
-        echo "  Service '${SILLYBEAR_SERVICE}' is not installed."
-    fi
-    echo ""
-    echo "Host keys in ${SILLYBEAR_KEY_DIR} were NOT removed."
-    echo "Delete them manually if needed."
+    echo "*** Removing services..."
+    for svc in "${SILLYBEAR_SERVICE}" ssh_gateway; do
+        if cygrunsrv -Q "${svc}" >/dev/null 2>&1; then
+            echo "  Stopping ${svc}..."
+            cygrunsrv -E "${svc}" 2>/dev/null || true
+            echo "  Removing ${svc}..."
+            cygrunsrv -R "${svc}"
+        else
+            echo "  ${svc}: not installed."
+        fi
+    done
     exit 0
 }
 
 install_service() {
+    local user
+    user=$(whoami)
+    local sshdir="/home/${user}/.ssh"
+
     echo "*** Installing sillybear as a Windows service..."
 
-    # Check if already registered
-    if cygrunsrv -Q "${SILLYBEAR_SERVICE}" >/dev/null 2>&1; then
-        echo "  Service '${SILLYBEAR_SERVICE}' is already registered."
-        echo "  Use '$0 -u' to uninstall first, then re-run."
-        exit 1
-    fi
-
-    local args="-F"
-    if [ "${SILLYBEAR_PORT}" != "22" ]; then
-        args="${args} -p ${SILLYBEAR_PORT}"
-    fi
+    # Remove old registration if any (matches install-services.sh pattern)
+    cygrunsrv -R "${SILLYBEAR_SERVICE}" 2>/dev/null || true
 
     cygrunsrv -I "${SILLYBEAR_SERVICE}" \
-        -d "Sillybear SSH Server" \
         -p "${SILLYBEAR_BIN}" \
-        -a "${args}" \
-        -y tcpip
+        -a "-F -u ${user} -D ${sshdir} -r ${sshdir}/sillybear_ed25519_host_key -p ${SILLYBEAR_PORT}"
 
-    echo "  Service '${SILLYBEAR_SERVICE}' registered."
+    # Configure automatic restart on failure
+    sc.exe failure "${SILLYBEAR_SERVICE}" reset= 60 \
+        actions= restart/5000/restart/10000/restart/30000
+
+    echo "  Service registered."
     echo ""
     echo "*** Starting service..."
-    cygrunsrv -S "${SILLYBEAR_SERVICE}"
+    net start "${SILLYBEAR_SERVICE}"
     echo "  Service started."
 }
 
@@ -183,9 +178,10 @@ case "${MODE}" in
         check_prerequisites
 
         echo "This script will:"
-        echo "  1. Generate SSH host keys (if not present)"
-        echo "  2. Register sillybear as a Windows service"
-        echo "  3. Start the service (listening on port ${SILLYBEAR_PORT})"
+        echo "  1. Generate an ed25519 host key in ~/.ssh/"
+        echo "  2. Register sillybear as a Windows service (port ${SILLYBEAR_PORT})"
+        echo "  3. Configure automatic restart on failure"
+        echo "  4. Start the service"
         echo ""
 
         if ! confirm "Do you want to continue?"; then
@@ -194,19 +190,19 @@ case "${MODE}" in
         fi
 
         echo ""
-        generate_host_keys
+        generate_host_key
         echo ""
         install_service
         echo ""
         echo "=== Configuration complete ==="
         echo ""
         echo "The sillybear SSH server is now running on port ${SILLYBEAR_PORT}."
-        echo "It will start automatically on boot."
+        echo "It will start automatically on boot and restart on failure."
         echo ""
         echo "Management commands:"
         echo "  cygrunsrv -E ${SILLYBEAR_SERVICE}    # stop"
         echo "  cygrunsrv -S ${SILLYBEAR_SERVICE}    # start"
         echo "  cygrunsrv -Q ${SILLYBEAR_SERVICE}    # status"
-        echo "  $0 -u                                # uninstall"
+        echo "  $0 -u                                # uninstall all"
         ;;
 esac
