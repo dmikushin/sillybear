@@ -1,0 +1,80 @@
+SILLYBEAR_KEY_DIR="/etc/sillybear"
+SILLYBEAR_SERVICE="sillybear"
+
+_generate_host_keys() {
+    local keydir="${SILLYBEAR_KEY_DIR}"
+    mkdir -p "${keydir}"
+
+    local keytypes="rsa ecdsa ed25519"
+    for kt in ${keytypes}; do
+        local keyfile="${keydir}/sillybear_${kt}_host_key"
+        if [ ! -f "${keyfile}" ]; then
+            echo "  Generating ${kt} host key..."
+            /usr/bin/sillybearkey -t "${kt}" -f "${keyfile}"
+        fi
+    done
+}
+
+_register_service() {
+    # Only register if cygrunsrv is available and we're on Cygwin/MSYS2
+    if ! command -v cygrunsrv >/dev/null 2>&1; then
+        echo "  cygrunsrv not found, skipping service registration."
+        echo "  Install cygrunsrv and run: cygrunsrv -I ${SILLYBEAR_SERVICE} -d 'Sillybear SSH Server' -p /usr/bin/sillybear -a '-F' -y tcpip"
+        return
+    fi
+
+    # Check if already registered
+    if cygrunsrv -Q "${SILLYBEAR_SERVICE}" >/dev/null 2>&1; then
+        echo "  Service '${SILLYBEAR_SERVICE}' is already registered."
+        return
+    fi
+
+    echo "  Registering Windows service '${SILLYBEAR_SERVICE}'..."
+    cygrunsrv -I "${SILLYBEAR_SERVICE}" \
+        -d "Sillybear SSH Server" \
+        -p /usr/bin/sillybear \
+        -a "-F" \
+        -y tcpip
+
+    echo "  Starting service '${SILLYBEAR_SERVICE}'..."
+    cygrunsrv -S "${SILLYBEAR_SERVICE}" || true
+}
+
+_stop_service() {
+    if ! command -v cygrunsrv >/dev/null 2>&1; then
+        return
+    fi
+
+    if cygrunsrv -Q "${SILLYBEAR_SERVICE}" >/dev/null 2>&1; then
+        echo "  Stopping service '${SILLYBEAR_SERVICE}'..."
+        cygrunsrv -E "${SILLYBEAR_SERVICE}" || true
+    fi
+}
+
+_unregister_service() {
+    if ! command -v cygrunsrv >/dev/null 2>&1; then
+        return
+    fi
+
+    if cygrunsrv -Q "${SILLYBEAR_SERVICE}" >/dev/null 2>&1; then
+        echo "  Stopping and removing service '${SILLYBEAR_SERVICE}'..."
+        cygrunsrv -E "${SILLYBEAR_SERVICE}" || true
+        cygrunsrv -R "${SILLYBEAR_SERVICE}"
+    fi
+}
+
+post_install() {
+    _generate_host_keys
+    _register_service
+}
+
+post_upgrade() {
+    _generate_host_keys
+    _stop_service
+    _unregister_service
+    _register_service
+}
+
+pre_remove() {
+    _unregister_service
+}

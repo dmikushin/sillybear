@@ -6,8 +6,9 @@ pkgdesc="Lightweight SSH2 server and client"
 arch=('x86_64' 'i686')
 url="https://github.com/dmikushin/sillybear"
 license=('MIT')
-depends=('zlib' 'libxcrypt')
+depends=('zlib' 'libxcrypt' 'cygrunsrv')
 makedepends=('gcc' 'make' 'autoconf' 'zlib-devel' 'libcrypt-devel')
+install=sillybear.install
 source=("git+${url}.git")
 sha256sums=('SKIP')
 
